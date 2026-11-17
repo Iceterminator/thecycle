@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ContractData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
+[ext_resource type="Script" path="res://resources/camp_data.gd" id="2_camp"]
+[ext_resource type="Resource" path="res://data/quests/waves/facility.tres" id="3_w"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"facility"
+display_name = "Station de recherche"
+color = Color(0.35, 0.6, 1, 1)
+hold_time = 3.0
+points = 300
+count = 3
+radius = 7.0
+waves = Array[ExtResource("2_camp")]([ExtResource("3_w")])

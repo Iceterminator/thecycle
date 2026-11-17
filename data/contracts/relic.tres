@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ContractData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"relic"
+display_name = "Cœur stellaire"
+color = Color(1, 0.75, 0.2, 1)
+points_per_second = 4.0

@@ -25,7 +25,8 @@ extends Resource
 @export var post_hit_pause: float = 0.6        ## après un coup réussi : s'arrête et recule un peu (s)
 
 @export_group("Récompense")
-@export var credits: int = 10                  ## crédits lâchés à la mort
+@export var credits: int = 10                  ## crédits versés au tueur
+@export var biomass_drop: int = 0              ## biomasse lâchée au sol (contrat Biomasse)
 
 @export_group("Apparence")
 @export var radius: float = 0.35

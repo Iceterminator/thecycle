@@ -36,6 +36,12 @@ var credits: int = 0:
 	set(value):
 		credits = value
 		changed.emit()
+## Ressources de contrat portées (id -> quantité), ex. biomasse, Lumicèpes.
+## Toujours réassigner le dictionnaire entier pour la synchro.
+var carried: Dictionary = {}:
+	set(value):
+		carried = value
+		changed.emit()
 ## Consommable en cours d'utilisation ("" = aucun).
 var using_item: String = "":
 	set(value):
@@ -218,7 +224,29 @@ func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 			if health.shield_tier >= item.shield_tier:
 				return false
 			health.set_shield_tier(item.shield_tier)
+		ItemData.Kind.RESOURCE:
+			var have := get_resource(item.id)
+			var room := (item.max_carry - have) if item.max_carry > 0 else amount
+			if room <= 0:
+				return false
+			var c := carried.duplicate()
+			c[String(item.id)] = have + mini(amount, room)
+			carried = c
 	return true
+
+
+func get_resource(item_id: StringName) -> int:
+	return carried.get(String(item_id), 0)
+
+
+## Serveur : retire toute une ressource portée (dépôt à un collecteur). Renvoie la quantité.
+func take_resource(item_id: StringName) -> int:
+	var n := get_resource(item_id)
+	if n > 0:
+		var c := carried.duplicate()
+		c.erase(String(item_id))
+		carried = c
+	return n
 
 
 ## Serveur : dépense des crédits (achat). Renvoie false si pas assez.
@@ -260,6 +288,9 @@ func _on_dead_changed_server(dead: bool) -> void:
 		Events.loot_drop_requested.emit(Config.HEAL_ITEM, 1, -1, pos, true)
 	for i in shield_cells:
 		Events.loot_drop_requested.emit(Config.SHIELD_ITEM, 1, -1, pos, true)
+	for res_id: String in carried:
+		Events.loot_drop_requested.emit(StringName(res_id), carried[res_id], -1, pos, true)
+	carried = {}
 
 	var lost := int(credits * Config.DEATH_CREDITS_LOSS)
 	if lost > 0:

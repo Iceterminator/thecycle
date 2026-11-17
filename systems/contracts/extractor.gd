@@ -1,0 +1,87 @@
+class_name Extractor
+extends ContractSite
+## Contrat « Extraction d'Ambrine ». Maintenir E (data.hold_time) pour installer
+## l'extracteur, ou le reprendre à un autre joueur (le stock accumulé est volé avec).
+## L'Ambrine s'accumule de plus en plus vite tant que l'extracteur reste au même
+## propriétaire : points_per_second + points_growth × minutes tenues.
+## Le propriétaire récolte le stock (maintenir E Config.COLLECT_HOLD_TIME) -> points.
+## Les monstres ne sont pas alertés ; les joueurs, si (annonce).
+## Champs utilisés : hold_time, points_per_second, points_growth, color.
+
+var owner_id: int = 0      ## synchronisé
+var stock: float = 0.0     ## synchronisé
+var held_minutes: float = 0.0  ## synchronisé
+
+
+func _sync_props() -> Array[String]:
+	return ["owner_id", "stock", "held_minutes"]
+
+
+func _build_visual() -> void:
+	add_cylinder_collision(1.0, 2.2)
+	var deposit := CylinderMesh.new()
+	deposit.top_radius = 1.2
+	deposit.bottom_radius = 1.5
+	deposit.height = 0.4
+	deposit.radial_segments = 7
+	var d := make_mesh(deposit, data.color.darkened(0.3), true)
+	d.position.y = 0.2
+	add_child(d)
+	var tank := CylinderMesh.new()
+	tank.top_radius = 0.7
+	tank.bottom_radius = 0.8
+	tank.height = 1.8
+	var t := make_mesh(tank, Color(0.55, 0.58, 0.62))
+	t.position.y = 1.3
+	add_child(t)
+
+
+func _label_height() -> float:
+	return 3.2
+
+
+func current_rate() -> float:
+	return data.points_per_second + data.points_growth * held_minutes
+
+
+func _refresh() -> void:
+	if owner_id == 0:
+		_label.text = "%s — libre" % data.display_name
+	else:
+		_label.text = "%s — %s\n%d pts en stock (%.1f/s)" % [data.display_name, player_name(owner_id), int(stock), current_rate()]
+
+
+func get_prompt(player: Player) -> String:
+	if owner_id == player.get_peer_id():
+		return "Maintenir E : récolter %d pts d'Ambrine" % int(stock)
+	if owner_id == 0:
+		return "Maintenir E (%d s) : installer un extracteur" % int(data.hold_time)
+	return "Maintenir E (%d s) : reprendre l'extracteur (%d pts en stock)" % [int(data.hold_time), int(stock)]
+
+
+func get_hold_time(player: Player) -> float:
+	return Config.COLLECT_HOLD_TIME if owner_id == player.get_peer_id() else data.hold_time
+
+
+func server_interact(player: Player) -> void:
+	var peer := player.get_peer_id()
+	if owner_id == peer:
+		var pts := int(stock)
+		if pts > 0:
+			player.score.add_quest_points(pts)
+			stock -= pts
+		return
+	var verb := "installé" if owner_id == 0 else "repris"
+	owner_id = peer
+	held_minutes = 0.0
+	announce("%s a %s l'extracteur d'Ambrine !" % [player_name(peer), verb])
+
+
+func _physics_process(delta: float) -> void:
+	if owner_id == 0:
+		return
+	if find_player(owner_id) == null:
+		owner_id = 0
+		return
+	held_minutes += delta / 60.0
+	stock += current_rate() * delta

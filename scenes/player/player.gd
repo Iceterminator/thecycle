@@ -51,6 +51,8 @@ func _ready() -> void:
 	body_mesh.visible = not is_local
 	health.dead_changed.connect(_on_dead_changed)
 	add_to_group("damageable")
+	if not is_local:
+		_build_beacon()
 	if is_local:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		var hud: CombatHud = HUD_SCRIPT.new()
@@ -140,6 +142,27 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 func is_headshot(point: Vector3) -> bool:
 	var top := global_position.y + (collision.shape as CapsuleShape3D).height
 	return point.y >= top - Config.HEAD_ZONE_HEIGHT
+
+
+## Balise au-dessus des AUTRES joueurs, visible de loin et à travers le décor,
+## quand leur Score.beacon n'est pas vide (porteur du Cœur stellaire, prime…).
+func _build_beacon() -> void:
+	var label := Label3D.new()
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.pixel_size = 0.0009
+	label.font_size = 30
+	label.outline_size = 8
+	label.modulate = Color(1, 0.85, 0.2)
+	label.position.y = 2.4
+	add_child(label)
+	var refresh := func() -> void:
+		label.text = score.beacon
+		label.visible = score.beacon != "" and not health.is_dead
+	score.changed.connect(refresh)
+	health.dead_changed.connect(func(_d: bool) -> void: refresh.call())
+	refresh.call()
 
 
 func _on_dead_changed(dead: bool) -> void:

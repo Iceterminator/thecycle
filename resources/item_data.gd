@@ -3,7 +3,7 @@ extends Resource
 ## Un objet ramassable. Un objet = un fichier .tres dans data/items/.
 ## Le réseau n'envoie que l'`id` ; l'autoload Items retrouve la ressource.
 
-enum Kind { WEAPON, HEAL, SHIELD_RECHARGE, CREDITS, SHIELD_UPGRADE }
+enum Kind { WEAPON, HEAL, SHIELD_RECHARGE, CREDITS, SHIELD_UPGRADE, RESOURCE }
 
 @export var id: StringName
 @export var display_name: String
@@ -17,3 +17,4 @@ enum Kind { WEAPON, HEAL, SHIELD_RECHARGE, CREDITS, SHIELD_UPGRADE }
 @export_group("Boutique")
 @export var price: int = 0                     ## prix en crédits (0 = pas en vente)
 @export var shield_tier: int = 0               ## Kind.SHIELD_UPGRADE : palier obtenu (voir Config.SHIELD_PER_TIER)
+@export var max_carry: int = 0                 ## Kind.RESOURCE : quantité max portée (0 = illimitée)

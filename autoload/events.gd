@@ -34,6 +34,12 @@ signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
 signal quest_points_changed(peer_id: int, total: int)
 
+# Contrats (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime)
+## Serveur : demande d'annonce à tous les joueurs (le QuestManager la diffuse).
+signal announce_requested(text: String, color: Color)
+## Client : une annonce est arrivée (affichée par le HUD).
+signal announcement(text: String, color: Color)
+
 # Partie (étapes 5-7)
 signal fame_changed(peer_id: int, new_fame: int)
 signal contract_completed(peer_id: int, contract_id: StringName)

@@ -44,6 +44,7 @@ var players_root: Node
 var home: Vector3
 var objective: Node3D          ## monstre de vague : ce qu'il doit détruire
 var damage_mult: float = 1.0   ## vagues difficiles : coups plus forts
+var _had_objective: bool = false
 var _agent: NavigationAgent3D
 var _target: Node3D
 var _has_patrol_point: bool = false
@@ -126,6 +127,7 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 
 ## Monstre de vague : fonce sur son objectif dès son apparition.
 func aggro_objective() -> void:
+	_had_objective = true
 	if is_instance_valid(objective):
 		_target = objective
 		state = State.CHASE
@@ -280,6 +282,10 @@ func _start_return() -> void:
 		state = State.CHASE
 		_repath_left = 0.0
 		return
+	if _had_objective:
+		# Objectif détruit / joueur ciblé mort : le monstre de vague n'a plus de raison d'être.
+		queue_free()
+		return
 	_target = null
 	state = State.RETURN
 	_repath_left = 0.0
@@ -367,6 +373,8 @@ func _die(killer_id: int) -> void:
 	var killer := players_root.get_node_or_null(str(killer_id)) as Player if players_root else null
 	if killer and data.credits > 0:
 		killer.inventory.add_credits(data.credits)
+	if data.biomass_drop > 0:
+		Events.loot_drop_requested.emit(&"biomass", data.biomass_drop, -1, global_position + Vector3.UP * 0.4, true)
 	Events.monster_killed.emit(data.id, killer_id)
 	if camp:
 		camp.on_monster_died(self, killer_id)

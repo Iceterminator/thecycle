@@ -21,6 +21,8 @@ var _credits_label: Label
 var _prompt_label: Label
 var _use_bar: ProgressBar
 var _quest_label: Label
+var _banner: Label
+var _banner_tween: Tween
 
 var _hold_ratio: float = 0.0  ## maintien de E en cours (cristal…)
 var _last_total: float = -1.0
@@ -41,6 +43,7 @@ func setup(player: Player) -> void:
 	player.interactor.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
 	player.score.changed.connect(_on_score_changed)
 	_on_score_changed()
+	Events.announcement.connect(_on_announcement)
 	_on_health_changed()
 	_on_inventory_changed()
 	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine_size, false)
@@ -61,6 +64,16 @@ func _process(delta: float) -> void:
 		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
 
 
+func _on_announcement(text: String, color: Color) -> void:
+	_banner.text = text
+	_banner.modulate = color
+	if _banner_tween:
+		_banner_tween.kill()
+	_banner_tween = create_tween()
+	_banner_tween.tween_interval(4.0)
+	_banner_tween.tween_property(_banner, "modulate:a", 0.0, 0.8)
+
+
 func _on_score_changed() -> void:
 	_quest_label.text = "%d pts de quête" % _player.score.quest_points
 
@@ -72,7 +85,11 @@ func _on_inventory_changed() -> void:
 		var label := _slot_labels[i]
 		label.text = "[%d] %s" % [i + 1, item.display_name if item else "—"]
 		label.modulate = Color(1, 0.85, 0.3) if i == inv.active_slot else Color(1, 1, 1, 0.55)
-	_items_label.text = "[3] Soins ×%d    [4] Recharges ×%d" % [inv.medkits, inv.shield_cells]
+	var text := "[3] Soins ×%d    [4] Recharges ×%d" % [inv.medkits, inv.shield_cells]
+	for res_id: String in inv.carried:
+		var res := Items.get_item(StringName(res_id))
+		text += "    %s ×%d" % [res.display_name if res else res_id, inv.carried[res_id]]
+	_items_label.text = text
 	_credits_label.text = "%d crédits   [T] Boutique" % inv.credits
 
 
@@ -206,6 +223,13 @@ func _build() -> void:
 	_credits_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_credits_label.offset_right = -32
 	_credits_label.offset_top = 20
+	# Bandeau d'annonces (contrats capturés, prime, cœur stellaire…), en haut au centre.
+	_banner = _make_label("", 26)
+	_banner.modulate.a = 0.0
+	add_child(_banner)
+	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_banner.offset_top = 90
 	_quest_label = _make_label("", 22)
 	_quest_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
 	add_child(_quest_label)

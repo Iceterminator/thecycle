@@ -53,6 +53,10 @@ func get_prompt(player: Player) -> String:
 				return "Cellules de bouclier pleines"
 		ItemData.Kind.CREDITS:
 			return "E : Ramasser %d crédits" % amount
+		ItemData.Kind.RESOURCE:
+			if item.max_carry > 0 and inv.get_resource(item.id) >= item.max_carry:
+				return "%s : vous en portez déjà le maximum" % item.display_name
+			return "E : Ramasser %d %s" % [amount, item.display_name]
 		ItemData.Kind.SHIELD_UPGRADE:
 			if player.health.shield_tier >= item.shield_tier:
 				return "%s : votre bouclier est déjà au moins aussi bon" % item.display_name

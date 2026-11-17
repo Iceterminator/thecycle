@@ -86,6 +86,17 @@ const CRYSTAL_RESET_DELAY := 15.0        # foreuse détruite : le cristal redevi
 const CRYSTAL_RESPAWN_DELAY := 120.0     # cristal extrait : il réapparaît après (tests)
 const HOLD_SERVER_TOLERANCE := 0.85      # le serveur accepte un maintien de E à 85 % de la durée (latence)
 
+# --- Contrats (valeurs provisoires) ---
+const CONTRACT_RESET_DELAY := 90.0       # station / drones : réutilisables après (s)
+const COLLECT_HOLD_TIME := 1.5           # maintenir E pour récolter / déposer / envoyer (s)
+const LUMICEP_RESPAWN_TIME := 60.0       # les Lumicèpes repoussent sur leurs spots (s)
+const TICK_INTERVAL := 24.0              # Tiques : une toutes les (TICK_INTERVAL / Lumicèpes portés) s
+const TICK_MIN_INTERVAL := 4.0
+const BOUNTY_INTERVAL := 90.0            # une prime est posée toutes les… (s)
+const BOUNTY_DURATION := 120.0           # survivre ce temps = la cible touche la moitié de la prime
+const BOUNTY_BASE := 150                 # prime de base (points de quête)
+const BOUNTY_SHARE := 0.25               # + cette part des points de la cible
+
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort
 const MAX_ACTIVE_CONTRACTS := 2
