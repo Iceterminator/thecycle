@@ -77,7 +77,7 @@ func _refresh() -> void:
 	if done:
 		_label.text = "%s\nRéactivée — de nouveau disponible bientôt" % data.display_name
 	else:
-		_label.text = "%s\n%d / %d nœuds actifs (+%d pts)" % [data.display_name, n, data.count, data.points]
+		_label.text = "%s\n%d / %d nœuds actifs (+%d pts de classement)" % [data.display_name, n, data.count, data.points]
 
 
 func _all_active() -> bool:
@@ -91,7 +91,7 @@ func get_prompt(_player: Player) -> String:
 		return ""
 	if not _all_active():
 		return "Ordinateur central : activez d'abord les %d nœuds" % data.count
-	return "Maintenir E (%d s) : relancer la station (+%d pts)" % [int(data.hold_time), data.points]
+	return "Maintenir E (%d s) : relancer la station (+%d pts de classement)" % [int(data.hold_time), data.points]
 
 
 func get_hold_time(_player: Player) -> float:
@@ -102,8 +102,8 @@ func server_interact(player: Player) -> void:
 	if done or not _all_active():
 		return
 	done = true
-	player.score.add_quest_points(data.points)
-	announce("%s a réactivé la %s (+%d pts)" % [player_name(player.get_peer_id()), data.display_name.to_lower(), data.points])
+	player.score.add_rank_points(data.points)
+	announce("%s a réactivé la %s (+%d pts de classement)" % [player_name(player.get_peer_id()), data.display_name.to_lower(), data.points])
 	await get_tree().create_timer(Config.CONTRACT_RESET_DELAY).timeout
 	if is_inside_tree():
 		active_mask = 0

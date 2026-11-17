@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ObjectiveTrack" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+
+[resource]
+script = ExtResource("1_t")
+id = &"forage"
+display_name = "Forage"
+color = Color(0.7, 0.4, 1, 1)
+thresholds = PackedInt32Array(100, 300, 600, 1000)
+rewards = PackedInt32Array(10, 15, 20, 25)

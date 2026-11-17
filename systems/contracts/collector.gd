@@ -26,14 +26,14 @@ func _label_height() -> float:
 
 func _refresh() -> void:
 	var res_name := data.resource_item.display_name if data.resource_item else "?"
-	_label.text = "%s\n%s : %d pts l'unité" % [data.display_name, res_name, data.points]
+	_label.text = "%s\n%s : %d pts d'objectif l'unité" % [data.display_name, res_name, data.points]
 
 
 func get_prompt(player: Player) -> String:
 	var n := player.inventory.get_resource(data.resource_item.id)
 	if n <= 0:
 		return "%s : apportez des %ss" % [data.display_name, data.resource_item.display_name.to_lower()]
-	return "Maintenir E : déposer %d %s (+%d pts)" % [n, data.resource_item.display_name.to_lower(), n * data.points]
+	return "Maintenir E : déposer %d %s (+%d pts d'objectif)" % [n, data.resource_item.display_name.to_lower(), n * data.points]
 
 
 func get_hold_time(player: Player) -> float:
@@ -43,5 +43,5 @@ func get_hold_time(player: Player) -> float:
 func server_interact(player: Player) -> void:
 	var n := player.inventory.take_resource(data.resource_item.id)
 	if n > 0:
-		player.score.add_quest_points(n * data.points)
+		player.score.add_objective_points(data.track, n * data.points)
 		print("[Contrat] %s : %d %s déposés (+%d)" % [player_name(player.get_peer_id()), n, data.resource_item.id, n * data.points])

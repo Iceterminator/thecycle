@@ -8,7 +8,7 @@ extends StaticBody3D
 ##   DEFENSE  : des vagues de monstres arrivent et attaquent la foreuse (PV de foreuse).
 ##              Il faut tuer tous les monstres de toutes les vagues.
 ##              Si la foreuse est détruite -> FAILED, puis retour à IDLE après un délai.
-##   EXTRACT  : maintenir E 5 s -> points de quête pour celui qui extrait.
+##   EXTRACT  : maintenir E 5 s -> points d'objectif « Forage » pour celui qui extrait.
 ##   DONE     : épuisé ; réapparaît après Config.CRYSTAL_RESPAWN_DELAY (tests).
 ##
 ## La foreuse n'est PAS dans le groupe "damageable" : les armes des joueurs ne la
@@ -86,11 +86,11 @@ func _process(delta: float) -> void:
 func get_prompt(_player: Player) -> String:
 	match state:
 		State.IDLE:
-			return "Maintenir E (%d s) : lancer la foreuse — %s %s (+%d pts de quête)" % [
-				int(Config.CRYSTAL_ACTIVATE_TIME), data.display_name, data.difficulty_name, data.quest_points]
+			return "Maintenir E (%d s) : lancer la foreuse — %s %s (+%d pts de Forage)" % [
+				int(Config.CRYSTAL_ACTIVATE_TIME), data.display_name, data.difficulty_name, data.objective_points]
 		State.EXTRACT:
-			return "Maintenir E (%d s) : extraire le cristal (+%d pts de quête)" % [
-				int(Config.CRYSTAL_EXTRACT_TIME), data.quest_points]
+			return "Maintenir E (%d s) : extraire le cristal (+%d pts de Forage)" % [
+				int(Config.CRYSTAL_EXTRACT_TIME), data.objective_points]
 	return ""
 
 
@@ -212,9 +212,9 @@ func _fail() -> void:
 
 func _complete(player: Player) -> void:
 	state = State.DONE
-	player.score.add_quest_points(data.quest_points)
-	print("[Quête] %s extrait par %d : +%d points" % [name, player.get_peer_id(), data.quest_points])
-	Events.quest_completed.emit(StringName(name), player.get_peer_id(), data.quest_points)
+	player.score.add_objective_points(data.track, data.objective_points)
+	print("[Quête] %s extrait par %d : +%d points" % [name, player.get_peer_id(), data.objective_points])
+	Events.quest_completed.emit(StringName(name), player.get_peer_id(), data.objective_points)
 	await get_tree().create_timer(Config.CRYSTAL_RESPAWN_DELAY).timeout
 	if is_inside_tree() and state == State.DONE:
 		state = State.IDLE
@@ -350,7 +350,7 @@ func _update_label() -> void:
 	var title := "%s %s" % [data.display_name, data.difficulty_name]
 	match state:
 		State.IDLE:
-			_label.text = "%s\n+%d pts de quête" % [title, data.quest_points]
+			_label.text = "%s\n+%d pts de Forage" % [title, data.objective_points]
 			_label.modulate = data.color
 		State.DEFENSE:
 			var wave_text := ""

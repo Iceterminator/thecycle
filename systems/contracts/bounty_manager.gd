@@ -30,8 +30,8 @@ func _physics_process(delta: float) -> void:
 		if _time_left <= 0.0:
 			var target := _find(_target_id)
 			if target:
-				target.score.add_quest_points(_amount / 2)
-			_clear("%s a survécu à sa prime (+%d pts)" % [ContractSite.player_name(_target_id), _amount / 2])
+				target.score.add_rank_points(_amount / 2)
+			_clear("%s a survécu à sa prime (+%d pts de classement)" % [ContractSite.player_name(_target_id), _amount / 2])
 		return
 	_cooldown -= delta
 	if _cooldown > 0.0:
@@ -45,13 +45,13 @@ func _physics_process(delta: float) -> void:
 	if alive.size() < 2:
 		return
 	alive.shuffle()
-	alive.sort_custom(func(a: Player, b: Player) -> bool: return a.score.quest_points > b.score.quest_points)
+	alive.sort_custom(func(a: Player, b: Player) -> bool: return a.score.rank_points > b.score.rank_points)
 	var target := alive[0]
 	_target_id = target.get_peer_id()
-	_amount = Config.BOUNTY_BASE + int(target.score.quest_points * Config.BOUNTY_SHARE)
+	_amount = Config.BOUNTY_BASE + int(target.score.rank_points * Config.BOUNTY_SHARE)
 	_time_left = Config.BOUNTY_DURATION
 	target.score.set_beacon(&"bounty", "☠ PRIME %d pts" % _amount)
-	Events.announce_requested.emit("Prime de %d pts sur %s ! Sa position est visible." % [_amount, ContractSite.player_name(_target_id)], COLOR)
+	Events.announce_requested.emit("Prime de %d pts de classement sur %s ! Sa position est visible." % [_amount, ContractSite.player_name(_target_id)], COLOR)
 
 
 func _on_player_died(victim: int, killer: int) -> void:
@@ -59,8 +59,8 @@ func _on_player_died(victim: int, killer: int) -> void:
 		return
 	var hunter := _find(killer) if killer != victim else null
 	if hunter:
-		hunter.score.add_quest_points(_amount)
-		_clear("%s a touché la prime sur %s (+%d pts)" % [ContractSite.player_name(killer), ContractSite.player_name(victim), _amount])
+		hunter.score.add_rank_points(_amount)
+		_clear("%s a touché la prime sur %s (+%d pts de classement)" % [ContractSite.player_name(killer), ContractSite.player_name(victim), _amount])
 	else:
 		_clear("La prime sur %s est annulée" % ContractSite.player_name(victim))
 

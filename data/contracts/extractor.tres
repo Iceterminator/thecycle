@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="ContractData" load_steps=2 format=3]
 
+[ext_resource type="Resource" path="res://data/objectives/ambrine.tres" id="9_track"]
 [ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
 
 [resource]
@@ -10,3 +11,4 @@ color = Color(0.3, 0.95, 0.85, 1)
 hold_time = 4.0
 points_per_second = 1.0
 points_growth = 1.5
+track = ExtResource("9_track")

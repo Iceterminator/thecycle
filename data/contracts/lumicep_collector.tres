@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="ContractData" load_steps=3 format=3]
 
+[ext_resource type="Resource" path="res://data/objectives/lumicepes.tres" id="9_track"]
 [ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
 [ext_resource type="Resource" path="res://data/items/lumicep.tres" id="2_item"]
 
@@ -8,5 +9,6 @@ script = ExtResource("1_c")
 id = &"lumicep_collector"
 display_name = "Collecteur de Lumicèpes"
 color = Color(0.5, 1, 0.6, 1)
-points = 40
+points = 25
 resource_item = ExtResource("2_item")
+track = ExtResource("9_track")

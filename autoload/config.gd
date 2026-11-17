@@ -94,8 +94,8 @@ const TICK_INTERVAL := 24.0              # Tiques : une toutes les (TICK_INTERVA
 const TICK_MIN_INTERVAL := 4.0
 const BOUNTY_INTERVAL := 90.0            # une prime est posée toutes les… (s)
 const BOUNTY_DURATION := 120.0           # survivre ce temps = la cible touche la moitié de la prime
-const BOUNTY_BASE := 150                 # prime de base (points de quête)
-const BOUNTY_SHARE := 0.25               # + cette part des points de la cible
+const BOUNTY_BASE := 20                  # prime de base (points de classement)
+const BOUNTY_SHARE := 0.10               # + cette part des points de classement de la cible
 
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort

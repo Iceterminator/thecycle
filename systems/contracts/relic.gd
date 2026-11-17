@@ -47,7 +47,7 @@ func setup(contract_data: ContractData) -> void:
 	_label.font_size = 30
 	_label.outline_size = 8
 	_label.modulate = data.color
-	_label.text = "★ %s (+%d pts/s en le portant)" % [data.display_name, int(data.points_per_second)]
+	_label.text = "★ %s (+%d pts d'objectif/s en le portant)" % [data.display_name, int(data.points_per_second)]
 	_label.position.y = 2.0
 	add_child(_label)
 	var config := SceneReplicationConfig.new()
@@ -101,7 +101,7 @@ func _physics_process(delta: float) -> void:
 	var whole := int(_points_acc)
 	if whole > 0:
 		_points_acc -= whole
-		carrier.score.add_quest_points(whole)
+		carrier.score.add_objective_points(data.track, whole)
 
 
 func _drop() -> void:

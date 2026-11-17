@@ -48,15 +48,15 @@ func _refresh() -> void:
 	if owner_id == 0:
 		_label.text = "%s — libre" % data.display_name
 	else:
-		_label.text = "%s — %s\n%d pts en stock (%.1f/s)" % [data.display_name, player_name(owner_id), int(stock), current_rate()]
+		_label.text = "%s — %s\n%d pts d'objectif en stock (%.1f/s)" % [data.display_name, player_name(owner_id), int(stock), current_rate()]
 
 
 func get_prompt(player: Player) -> String:
 	if owner_id == player.get_peer_id():
-		return "Maintenir E : récolter %d pts d'Ambrine" % int(stock)
+		return "Maintenir E : récolter %d pts d'objectif Ambrine" % int(stock)
 	if owner_id == 0:
 		return "Maintenir E (%d s) : installer un extracteur" % int(data.hold_time)
-	return "Maintenir E (%d s) : reprendre l'extracteur (%d pts en stock)" % [int(data.hold_time), int(stock)]
+	return "Maintenir E (%d s) : reprendre l'extracteur (%d pts d'objectif en stock)" % [int(data.hold_time), int(stock)]
 
 
 func get_hold_time(player: Player) -> float:
@@ -68,7 +68,7 @@ func server_interact(player: Player) -> void:
 	if owner_id == peer:
 		var pts := int(stock)
 		if pts > 0:
-			player.score.add_quest_points(pts)
+			player.score.add_objective_points(data.track, pts)
 			stock -= pts
 		return
 	var verb := "installé" if owner_id == 0 else "repris"

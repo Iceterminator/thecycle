@@ -36,12 +36,12 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
 - `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
-  LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (points de quête),
+  LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (points de classement + points d'objectif à paliers),
   `inventory/`, `interaction/` (E, y compris « maintenir E »), `monsters/` (monstre, camps, MonsterManager,
   navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`) ;
   match, tempête, évac… (à venir)
 - `resources/` scripts de types de données
-- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat)
+- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement)
 - `assets/` modèles, sons, textures
 
 ## Tester

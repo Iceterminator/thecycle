@@ -75,7 +75,17 @@ func _on_announcement(text: String, color: Color) -> void:
 
 
 func _on_score_changed() -> void:
-	_quest_label.text = "%d pts de quête" % _player.score.quest_points
+	# Classement, puis la progression de chaque objectif commencé (vers le prochain palier).
+	var text := "%d pts de classement" % _player.score.rank_points
+	var objectives: Dictionary = _player.score.objective_points
+	for path: String in objectives:
+		var track := load(path) as ObjectiveTrack
+		if track == null:
+			continue
+		var pts: int = objectives[path]
+		var tier := track.tiers_reached(pts)
+		text += "\n%s : %d / %d (palier %d)" % [track.display_name, pts, track.threshold(tier), tier]
+	_quest_label.text = text
 
 
 func _on_inventory_changed() -> void:
@@ -230,7 +240,8 @@ func _build() -> void:
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_banner.offset_top = 90
-	_quest_label = _make_label("", 22)
+	_quest_label = _make_label("", 20)
+	_quest_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_quest_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
 	add_child(_quest_label)
 	_quest_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)

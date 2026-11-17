@@ -46,7 +46,7 @@ func _refresh() -> void:
 
 func get_prompt(player: Player) -> String:
 	if owner_id == player.get_peer_id():
-		return "%s sous votre contrôle (+%d pts/s)" % [data.display_name, int(data.points_per_second)]
+		return "%s sous votre contrôle (+%d pts d'objectif/s)" % [data.display_name, int(data.points_per_second)]
 	return "Maintenir E (%d s) : capturer le %s" % [int(data.hold_time), data.display_name.to_lower()]
 
 

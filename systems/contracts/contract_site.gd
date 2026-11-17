@@ -93,14 +93,14 @@ static func player_name(peer_id: int) -> String:
 	return "Joueur %d" % peer_id
 
 
-## Serveur : gain continu de points (fractions cumulées).
+## Serveur : gain continu de points d'objectif (fractions cumulées).
 func give_points_over_time(player: Player, rate: float, delta: float) -> void:
 	var peer := player.get_peer_id()
 	var acc: float = _points_acc.get(peer, 0.0) + rate * delta
 	var whole := int(acc)
 	_points_acc[peer] = acc - whole
 	if whole > 0:
-		player.score.add_quest_points(whole)
+		player.score.add_objective_points(data.track, whole)
 
 
 func announce(text: String) -> void:

@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="CrystalData" load_steps=5 format=3]
 
+[ext_resource type="Resource" path="res://data/objectives/forage.tres" id="9_track"]
 [ext_resource type="Script" path="res://resources/crystal_data.gd" id="1_crystal"]
 [ext_resource type="Script" path="res://resources/camp_data.gd" id="2_camp"]
 [ext_resource type="Resource" path="res://data/quests/waves/medium_1.tres" id="3_w1"]
@@ -15,4 +16,5 @@ waves = Array[ExtResource("2_camp")]([ExtResource("3_w1"), ExtResource("4_w2")])
 monster_health_mult = 1.0
 monster_damage_mult = 1.0
 drill_health = 1200.0
-quest_points = 250
+objective_points = 250
+track = ExtResource("9_track")

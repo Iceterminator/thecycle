@@ -32,7 +32,7 @@ signal wave_spawn_requested(objective: Node3D, monster_data: MonsterData, positi
 signal quest_started(quest_name: StringName, peer_id: int)
 signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
-signal quest_points_changed(peer_id: int, total: int)
+signal rank_points_changed(peer_id: int, total: int)
 
 # Contrats (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime)
 ## Serveur : demande d'annonce à tous les joueurs (le QuestManager la diffuse).
