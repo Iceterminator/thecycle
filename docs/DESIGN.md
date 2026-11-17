@@ -133,7 +133,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 
 - [x] **Étape 0 – Projet de base** — un serveur et un client se connectent en local.
 - [x] **Étape 1 – Joueurs en réseau** — déplacement FPS répliqué, apparition au point de largage. Fini quand : 2 joueurs se voient bouger sans saccade *(à vérifier en jeu)*.
-- [ ] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches.
+- [x] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches *(validé par test automatisé ; à vérifier en jeu)*.
 - [ ] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits.
 - [ ] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur.
 - [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.

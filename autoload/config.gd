@@ -25,6 +25,14 @@ const MAX_HEALTH := 100.0
 const SHIELD_PER_TIER := [0.0, 50.0, 100.0, 150.0]
 const SHIELD_REGEN_DELAY := 5.0
 const SHIELD_REGEN_RATE := 25.0          # points par seconde
+const STARTING_SHIELD_TIER := 1          # palier de bouclier au largage (0 à 3)
+
+# --- Combat ---
+const DEFAULT_FOV := 90.0
+const ADS_FOV := 60.0                    # champ de vision en visée
+const HEAD_ZONE_HEIGHT := 0.45           # haut de la capsule compté comme « tête » (m)
+const SHOT_ORIGIN_TOLERANCE := 2.0       # écart max (m) entre l'origine d'un tir et les yeux vus par le serveur
+const FIRE_BURST_TOLERANCE := 3.0        # tirs d'avance tolérés par le serveur (gigue réseau)
 
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort

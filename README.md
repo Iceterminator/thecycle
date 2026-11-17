@@ -11,8 +11,10 @@ feuille de route sont dans `docs/DESIGN.md`. Les règles pour l'IA sont dans `CL
 
 ## Contrôles
 Touches physiques (ZQSD sur AZERTY, WASD sur QWERTY) · Espace : sauter ·
-Maj : sprint · Ctrl : s'accroupir · Échap : libérer la souris.
+Maj : sprint · Ctrl : s'accroupir · Clic gauche : tirer · Clic droit : viser ·
+R : recharger · Échap : libérer la souris.
 
 ## État
-Étapes 0 et 1 de la feuille de route : connexion réseau et joueurs FPS répliqués.
-Prochaine étape : **Étape 2 – Combat**.
+Étapes 0 à 2 de la feuille de route : connexion réseau, joueurs FPS répliqués, combat
+(fusil d'assaut hitscan validé par le serveur, PV + bouclier, mort et réapparition).
+Prochaine étape : **Étape 3 – Loot et inventaire**.

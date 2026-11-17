@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
+[ext_resource type="Script" path="res://systems/combat/respawn_manager.gd" id="2_respawn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 sky_top_color = Color(0.28, 0.36, 0.5, 1)
@@ -98,6 +99,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 2, -40)
 [node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("res://scenes/player/player.tscn")
 spawn_path = NodePath("../Players")
+
+[node name="RespawnManager" type="Node" parent="."]
+script = ExtResource("2_respawn")
 
 [node name="SpectatorCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 0, 40, 60)

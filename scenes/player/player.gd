@@ -1,17 +1,25 @@
+class_name Player
 extends CharacterBody3D
 ## Joueur FPS répliqué en réseau.
 ## - Le nom du nœud = l'id réseau du joueur (donné par world.gd).
 ## - Ce client a l'autorité sur SON joueur : il lit les touches et bouge.
-## - Le MultiplayerSynchronizer envoie position/rotation aux autres.
-## Étape 2 : santé, bouclier et dégâts seront décidés par le serveur.
+## - Le Synchronizer envoie position/rotation/accroupi aux autres.
+## - Santé, bouclier et mort (nœud Health) sont décidés par le SERVEUR :
+##   ce nœud et son HealthSync gardent l'autorité 1.
+## - L'arme (nœud Weapon) demande au serveur de tirer, voir systems/combat/weapon.gd.
+
+const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var body_mesh: MeshInstance3D = $BodyMesh
 @onready var collision: CollisionShape3D = $CollisionShape3D
+@onready var health: Health = $Health
+@onready var weapon: Weapon = $Weapon
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
-var is_crouching := false
+## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.
+var is_crouching: bool = false
 
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.1
@@ -20,6 +28,12 @@ const HEAD_OFFSET := 0.2  # distance entre le haut de la capsule et les yeux
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
+	# La santé reste au serveur (récursif : HealthSync aussi).
+	$Health.set_multiplayer_authority(1)
+
+
+func get_peer_id() -> int:
+	return name.to_int()
 
 
 func _ready() -> void:
@@ -28,9 +42,18 @@ func _ready() -> void:
 	camera.current = is_local
 	# On ne voit pas son propre corps (évite que la capsule bouche la vue).
 	body_mesh.visible = not is_local
+	health.dead_changed.connect(_on_dead_changed)
 	if is_local:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		var hud: CombatHud = HUD_SCRIPT.new()
+		add_child(hud)
+		hud.setup(self)
 	set_physics_process(is_local)
+	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
+	set_process(not is_local)
+	# Joueur déjà mort au moment où on le reçoit (connexion en cours de partie).
+	if health.is_dead:
+		_on_dead_changed(true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -50,6 +73,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+func _process(delta: float) -> void:
+	_apply_crouch_shape(delta)
+
+
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= gravity * delta
@@ -57,7 +84,8 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		velocity.y = Config.JUMP_VELOCITY
 
-	_update_crouch(delta)
+	is_crouching = Input.is_action_pressed("crouch")
+	_apply_crouch_shape(delta)
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
@@ -82,10 +110,34 @@ func _current_speed(input_dir: Vector2) -> float:
 	return Config.WALK_SPEED
 
 
-func _update_crouch(delta: float) -> void:
-	is_crouching = Input.is_action_pressed("crouch")
+func _apply_crouch_shape(delta: float) -> void:
 	var target := CROUCH_HEIGHT if is_crouching else STAND_HEIGHT
 	var shape := collision.shape as CapsuleShape3D
 	shape.height = lerpf(shape.height, target, 12.0 * delta)
 	collision.position.y = shape.height / 2.0
 	head.position.y = shape.height - HEAD_OFFSET
+
+
+## Vrai si un point d'impact (coordonnées monde) est dans la zone de la tête.
+func is_headshot(point: Vector3) -> bool:
+	var top := global_position.y + (collision.shape as CapsuleShape3D).height
+	return point.y >= top - Config.HEAD_ZONE_HEIGHT
+
+
+func _on_dead_changed(dead: bool) -> void:
+	# Un mort ne bloque pas les tirs et ne se voit pas.
+	collision.set_deferred("disabled", dead)
+	body_mesh.visible = not dead and not is_multiplayer_authority()
+	if is_multiplayer_authority():
+		velocity = Vector3.ZERO
+		set_physics_process(not dead)
+
+
+## Envoyé par le serveur au propriétaire pour la réapparition
+## (le déplacement est décidé par le client, c'est donc lui qui se place).
+@rpc("any_peer", "call_local", "reliable")
+func teleport(pos: Vector3) -> void:
+	if multiplayer.get_remote_sender_id() != 1:
+		return
+	global_position = pos
+	velocity = Vector3.ZERO

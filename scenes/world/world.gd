@@ -1,3 +1,4 @@
+class_name World
 extends Node3D
 ## Le monde de jeu (carte de test pour l'instant).
 ## Côté serveur : crée un joueur par client connecté, le retire à la déconnexion.
@@ -27,7 +28,7 @@ func _add_player(peer_id: int) -> void:
 		return
 	var player := PLAYER_SCENE.instantiate()
 	player.name = str(peer_id)  # le nom = l'id réseau, utilisé pour l'autorité
-	player.position = _pick_spawn_point()
+	player.position = pick_spawn_point()
 	players.add_child(player, true)
 
 
@@ -37,8 +38,12 @@ func _remove_player(peer_id: int) -> void:
 		player.queue_free()
 
 
-func _pick_spawn_point() -> Vector3:
-	## Étape 1 : point aléatoire. Plus tard : le joueur choisit sa zone de largage.
+func get_player(peer_id: int) -> Player:
+	return players.get_node_or_null(str(peer_id)) as Player
+
+
+func pick_spawn_point() -> Vector3:
+	## Point aléatoire (aussi utilisé par RespawnManager). Plus tard : le joueur choisit sa zone de largage.
 	var points := spawn_points.get_children()
 	if points.is_empty():
 		return Vector3(0, 2, 0)

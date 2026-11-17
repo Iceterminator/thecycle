@@ -35,7 +35,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `scenes/main/` menu + conteneur du monde (`/root/Main/World`)
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
-- `systems/` match, contrats, tempête, évac, monstres… (à venir)
+- `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD) ; match, contrats, tempête, évac, monstres… (à venir)
 - `resources/` scripts de types de données
 - `data/` valeurs d'équilibrage `.tres`
 - `assets/` modèles, sons, textures
