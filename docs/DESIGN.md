@@ -71,7 +71,7 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 
 ### 3. Santé et boucliers
 - 100 PV + bouclier de 0 à 150 selon le niveau (palier 1 à 3).
-- Le bouclier absorbe d'abord, puis se recharge seul après 5 s sans dégâts. La santé ne remonte qu'avec des soins.
+- Le bouclier absorbe d'abord. Il se recharge seul après 10 s sans dégâts, de 1/20 de son maximum par seconde. La santé remonte seule de 1 PV/s après 20 s sans dégâts, et plus vite avec des soins. *(valeurs du 17/11/2026, provisoires)*
 - Le niveau de bouclier s'améliore **pendant la partie** avec les crédits gagnés.
 
 ### 4. Loot et crédits en partie
@@ -107,6 +107,9 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 - 3 types de départ : petit rapide (meute), moyen à distance, gros tank. Plus tard, un boss pour les événements.
 - Patrouille par zones, IA simple : patrouille → poursuite → attaque → retour.
 - Un palier de difficulté toutes les 5 min (+PV, +dégâts, nouvelles espèces).
+- **Camps (meutes)** : les monstres vivent en camps de 2 niveaux. Niveau 1 = 1 Colosse (tank) + 3 à 5 Rôdeurs (petits rapides). Niveau 2 = 2 à 3 Colosses + 7 à 10 Rôdeurs. Quand un monstre repère ou se fait attaquer par un joueur, toute la meute réagit.
+- **Récompenses** : pour l'instant, un monstre tué lâche seulement des crédits. À terme, **vider un camp rapportera des points de quête** (`Events.camp_cleared` est déjà émis). Il faudra aussi les autres types (à distance, boss).
+- Pour les tests, un camp vidé réapparaît après 60 s (`Config.CAMP_RESPAWN_DELAY`).
 
 ### 8. Tempête
 - Par vagues, avec un avertissement 60 s avant.
@@ -141,7 +144,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 1 – Joueurs en réseau** — déplacement FPS répliqué, apparition au point de largage. Fini quand : 2 joueurs se voient bouger sans saccade *(à vérifier en jeu)*.
 - [x] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches *(validé par test automatisé ; à vérifier en jeu)*.
 - [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses sont provisoires : remplacées plus tard par un shop de largages d'armes, voir §4.)*
-- [ ] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur.
+- [x] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur. *(fait : 2 types en camps de niveau 1 et 2 ; validé par test automatisé, à vérifier en jeu)*
 - [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.
 - [ ] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».**
 - [ ] **Étape 7 – Tempête et événements** — vagues, paliers de monstres, événements à 5 et 10 min, largages.

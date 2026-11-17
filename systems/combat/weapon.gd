@@ -14,7 +14,7 @@ extends Node
 signal ammo_changed(ammo: int, magazine_size: int, reloading: bool)
 signal hit_confirmed(headshot: bool, killed: bool)
 
-enum HitKind { NONE, WORLD, PLAYER }
+enum HitKind { NONE, WORLD, TARGET }
 
 ## Arme en main : suit l'emplacement actif de l'Inventory (synchronisé par le serveur).
 var data: WeaponData
@@ -227,12 +227,14 @@ func _server_trace(origin: Vector3, dir: Vector3) -> void:
 	if not hit.is_empty():
 		end = hit["position"]
 		kind = HitKind.WORLD
-		var target := hit["collider"] as Player
-		if target and not target.health.is_dead:
-			kind = HitKind.PLAYER
-			var headshot := target.is_headshot(end)
+		# Cible touchable (joueur, monstre) : groupe "damageable" avec
+		# can_be_hit(), is_headshot(point) et server_receive_hit(dégâts, attaquant).
+		var target := hit["collider"] as Node
+		if target and target.is_in_group("damageable") and target.can_be_hit():
+			kind = HitKind.TARGET
+			var headshot: bool = target.is_headshot(end)
 			var damage := data.get_damage() * (data.headshot_multiplier if headshot else 1.0)
-			var killed := target.health.apply_damage(damage, player.get_peer_id())
+			var killed: bool = target.server_receive_hit(damage, player.get_peer_id())
 			_confirm_hit.rpc_id(player.get_peer_id(), headshot, killed)
 	_show_shot.rpc(origin, end, kind)
 
@@ -286,7 +288,7 @@ func _show_shot(origin: Vector3, end: Vector3, kind: int) -> void:
 	if kind != HitKind.NONE:
 		var impact := MeshInstance3D.new()
 		impact.mesh = _impact_mesh
-		impact.material_override = _impact_mat_player if kind == HitKind.PLAYER else _impact_mat_world
+		impact.material_override = _impact_mat_player if kind == HitKind.TARGET else _impact_mat_world
 		impact.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		world.add_child(impact)
 		impact.global_position = end

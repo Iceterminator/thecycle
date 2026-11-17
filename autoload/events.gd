@@ -21,6 +21,10 @@ signal crate_opened(peer_id: int)
 signal item_picked_up(peer_id: int, item_id: StringName, amount: int)
 signal credits_changed(peer_id: int, credits: int)
 
+# Monstres (étape 4) — émis côté serveur. Serviront aux contrats de chasse / points de quête.
+signal monster_killed(monster_id: StringName, killer_id: int)
+signal camp_cleared(camp_name: StringName, killer_id: int)
+
 # Partie (étapes 5-7)
 signal fame_changed(peer_id: int, new_fame: int)
 signal contract_completed(peer_id: int, contract_id: StringName)

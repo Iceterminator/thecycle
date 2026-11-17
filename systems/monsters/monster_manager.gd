@@ -1,0 +1,100 @@
+class_name MonsterManager
+extends Node
+## Crée les monstres via le MonsterSpawner (règle 3 : seul le serveur crée).
+## - Sur tous les peers : fournit la spawn_function (recrée le monstre reçu).
+## - Sur le serveur : génère le navmesh de la carte, peuple chaque MonsterCamp, et
+##   repeuple un camp vidé après Config.CAMP_RESPAWN_DELAY (pour les tests).
+
+const MONSTER_SCRIPT := preload("res://systems/monsters/monster.gd")
+
+@export var spawner: MultiplayerSpawner
+@export var camps: Node3D
+@export var players_root: Node3D
+@export var nav_region: NavigationRegion3D
+@export var map: Node3D  ## géométrie de la carte (CSG) servant au navmesh
+
+var _next_uid: int = 0
+
+
+func _ready() -> void:
+	spawner.spawn_function = _spawn_node
+	if not multiplayer.is_server():
+		return
+	_setup.call_deferred()
+
+
+func _setup() -> void:
+	# Les CSG créent leurs collisions en différé : on attend avant de générer le navmesh.
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_bake_navmesh()
+	for node in camps.get_children():
+		var camp := node as MonsterCamp
+		if camp == null:
+			continue
+		camp.cleared.connect(_on_camp_cleared)
+		_spawn_camp(camp)
+
+
+## Navmesh généré sur le serveur à partir des COLLISIONS des CSG de la carte
+## (pas de leurs maillages de rendu : un serveur dédié n'a pas de rendu).
+func _bake_navmesh() -> void:
+	var source := NavigationMeshSourceGeometryData3D.new()
+	for node in map.find_children("*", "CSGShape3D"):
+		var csg := node as CSGShape3D
+		if not csg.is_root_shape() or not csg.use_collision:
+			continue
+		var shape := csg.bake_collision_shape() as ConcavePolygonShape3D
+		if shape:
+			source.add_faces(shape.get_faces(), csg.global_transform)
+	var navmesh := nav_region.navigation_mesh
+	NavigationServer3D.bake_from_source_geometry_data(navmesh, source)
+	NavigationServer3D.region_set_navigation_mesh(nav_region.get_rid(), navmesh)
+	print("[Monstres] Navmesh généré : %d polygones" % navmesh.get_polygon_count())
+
+
+func _spawn_camp(camp: MonsterCamp) -> void:
+	var count := 0
+	for monster_data in camp.camp_data.roll():
+		var angle := randf() * TAU
+		var dist := sqrt(randf()) * camp.radius
+		var pos := camp.global_position + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		var monster := spawner.spawn({
+			"uid": _new_uid(),
+			"data": monster_data.resource_path,
+			"pos": _ground(pos),
+			"rot": randf() * TAU,
+		}) as Monster
+		monster.camp = camp
+		monster.players_root = players_root
+		camp.alive.append(monster)
+		count += 1
+	print("[Monstres] Camp %s (niveau %d) : %d monstres" % [camp.name, camp.camp_data.level, count])
+
+
+func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
+	await get_tree().create_timer(Config.CAMP_RESPAWN_DELAY).timeout
+	if is_instance_valid(camp):
+		_spawn_camp(camp)
+
+
+## Appelée sur tous les peers avec les mêmes données : recrée le même monstre.
+func _spawn_node(data: Dictionary) -> Node:
+	var monster: Monster = MONSTER_SCRIPT.new()
+	monster.name = "Monster_%d" % data["uid"]
+	monster.setup(load(data["data"]) as MonsterData)
+	monster.position = data["pos"]
+	monster.rotation.y = data["rot"]
+	return monster
+
+
+func _ground(pos: Vector3) -> Vector3:
+	var world := spawner.get_parent() as Node3D
+	var query := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 3.0, pos + Vector3.DOWN * 20.0, 1)
+	var hit := world.get_world_3d().direct_space_state.intersect_ray(query)
+	return (hit["position"] as Vector3) + Vector3.UP * 0.05 if not hit.is_empty() else pos
+
+
+func _new_uid() -> int:
+	_next_uid += 1
+	return _next_uid

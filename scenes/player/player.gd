@@ -47,6 +47,7 @@ func _ready() -> void:
 	# On ne voit pas son propre corps (évite que la capsule bouche la vue).
 	body_mesh.visible = not is_local
 	health.dead_changed.connect(_on_dead_changed)
+	add_to_group("damageable")
 	if is_local:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		var hud: CombatHud = HUD_SCRIPT.new()
@@ -120,6 +121,16 @@ func _apply_crouch_shape(delta: float) -> void:
 	shape.height = lerpf(shape.height, target, 12.0 * delta)
 	collision.position.y = shape.height / 2.0
 	head.position.y = shape.height - HEAD_OFFSET
+
+
+## Interface « damageable » (armes, monstres) — côté serveur.
+func can_be_hit() -> bool:
+	return not health.is_dead
+
+
+## Renvoie true si le coup tue le joueur. attacker_id = Config.MONSTER_KILLER_ID pour un monstre.
+func server_receive_hit(amount: float, attacker_id: int) -> bool:
+	return health.apply_damage(amount, attacker_id)
 
 
 ## Vrai si un point d'impact (coordonnées monde) est dans la zone de la tête.

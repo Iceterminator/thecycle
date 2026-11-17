@@ -23,8 +23,10 @@ const MOUSE_SENSITIVITY := 0.0025
 
 const MAX_HEALTH := 100.0
 const SHIELD_PER_TIER := [0.0, 50.0, 100.0, 150.0]
-const SHIELD_REGEN_DELAY := 5.0
-const SHIELD_REGEN_RATE := 25.0          # points par seconde
+const SHIELD_REGEN_DELAY := 10.0         # s sans dégâts avant que le bouclier remonte
+const SHIELD_REGEN_FRACTION := 0.05      # part du bouclier max rendue par seconde (1/20)
+const HEALTH_REGEN_DELAY := 20.0         # s sans dégâts avant que les PV remontent
+const HEALTH_REGEN_RATE := 1.0           # PV par seconde
 const STARTING_SHIELD_TIER := 1          # palier de bouclier au largage (0 à 3)
 
 # --- Combat ---
@@ -46,6 +48,10 @@ const INTERACT_SERVER_MARGIN := 1.0      # tolérance côté serveur (latence, c
 const PICKUP_LIFETIME := 180.0           # un objet au sol disparaît après ce délai (s)
 const LOOT_SCATTER_RADIUS := 1.2         # éparpillement du loot autour d'une caisse / d'un mort
 const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (va au tueur)
+
+# --- Monstres ---
+const MONSTER_KILLER_ID := -1            # killer_id quand un joueur est tué par un monstre
+const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce délai (tests)
 
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort

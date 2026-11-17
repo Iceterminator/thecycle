@@ -29,13 +29,14 @@ var is_dead: bool = false:
 		is_dead = value
 		dead_changed.emit(value)
 
-var _regen_cooldown: float = 0.0
+## Temps écoulé depuis les derniers dégâts (régénération des PV et du bouclier).
+var _since_damage: float = 0.0
 
 
 func _ready() -> void:
 	max_shield = Config.SHIELD_PER_TIER[Config.STARTING_SHIELD_TIER]
 	shield = max_shield
-	# La recharge du bouclier n'est calculée que par le serveur.
+	# La régénération n'est calculée que par le serveur.
 	set_physics_process(multiplayer.is_server())
 
 
@@ -51,7 +52,7 @@ func apply_damage(amount: float, attacker_id: int) -> bool:
 		return false
 	if is_dead or amount <= 0.0:
 		return false
-	_regen_cooldown = Config.SHIELD_REGEN_DELAY
+	_since_damage = 0.0
 	var absorbed := minf(shield, amount)
 	shield -= absorbed
 	health = maxf(health - (amount - absorbed), 0.0)
@@ -65,7 +66,7 @@ func apply_damage(amount: float, attacker_id: int) -> bool:
 	return false
 
 
-## Serveur uniquement : soin (kit de soin). La santé ne remonte jamais seule.
+## Serveur uniquement : soin (kit de soin).
 func heal(amount: float) -> void:
 	if not is_dead:
 		health = minf(health + amount, Config.MAX_HEALTH)
@@ -82,13 +83,17 @@ func revive() -> void:
 	health = Config.MAX_HEALTH
 	shield = max_shield
 	killer_id = 0
-	_regen_cooldown = 0.0
+	_since_damage = 0.0
 	is_dead = false
 
 
+## Régénération (valeurs provisoires) : le bouclier remonte de 1/20 de son max par
+## seconde après 10 s sans dégâts, les PV de 1 par seconde après 20 s.
 func _physics_process(delta: float) -> void:
-	if is_dead or shield >= max_shield:
+	if is_dead:
 		return
-	_regen_cooldown -= delta
-	if _regen_cooldown <= 0.0:
-		shield = minf(shield + Config.SHIELD_REGEN_RATE * delta, max_shield)
+	_since_damage += delta
+	if _since_damage >= Config.SHIELD_REGEN_DELAY and shield < max_shield:
+		shield = minf(shield + max_shield * Config.SHIELD_REGEN_FRACTION * delta, max_shield)
+	if _since_damage >= Config.HEALTH_REGEN_DELAY and health < Config.MAX_HEALTH:
+		health = minf(health + Config.HEALTH_REGEN_RATE * delta, Config.MAX_HEALTH)

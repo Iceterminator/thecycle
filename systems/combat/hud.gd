@@ -112,6 +112,8 @@ func _killer_text() -> String:
 	var killer := _player.health.killer_id
 	if killer == 0:
 		return "Vous êtes mort"
+	if killer == Config.MONSTER_KILLER_ID:
+		return "Tué par un monstre"
 	if killer == _player.get_peer_id():
 		return "Vous vous êtes tué"
 	return "Tué par le joueur %d" % killer
