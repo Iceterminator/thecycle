@@ -12,12 +12,13 @@ feuille de route sont dans `docs/DESIGN.md`. Les règles pour l'IA sont dans `CL
 ## Contrôles
 Touches physiques (ZQSD sur AZERTY, WASD sur QWERTY) · Espace : sauter ·
 Maj : sprint · Ctrl : s'accroupir · Clic gauche : tirer · Clic droit : viser ·
-R : recharger · E : ramasser · T : boutique · 1 / 2 / molette : changer d'arme ·
+R : recharger · E : ramasser (maintenir E sur un cristal) · T : boutique · 1 / 2 / molette : changer d'arme ·
 3 : kit de soin · 4 : cellule de bouclier · Échap : libérer la souris.
 
 ## État
 Étapes 0 à 4 de la feuille de route : connexion réseau, joueurs FPS répliqués, combat
 (fusil d'assaut, SMG, pistolet, PV + bouclier, mort et réapparition), loot et inventaire
 (boutique avec capsules de largage, objets au sol, 2 emplacements, crédits), monstres (Rôdeurs et Colosses
-en camps de niveau 1 et 2, IA côté serveur).
+en camps de niveau 1 et 2, IA côté serveur), première quête : cristaux à défendre avec une foreuse
+(3 difficultés, points de quête).
 Prochaine étape : **Étape 5 – Contrats et Fame**.

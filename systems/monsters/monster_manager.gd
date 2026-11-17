@@ -20,6 +20,7 @@ func _ready() -> void:
 	spawner.spawn_function = _spawn_node
 	if not multiplayer.is_server():
 		return
+	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
 	_setup.call_deferred()
 
 
@@ -72,6 +73,25 @@ func _spawn_camp(camp: MonsterCamp) -> void:
 	print("[Monstres] Camp %s (niveau %d) : %d monstres" % [camp.name, camp.camp_data.level, count])
 
 
+## Monstre de vague (Events.wave_spawn_requested) : il attaque `objective`.
+## L'objectif est prévenu via register_wave_monster(monster) pour suivre sa vague.
+func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, position: Vector3,
+		health_mult: float, damage_mult: float) -> void:
+	var monster := spawner.spawn({
+		"uid": _new_uid(),
+		"data": monster_data.resource_path,
+		"pos": _ground(position),
+		"rot": randf() * TAU,
+		"hp": health_mult,
+	}) as Monster
+	monster.players_root = players_root
+	monster.objective = objective
+	monster.damage_mult = damage_mult
+	monster.aggro_objective()
+	if objective.has_method("register_wave_monster"):
+		objective.register_wave_monster(monster)
+
+
 func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
 	await get_tree().create_timer(Config.CAMP_RESPAWN_DELAY).timeout
 	if is_instance_valid(camp):
@@ -82,7 +102,7 @@ func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
 func _spawn_node(data: Dictionary) -> Node:
 	var monster: Monster = MONSTER_SCRIPT.new()
 	monster.name = "Monster_%d" % data["uid"]
-	monster.setup(load(data["data"]) as MonsterData)
+	monster.setup(load(data["data"]) as MonsterData, data.get("hp", 1.0))
 	monster.position = data["pos"]
 	monster.rotation.y = data["rot"]
 	return monster

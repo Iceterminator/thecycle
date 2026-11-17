@@ -20,7 +20,9 @@ var _items_label: Label
 var _credits_label: Label
 var _prompt_label: Label
 var _use_bar: ProgressBar
+var _quest_label: Label
 
+var _hold_ratio: float = 0.0  ## maintien de E en cours (cristal…)
 var _last_total: float = -1.0
 var _respawn_left: float = 0.0
 var _hit_tween: Tween
@@ -36,6 +38,9 @@ func setup(player: Player) -> void:
 	player.weapon.hit_confirmed.connect(_on_hit_confirmed)
 	player.inventory.changed.connect(_on_inventory_changed)
 	player.interactor.prompt_changed.connect(func(text: String) -> void: _prompt_label.text = text)
+	player.interactor.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
+	player.score.changed.connect(_on_score_changed)
+	_on_score_changed()
 	_on_health_changed()
 	_on_inventory_changed()
 	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine_size, false)
@@ -48,10 +53,16 @@ func _process(delta: float) -> void:
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
 	_crosshair.visible = not _player.weapon.is_aiming and not _player.health.is_dead
 	var inv := _player.inventory
-	_use_bar.visible = inv.using_item != ""
-	if _use_bar.visible:
+	_use_bar.visible = inv.using_item != "" or _hold_ratio > 0.0
+	if _hold_ratio > 0.0:
+		_use_bar.value = _hold_ratio
+	elif _use_bar.visible:
 		var duration := maxf(inv.get_use_duration(), 0.01)
 		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
+
+
+func _on_score_changed() -> void:
+	_quest_label.text = "%d pts de quête" % _player.score.quest_points
 
 
 func _on_inventory_changed() -> void:
@@ -195,6 +206,13 @@ func _build() -> void:
 	_credits_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_credits_label.offset_right = -32
 	_credits_label.offset_top = 20
+	_quest_label = _make_label("", 22)
+	_quest_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
+	add_child(_quest_label)
+	_quest_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_quest_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_quest_label.offset_right = -32
+	_quest_label.offset_top = 52
 
 	# Message d'interaction + barre d'utilisation, sous le viseur.
 	var below := VBoxContainer.new()

@@ -25,6 +25,14 @@ signal credits_changed(peer_id: int, credits: int)
 # Monstres (étape 4) — émis côté serveur. Serviront aux contrats de chasse / points de quête.
 signal monster_killed(monster_id: StringName, killer_id: int)
 signal camp_cleared(camp_name: StringName, killer_id: int)
+## Demande au MonsterManager un monstre de vague qui attaquera `objective`.
+signal wave_spawn_requested(objective: Node3D, monster_data: MonsterData, position: Vector3, health_mult: float, damage_mult: float)
+
+# Quêtes (cristaux + foreuse) — émis côté serveur
+signal quest_started(quest_name: StringName, peer_id: int)
+signal quest_failed(quest_name: StringName)
+signal quest_completed(quest_name: StringName, peer_id: int, points: int)
+signal quest_points_changed(peer_id: int, total: int)
 
 # Partie (étapes 5-7)
 signal fame_changed(peer_id: int, new_fame: int)

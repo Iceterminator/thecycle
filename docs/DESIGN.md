@@ -88,6 +88,14 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 > Soins et recharges de bouclier ne sont plus vendus ni trouvés pour l'instant (la vie et le bouclier
 > se régénèrent seuls).
 
+### 4 bis. Quête « cristal + foreuse » (17/11/2026, première quête codée)
+- Des **cristaux** sont posés sur la carte, en 3 difficultés : **facile** (1 vague de Rôdeurs, +100 pts de quête), **moyen** (2 vagues, la 2e avec un Colosse, +250 pts), **difficile** (2 vagues plus grosses, monstres +40 % PV et +30 % dégâts, +500 pts).
+- **Maintenir E 3 s** sur un cristal déploie une **foreuse**. Des vagues de monstres apparaissent à 16-22 m et attaquent la foreuse (elle a des PV). Ils ripostent si on leur tire dessus, puis retournent sur la foreuse.
+- Il faut **tuer tous les monstres de toutes les vagues**. Si la foreuse est détruite, la quête échoue et le cristal redevient utilisable 15 s plus tard.
+- Une fois les vagues finies, **maintenir E 5 s** sur la foreuse donne les **points de quête** à celui qui extrait (un autre joueur peut voler l'extraction).
+- Un cristal extrait est épuisé ; pour les tests, il réapparaît après 120 s. Valeurs dans `data/quests/*.tres` et `Config`.
+- Les points de quête sont affichés en haut à droite. Ils préparent la Fame et le classement de l'étape 5.
+
 ### 5. Contrats
 - 4 contrats proposés au largage, 2 actifs au maximum. On en reprend de nouveaux à chaque fin.
 - Chaque contrat appartient à une faction et rapporte de la Fame + des crédits + des points de réputation.

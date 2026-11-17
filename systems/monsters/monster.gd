@@ -7,6 +7,10 @@ extends CharacterBody3D
 ##
 ## IA (DESIGN §7) : patrouille -> poursuite -> préparation / coup -> retour au camp.
 ## Couche physique 3 (« monstres »). Groupe "damageable" : touchable par les armes.
+##
+## Cible : un joueur, ou un `objective` (ex. foreuse d'un cristal) pour les monstres de
+## vague. Toute cible a can_be_hit() et server_receive_hit() ; get_hit_radius() optionnel.
+## Un monstre de vague attaque son objectif, riposte si on lui tire dessus, puis y revient.
 
 enum State { PATROL, CHASE, WINDUP, RECOVER, RETURN }
 
@@ -14,13 +18,14 @@ const SCAN_INTERVAL := 0.3      ## recherche de joueurs en patrouille (s)
 const REPATH_INTERVAL := 0.25   ## recalcul du chemin en poursuite (s)
 const DIRECT_CHASE_DIST := 3.0  ## en dessous, on fonce droit sur la cible
 const CONTACT_RATIO := 0.6      ## sous attack_range × ce ratio, il s'arrête (ne pousse pas)
-const LUNGE_SPEED_RATIO := 0.6  ## vitesse pendant la préparation (× run_speed) : esquivable
-const HIT_RANGE_RATIO := 1.3    ## le coup touche jusqu'à attack_range × ce ratio
+const LUNGE_SPEED_RATIO := 1.0  ## vitesse pendant la préparation (× run_speed) : on ne le distance pas en marchant
+const HIT_RANGE_RATIO := 1.5    ## le coup touche jusqu'à attack_range × ce ratio
 const MISS_RECOVERY := 0.3      ## pause après un coup raté (s)
 
 var data: MonsterData
 
 ## Synchronisés (serveur -> clients).
+var max_health: float = 1.0
 var health: float = 0.0:
 	set(value):
 		health = value
@@ -36,8 +41,10 @@ var state: int = State.PATROL:
 var camp: MonsterCamp
 var players_root: Node
 var home: Vector3
+var objective: Node3D          ## monstre de vague : ce qu'il doit détruire
+var damage_mult: float = 1.0   ## vagues difficiles : coups plus forts
 var _agent: NavigationAgent3D
-var _target: Player
+var _target: Node3D
 var _has_patrol_point: bool = false
 var _idle_left: float = 0.0
 var _scan_left: float = 0.0
@@ -51,9 +58,10 @@ var _bar: Label3D
 
 
 ## Appelé par la spawn_function, sur tous les peers, avant l'entrée dans l'arbre.
-func setup(monster_data: MonsterData) -> void:
+func setup(monster_data: MonsterData, health_mult: float = 1.0) -> void:
 	data = monster_data
-	health = data.max_health
+	max_health = data.max_health * health_mult
+	health = max_health
 	collision_layer = 1 << 2
 	collision_mask = 1 | (1 << 1) | (1 << 2)
 	var shape := CollisionShape3D.new()
@@ -113,6 +121,14 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 # =========================================================================
 # IA (serveur)
 # =========================================================================
+
+## Monstre de vague : fonce sur son objectif dès son apparition.
+func aggro_objective() -> void:
+	if is_instance_valid(objective):
+		_target = objective
+		state = State.CHASE
+		_repath_left = 0.0
+
 
 ## Prend `player` pour cible. `alert_camp` : prévient le reste de la meute.
 func aggro(player: Player, alert_camp: bool) -> void:
@@ -183,8 +199,10 @@ func _do_chase(can_attack: bool = true) -> void:
 		_start_return()
 		return
 	var target_pos := _target.global_position
-	var dist := _flat_dist(target_pos)
-	if dist > data.lose_radius or _flat_dist(home) > data.leash_radius:
+	var dist := _target_dist()
+	# Pas d'abandon ni de laisse quand on attaque son objectif.
+	var on_objective := _target == objective
+	if not on_objective and (dist > data.lose_radius or (objective == null and _flat_dist(home) > data.leash_radius)):
 		_start_return()
 		return
 	if can_attack and dist <= data.attack_range:
@@ -205,15 +223,15 @@ func _do_windup() -> void:
 		_start_return()
 		return
 	var target_pos := _target.global_position
-	if _flat_dist(target_pos) > data.attack_range * CONTACT_RATIO:
+	if _target_dist() > data.attack_range * CONTACT_RATIO:
 		_move_to(target_pos, data.run_speed * LUNGE_SPEED_RATIO)
 	else:
 		_halt()
 	_face(target_pos)
 	if _state_left > 0.0:
 		return
-	if _flat_dist(target_pos) <= data.attack_range * HIT_RANGE_RATIO:
-		_target.server_receive_hit(data.attack_damage, Config.MONSTER_KILLER_ID)
+	if _target_dist() <= data.attack_range * HIT_RANGE_RATIO:
+		_target.server_receive_hit(data.attack_damage * damage_mult, Config.MONSTER_KILLER_ID)
 		_state_left = data.attack_cooldown
 	else:
 		_state_left = MISS_RECOVERY
@@ -222,7 +240,7 @@ func _do_windup() -> void:
 
 func _do_return() -> void:
 	if _flat_dist(home) < 2.0:
-		health = data.max_health  # de retour au camp : PV au max (pas de « kiting » gratuit)
+		health = max_health  # de retour au camp : PV au max (pas de « kiting » gratuit)
 		state = State.PATROL
 		_has_patrol_point = false
 		_idle_left = randf_range(0.5, 1.5)
@@ -232,6 +250,12 @@ func _do_return() -> void:
 
 
 func _start_return() -> void:
+	# Monstre de vague : il retourne attaquer son objectif plutôt que rentrer.
+	if is_instance_valid(objective) and objective.can_be_hit():
+		_target = objective
+		state = State.CHASE
+		_repath_left = 0.0
+		return
 	_target = null
 	state = State.RETURN
 	_repath_left = 0.0
@@ -298,7 +322,13 @@ func _halt() -> void:
 
 
 func _valid_target() -> bool:
-	return is_instance_valid(_target) and not _target.health.is_dead
+	return is_instance_valid(_target) and _target.can_be_hit()
+
+
+## Distance au bord de la cible (une foreuse est plus large qu'un joueur).
+func _target_dist() -> float:
+	var radius: float = _target.get_hit_radius() if _target.has_method("get_hit_radius") else 0.0
+	return maxf(_flat_dist(_target.global_position) - radius, 0.0)
 
 
 func _flat_dist(point: Vector3) -> float:
@@ -316,6 +346,8 @@ func _die(killer_id: int) -> void:
 	Events.monster_killed.emit(data.id, killer_id)
 	if camp:
 		camp.on_monster_died(self, killer_id)
+	if is_instance_valid(objective) and objective.has_method("on_wave_monster_died"):
+		objective.on_wave_monster_died(self)
 	queue_free()
 
 
@@ -328,6 +360,7 @@ func _build_sync() -> void:
 	var props := {
 		".:position": SceneReplicationConfig.REPLICATION_MODE_ALWAYS,
 		".:rotation": SceneReplicationConfig.REPLICATION_MODE_ALWAYS,
+		".:max_health": SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE,
 		".:health": SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE,
 		".:state": SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE,
 	}
@@ -382,7 +415,7 @@ func _build_visual() -> void:
 func _update_bar() -> void:
 	if _bar == null or data == null:
 		return
-	var ratio := clampf(health / data.max_health, 0.0, 1.0)
+	var ratio := clampf(health / maxf(max_health, 1.0), 0.0, 1.0)
 	_bar.visible = ratio < 1.0 and ratio > 0.0
 	var filled := ceili(ratio * 10.0)
 	_bar.text = "%s\n%s%s" % [data.display_name, "■".repeat(filled), "□".repeat(10 - filled)]

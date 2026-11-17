@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://systems/combat/respawn_manager.gd" id="2_respawn"]
@@ -7,6 +7,11 @@
 [ext_resource type="Script" path="res://systems/monsters/monster_camp.gd" id="5_camp"]
 [ext_resource type="Resource" path="res://data/camps/camp_lvl1.tres" id="6_camp1"]
 [ext_resource type="Resource" path="res://data/camps/camp_lvl2.tres" id="7_camp2"]
+[ext_resource type="Script" path="res://systems/quests/quest_manager.gd" id="8_quests"]
+[ext_resource type="Script" path="res://systems/quests/crystal_spot.gd" id="9_spot"]
+[ext_resource type="Resource" path="res://data/quests/crystal_easy.tres" id="10_easy"]
+[ext_resource type="Resource" path="res://data/quests/crystal_medium.tres" id="11_medium"]
+[ext_resource type="Resource" path="res://data/quests/crystal_hard.tres" id="12_hard"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 sky_top_color = Color(0.28, 0.36, 0.5, 1)
@@ -159,3 +164,30 @@ camps = NodePath("../MonsterCamps")
 players_root = NodePath("../Players")
 nav_region = NodePath("../NavigationRegion")
 map = NodePath("../Map")
+
+[node name="CrystalSpots" type="Node3D" parent="."]
+
+[node name="CristalFacile" type="Marker3D" parent="CrystalSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 70)
+script = ExtResource("9_spot")
+crystal_data = ExtResource("10_easy")
+
+[node name="CristalMoyen" type="Marker3D" parent="CrystalSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 75)
+script = ExtResource("9_spot")
+crystal_data = ExtResource("11_medium")
+
+[node name="CristalDifficile" type="Marker3D" parent="CrystalSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0, -70)
+script = ExtResource("9_spot")
+crystal_data = ExtResource("12_hard")
+
+[node name="Crystals" type="Node3D" parent="."]
+
+[node name="CrystalSpawner" type="MultiplayerSpawner" parent="."]
+spawn_path = NodePath("../Crystals")
+
+[node name="QuestManager" type="Node" parent="." node_paths=PackedStringArray("spawner", "spots")]
+script = ExtResource("8_quests")
+spawner = NodePath("../CrystalSpawner")
+spots = NodePath("../CrystalSpots")

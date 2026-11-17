@@ -76,6 +76,16 @@ const DROP_POD_HEIGHT := 60.0            # hauteur de départ de la capsule (m)
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
 const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
 
+# --- Quêtes : cristal + foreuse (valeurs provisoires) ---
+const CRYSTAL_ACTIVATE_TIME := 3.0       # maintenir E pour lancer la foreuse (s)
+const CRYSTAL_EXTRACT_TIME := 5.0        # maintenir E pour extraire une fois les vagues finies (s)
+const CRYSTAL_WAVE_DELAY := 4.0          # pause avant chaque vague (s)
+const CRYSTAL_WAVE_SPAWN_MIN := 16.0     # les monstres apparaissent entre ces distances (m)
+const CRYSTAL_WAVE_SPAWN_MAX := 22.0
+const CRYSTAL_RESET_DELAY := 15.0        # foreuse détruite : le cristal redevient utilisable après (s)
+const CRYSTAL_RESPAWN_DELAY := 120.0     # cristal extrait : il réapparaît après (tests)
+const HOLD_SERVER_TOLERANCE := 0.85      # le serveur accepte un maintien de E à 85 % de la durée (latence)
+
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort
 const MAX_ACTIVE_CONTRACTS := 2

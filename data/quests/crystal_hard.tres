@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CrystalData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/crystal_data.gd" id="1_crystal"]
+[ext_resource type="Script" path="res://resources/camp_data.gd" id="2_camp"]
+[ext_resource type="Resource" path="res://data/quests/waves/hard_1.tres" id="3_w1"]
+[ext_resource type="Resource" path="res://data/quests/waves/hard_2.tres" id="4_w2"]
+
+[resource]
+script = ExtResource("1_crystal")
+level = 3
+display_name = "Cristal"
+difficulty_name = "difficile"
+color = Color(1, 0.3, 0.25, 1)
+waves = Array[ExtResource("2_camp")]([ExtResource("3_w1"), ExtResource("4_w2")])
+monster_health_mult = 1.4
+monster_damage_mult = 1.3
+drill_health = 1600.0
+quest_points = 500
