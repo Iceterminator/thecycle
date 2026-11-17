@@ -6,6 +6,7 @@
 script = ExtResource("1_i7hi4")
 id = &"manticore"
 display_name = "Lynx"
+reference_name = "Manticore"
 faction = 2
 faction_level = 5
 projectile_type = 1

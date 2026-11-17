@@ -134,6 +134,9 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 | Prime | Tuer un joueur désigné | 250 |
 
 ### 6. Fame et score
+> **Codé (17/11/2026).** La Fame est le score général (anciens « points de classement », variable `rank_points`
+> dans le code). Tuer un joueur : **+50 Fame**. Mourir ne fait rien perdre. Les monstres ne donnent pas de Fame.
+> Les points de ce document marqués « classement » sont de la Fame.
 - Sources : contrats (principal), monstres (peu), joueurs (vole un % de la Fame de la victime).
 - Mourir = perte de 20 % de sa Fame, récupérée par le tueur s'il s'agit d'un joueur.
 - Classement en direct visible dans l'interface. Le score ne compte que si le joueur est à bord de l'évac.
@@ -141,12 +144,19 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 ### 7. Monstres (PvE)
 - 3 types de départ : petit rapide (meute), moyen à distance, gros tank. Plus tard, un boss pour les événements.
 - Patrouille par zones, IA simple : patrouille → poursuite → attaque → retour.
-- Un palier de difficulté toutes les 5 min (+PV, +dégâts, nouvelles espèces).
+- **Niveaux (codé 17/11/2026)** : niveau 1 au départ, **2 à 5:00, 3 à 10:00** (`Config.MONSTER_LEVEL_*`). Appliqué aux monstres qui apparaissent ensuite : PV ×1,25 / ×1,5, dégâts ×1,15 / ×1,3, **crédits ×1,5 / ×2**. Affiché au-dessus du monstre (« niv. 2 »).
+- **Cristaux à 10:00** : les cristaux pas encore commencés montent d'un niveau (le niveau max reste max) ; ceux en cours ou faits ne bougent pas.
+- **Cracheur (codé)** : monstre à distance (`data/monsters/cracheur.tres`) ; tire un projectile lent et esquivable à 20 m, recule si on l'approche à moins de 7 m. 1-2 par camp de niveau 1, 2-3 par camp de niveau 2.
 - **Camps (meutes)** : les monstres vivent en camps de 2 niveaux. Niveau 1 = 1 Colosse (tank) + 3 à 5 Rôdeurs (petits rapides). Niveau 2 = 2 à 3 Colosses + 7 à 10 Rôdeurs. Quand un monstre repère ou se fait attaquer par un joueur, toute la meute réagit.
 - **Récompenses** : pour l'instant, un monstre tué donne seulement des crédits, versés directement au tueur. À terme, **vider un camp rapportera des points de quête** (`Events.camp_cleared` est déjà émis). Il faudra aussi les autres types (à distance, boss).
 - Pour les tests, un camp vidé réapparaît après 60 s (`Config.CAMP_RESPAWN_DELAY`).
 
 ### 8. Tempête
+> **Codé (17/11/2026), façon zone qui se referme (remplace la description ci-dessous).** Phases dans
+> `data/storm/*.tres` : à **7:00** la zone sûre se referme (rayon 80 m), puis **12:00** (45 m), puis **18:00**
+> (18 m, centrée sur l'évac) ; chaque fermeture dure 60 s et est annoncée 60 s avant (mur de tempête visible,
+> prochaine zone en blanc). Hors de la zone : **1, puis 3, puis 10 PV/s**, même à l'abri. Brouillard violet et
+> éclairs quand on est dedans. Les monstres dans la tempête détectent et courent ×1,3.
 - Par vagues, avec un avertissement 60 s avant.
 - Pendant une vague : dégâts légers continus hors abri, brouillard, éclairs. Une partie de la carte, ou toute la carte en fin de partie.
 - Monstres plus agressifs pendant la tempête.
@@ -188,9 +198,9 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches *(validé par test automatisé ; à vérifier en jeu)*.
 - [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses ont ensuite été remplacées par la boutique et les capsules de largage, voir §4.)*
 - [x] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur. *(fait : 2 types en camps de niveau 1 et 2 ; validé par test automatisé, à vérifier en jeu)*
-- [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.
+- [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct. *(Fame faite le 17/11/2026 : voir §6 ; les contrats sont ceux de §4 ter.)*
 - [x] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».** *(fait le 17/11/2026 : validé par test automatisé à 2 instances, à vérifier en jeu)*
-- [ ] **Étape 7 – Tempête et événements** — vagues, paliers de monstres, événements à 5 et 10 min, largages.
+- [x] **Étape 7 – Tempête et événements** — *(fait le 17/11/2026, validé par test automatisé à 2 instances, à vérifier en jeu)* : tempête en zone qui se referme, niveaux de monstres, cristaux qui montent de niveau à 10:00, Cracheur (monstre à distance). **Pas d'événements à 5 et 10 min pour l'instant, pas de largages de ravitaillement.**
 - [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
   > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
   > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,

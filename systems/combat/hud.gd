@@ -26,6 +26,7 @@ var _banner_tween: Tween
 
 # Partie (étape 6)
 var _clock_label: Label
+var _storm_label: Label
 var _board_box: VBoxContainer
 var _board_bar: ProgressBar
 var _aboard_label: Label
@@ -98,6 +99,7 @@ func _update_clock(delta: float) -> void:
 			_results_label.text = _results_text + "\nNouvelle partie dans %d s" % ceili(_restart_left)
 		return
 	_clock_elapsed = minf(_clock_elapsed + delta, Config.MATCH_DURATION)
+	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ")
 	var total := "%s / %s" % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
 	if _clock_phase == MatchManager.Phase.EVAC:
 		_clock_label.text = "%s — ÉVAC AU SOL : décollage dans %s" % [total, _fmt(Config.MATCH_DURATION - _clock_elapsed)]
@@ -128,7 +130,7 @@ func _on_results(results: Array, restart_in: float) -> void:
 		var peer: int = entry["peer"]
 		var who := "Vous" if peer == _player.get_peer_id() else "Joueur %d" % peer
 		var status := "évacué" if entry["evacuated"] else "resté au sol (-%d)" % Config.EVAC_MISSED_PENALTY
-		lines.append("%d. %s — %d pts — %s" % [rank, who, entry["points"], status])
+		lines.append("%d. %s — %d Fame — %s" % [rank, who, entry["points"], status])
 		rank += 1
 	_results_text = "\n".join(lines) + "\n"
 	_results_panel.visible = true
@@ -146,7 +148,7 @@ func _on_announcement(text: String, color: Color) -> void:
 
 func _on_score_changed() -> void:
 	# Classement, puis la progression de chaque objectif commencé (vers le prochain palier).
-	var text := "%d pts de classement" % _player.score.rank_points
+	var text := "%d Fame" % _player.score.rank_points
 	var objectives: Dictionary = _player.score.objective_points
 	var rates: Dictionary = _player.score.objective_rates
 	var paths: Array = objectives.keys()
@@ -159,7 +161,7 @@ func _on_score_changed() -> void:
 			continue
 		var pts: int = objectives.get(path, 0)
 		var tier := track.tiers_reached(pts)
-		var line := "\n%s : %d / %d  → +%d pts de classement" % [track.display_name, pts, track.threshold(tier), track.reward(tier)]
+		var line := "\n%s : %d / %d  → +%d Fame" % [track.display_name, pts, track.threshold(tier), track.reward(tier)]
 		var rate: float = rates.get(path, 0.0)
 		if rate > 0.0:
 			line += "  (+%.1f/s)" % rate
@@ -231,6 +233,8 @@ func _killer_text() -> String:
 		return "Vous êtes mort"
 	if killer == Config.MONSTER_KILLER_ID:
 		return "Tué par un monstre"
+	if killer == Config.STORM_KILLER_ID:
+		return "Tué par la tempête"
 	if killer == _player.get_peer_id():
 		return "Vous vous êtes tué"
 	return "Tué par le joueur %d" % killer
@@ -318,7 +322,7 @@ func _build() -> void:
 	add_child(_banner)
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_banner.offset_top = 90
+	_banner.offset_top = 96
 	_quest_label = _make_label("", 20)
 	_quest_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_quest_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0))
@@ -362,6 +366,13 @@ func _build() -> void:
 	_clock_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	_clock_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_clock_label.offset_top = 20
+	# Tempête (avertissement, dégâts), juste sous le minuteur.
+	_storm_label = _make_label("", 20)
+	_storm_label.add_theme_color_override("font_color", Color(0.85, 0.6, 1.0))
+	add_child(_storm_label)
+	_storm_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_storm_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_storm_label.offset_top = 52
 	# Embarquement en cours (au-dessus du viseur).
 	_board_box = VBoxContainer.new()
 	_board_box.mouse_filter = Control.MOUSE_FILTER_IGNORE

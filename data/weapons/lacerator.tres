@@ -6,6 +6,7 @@
 script = ExtResource("1_2adkb")
 id = &"lacerator"
 display_name = "Lame"
+reference_name = "Lacerator"
 faction = 3
 faction_level = 8
 type = 2

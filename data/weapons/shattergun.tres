@@ -6,6 +6,7 @@
 script = ExtResource("1_hr11q")
 id = &"shattergun"
 display_name = "Brise-roc"
+reference_name = "Shattergun"
 faction = 3
 faction_level = 3
 type = 4

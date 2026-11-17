@@ -143,10 +143,17 @@ func _build() -> void:
 	for seconds in TIME_SKIPS:
 		time_row.add_child(_button("+%d min" % int(seconds / 60.0), func() -> void:
 			_admin.request_time_skip.rpc_id(1, seconds)))
-	for target: float in [Config.EVAC_LANDING_TIME - 10.0, Config.MATCH_DURATION - 10.0]:
-		var label := "Aller à %d:%02d" % [floori(target / 60.0), int(target) % 60]
-		time_row.add_child(_button(label, func() -> void:
-			_admin.request_time_set.rpc_id(1, target)))
+	# Juste avant chaque moment clé : niveau 2 des monstres (5:00), tempête (7:00),
+	# niveau 3 + cristaux (10:00), tempête (12:00), évac (15:00), tempête (18:00), décollage.
+	var goto_row := _row()
+	box.add_child(goto_row)
+	var targets: Array[float] = [290.0, 410.0, 590.0, 710.0, Config.EVAC_LANDING_TIME - 10.0, 1070.0, Config.MATCH_DURATION - 10.0]
+	for target in targets:
+		var label := "→ %d:%02d" % [floori(target / 60.0), int(target) % 60]
+		var button := _button(label, func() -> void:
+			_admin.request_time_set.rpc_id(1, target))
+		button.custom_minimum_size = Vector2(100, 34)
+		goto_row.add_child(button)
 
 	box.add_child(HSeparator.new())
 	_status_label = Label.new()

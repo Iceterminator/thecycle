@@ -32,3 +32,8 @@ extends Resource
 @export var radius: float = 0.35
 @export var height: float = 0.9
 @export var color: Color = Color(0.5, 0.3, 0.6)
+
+@export_group("Tir à distance")
+@export var ranged: bool = false               ## true : tire des projectiles (attack_range = portée de tir)
+@export var projectile_speed: float = 22.0     ## m/s : assez lent pour être esquivé
+@export var min_range: float = 6.0             ## recule si un joueur s'approche plus près

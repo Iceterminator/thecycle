@@ -6,6 +6,7 @@
 script = ExtResource("1_k32bd")
 id = &"km9_scrapper"
 display_name = "Éclat"
+reference_name = "KM-9 Scrapper"
 faction = 1
 faction_level = 7
 type = 0

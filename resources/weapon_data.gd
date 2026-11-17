@@ -23,6 +23,9 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 
 @export var id: StringName
 @export var display_name: String
+## Nom dans le jeu d'origine. Affiché à la place de display_name tant que
+## Config.SHOW_REFERENCE_WEAPON_NAMES est vrai (repère temporaire pour les tests).
+@export var reference_name: String = ""
 @export var faction: Faction = Faction.STARTER
 @export var faction_level: int = 0               ## réputation requise (0 = arme de départ)
 @export var type: WeaponType = WeaponType.ASSAULT_RIFLE

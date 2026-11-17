@@ -6,6 +6,7 @@
 script = ExtResource("1_yul0u")
 id = &"karma_1"
 display_name = "Tonnerre"
+reference_name = "KARMA-1"
 faction = 1
 faction_level = 9
 type = 3

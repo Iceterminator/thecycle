@@ -16,6 +16,8 @@ const MONSTER_SCRIPT := preload("res://systems/monsters/monster.gd")
 var _next_uid: int = 0
 ## Incrémenté à chaque nouvelle partie : les repeuplements en attente sont annulés.
 var _generation: int = 0
+## Niveau des monstres (1 à 3, Events.monster_level_changed) : appliqué à ceux qui apparaissent.
+var _level: int = 1
 
 
 func _ready() -> void:
@@ -24,6 +26,7 @@ func _ready() -> void:
 		return
 	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
 	Events.match_reset_requested.connect(_on_match_reset)
+	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.MONSTER_LEVEL_HEALTH_MULT.size()))
 	_setup.call_deferred()
 
 
@@ -68,7 +71,10 @@ func _spawn_camp(camp: MonsterCamp) -> void:
 			"data": monster_data.resource_path,
 			"pos": _ground(pos),
 			"rot": randf() * TAU,
+			"hp": _level_mult(Config.MONSTER_LEVEL_HEALTH_MULT),
+			"lvl": _level,
 		}) as Monster
+		_apply_level(monster, 1.0)
 		monster.camp = camp
 		monster.players_root = players_root
 		camp.alive.append(monster)
@@ -85,11 +91,12 @@ func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, posi
 		"data": monster_data.resource_path,
 		"pos": _ground(position),
 		"rot": randf() * TAU,
-		"hp": health_mult,
+		"hp": health_mult * _level_mult(Config.MONSTER_LEVEL_HEALTH_MULT),
+		"lvl": _level,
 	}) as Monster
 	monster.players_root = players_root
 	monster.objective = objective
-	monster.damage_mult = damage_mult
+	_apply_level(monster, damage_mult)
 	monster.aggro_objective()
 	if objective.has_method("register_wave_monster"):
 		objective.register_wave_monster(monster)
@@ -106,7 +113,7 @@ func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
 func _spawn_node(data: Dictionary) -> Node:
 	var monster: Monster = MONSTER_SCRIPT.new()
 	monster.name = "Monster_%d" % data["uid"]
-	monster.setup(load(data["data"]) as MonsterData, data.get("hp", 1.0))
+	monster.setup(load(data["data"]) as MonsterData, data.get("hp", 1.0), data.get("lvl", 1))
 	monster.position = data["pos"]
 	monster.rotation.y = data["rot"]
 	return monster
@@ -135,3 +142,13 @@ func _on_match_reset() -> void:
 		if camp:
 			camp.alive.clear()
 			_spawn_camp(camp)
+
+
+func _level_mult(table: Array) -> float:
+	return table[clampi(_level - 1, 0, table.size() - 1)]
+
+
+## Serveur : dégâts et crédits selon le niveau actuel (les PV passent par la spawn_function).
+func _apply_level(monster: Monster, damage_mult: float) -> void:
+	monster.damage_mult = damage_mult * _level_mult(Config.MONSTER_LEVEL_DAMAGE_MULT)
+	monster.credits_mult = _level_mult(Config.MONSTER_LEVEL_CREDITS_MULT)

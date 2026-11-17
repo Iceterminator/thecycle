@@ -6,6 +6,7 @@
 script = ExtResource("1_de3bh")
 id = &"asp_flechette_gun"
 display_name = "Aiguille"
+reference_name = "Asp Flechette Gun"
 faction = 2
 faction_level = 2
 type = 0

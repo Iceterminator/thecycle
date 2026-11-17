@@ -6,6 +6,7 @@
 script = ExtResource("1_my2y2")
 id = &"haze"
 display_name = "Nuée"
+reference_name = "HAZE"
 faction = 3
 faction_level = 10
 type = 7

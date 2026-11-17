@@ -6,6 +6,7 @@
 script = ExtResource("1_f0dig")
 id = &"kor_47"
 display_name = "Enclume"
+reference_name = "KOR-47"
 faction = 1
 faction_level = 2
 damage = 34.0

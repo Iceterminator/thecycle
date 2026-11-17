@@ -6,6 +6,7 @@
 script = ExtResource("1_4chwe")
 id = &"zeus_beam"
 display_name = "Fournaise"
+reference_name = "Zeus Beam"
 faction = 2
 faction_level = 10
 type = 8

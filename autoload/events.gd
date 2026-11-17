@@ -32,6 +32,7 @@ signal wave_spawn_requested(objective: Node3D, monster_data: MonsterData, positi
 signal quest_started(quest_name: StringName, peer_id: int)
 signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
+## Fame (le score : variable rank_points dans Score, pour la synchro réseau).
 signal rank_points_changed(peer_id: int, total: int)
 ## Serveur, menu admin : poser un cristal (chemin du CrystalData) à une position.
 signal crystal_spawn_requested(crystal_data_path: String, position: Vector3)
@@ -66,5 +67,9 @@ signal match_clock_synced(elapsed: float, phase: int)
 signal evac_board_progress(ratio: float)
 ## Client : classement de fin de partie (liste de { peer, points, evacuated }).
 signal match_results_received(results: Array, restart_in: float)
+## Serveur : le niveau des monstres change (1 à 3) ; MonsterManager l'applique aux nouveaux.
+signal monster_level_changed(level: int)
+## Serveur : les cristaux pas encore commencés montent d'un niveau (QuestManager).
+signal crystal_upgrade_requested()
 
 @warning_ignore_restore("unused_signal")

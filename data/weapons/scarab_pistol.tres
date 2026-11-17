@@ -6,6 +6,7 @@
 script = ExtResource("1_3h6li")
 id = &"scarab_pistol"
 display_name = "Luciole"
+reference_name = "Scarab Pistol"
 faction = 2
 faction_level = 1
 type = 6

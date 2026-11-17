@@ -18,6 +18,7 @@ const CONTRACT_SCRIPTS := {
 	&"drones": preload("res://systems/contracts/drone_site.gd"),
 }
 const LUMICEP := &"lumicep"
+const CRYSTALS_DIR := "res://data/quests/"
 const TIQUE := preload("res://data/monsters/tique.tres")
 
 @export var spawner: MultiplayerSpawner
@@ -39,6 +40,7 @@ func _ready() -> void:
 	Events.announce_requested.connect(func(text: String, color: Color) -> void: _announce.rpc(text, color))
 	Events.crystal_spawn_requested.connect(_on_crystal_spawn_requested)
 	Events.match_reset_requested.connect(_on_match_reset)
+	Events.crystal_upgrade_requested.connect(_on_crystal_upgrade)
 	_spawn_all.call_deferred()
 
 
@@ -141,3 +143,29 @@ func _on_match_reset() -> void:
 	_lumicep_spots.clear()
 	_tick_timers.clear()
 	_spawn_all.call_deferred()
+
+
+## 10:00 : chaque cristal pas encore commencé (IDLE) est remplacé par le niveau au-dessus,
+## au même endroit (le spawner le recrée chez tous). Défense en cours, extraction, cristal
+## épuisé : inchangés. Le niveau max reste max.
+func _on_crystal_upgrade() -> void:
+	var by_level: Dictionary = {}  # niveau -> CrystalData
+	for file in ResourceLoader.list_directory(CRYSTALS_DIR):
+		var crystal_data: CrystalData = load(CRYSTALS_DIR + file) as CrystalData if file.ends_with(".tres") else null
+		if crystal_data:
+			by_level[crystal_data.level] = crystal_data
+	var upgraded := 0
+	for node in spawner.get_node(spawner.spawn_path).get_children():
+		var crystal := node as Crystal
+		if crystal == null or crystal.is_queued_for_deletion() or crystal.state != Crystal.State.IDLE:
+			continue
+		var next: CrystalData = by_level.get(crystal.data.level + 1)
+		if next == null:
+			continue
+		var pos := crystal.position
+		crystal.queue_free()
+		_spawn({"kind": &"crystal", "data": next.resource_path, "pos": pos})
+		upgraded += 1
+	if upgraded > 0:
+		Events.announce_requested.emit("Les cristaux restants montent d'un niveau : plus durs, plus de points !", Color(0.3, 0.95, 0.85))
+	print("[Quête] %d cristaux montés d'un niveau" % upgraded)

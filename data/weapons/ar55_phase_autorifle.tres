@@ -6,6 +6,7 @@
 script = ExtResource("1_1q6me")
 id = &"ar55_phase_autorifle"
 display_name = "Vigie"
+reference_name = "AR-55 Phase Autorifle"
 damage = 45.0
 rpm = 429.0
 fire_interval_s = 0.14

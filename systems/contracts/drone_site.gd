@@ -78,7 +78,7 @@ func _refresh() -> void:
 		_parts[i].visible = sent_mask & (1 << i) == 0
 	match state:
 		State.IDLE:
-			_label.text = "%s\n%d drones à protéger (+%d pts de classement chacun)" % [data.display_name, data.count, data.points]
+			_label.text = "%s\n%d drones à protéger (+%d Fame chacun)" % [data.display_name, data.count, data.points]
 		State.DEFENSE:
 			var hp_text := ""
 			for hp in drone_hp:
@@ -163,7 +163,7 @@ func _can_send(i: int) -> bool:
 func part_prompt(i: int, _player: Player) -> String:
 	if not _can_send(i):
 		return ""
-	return "Maintenir E : envoyer le drone (+%d pts de classement)" % roundi(data.points * drone_hp[i] / data.target_health)
+	return "Maintenir E : envoyer le drone (+%d Fame)" % roundi(data.points * drone_hp[i] / data.target_health)
 
 
 func part_hold_time(i: int, _player: Player) -> float:

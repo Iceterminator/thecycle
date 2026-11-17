@@ -1,8 +1,8 @@
 class_name Score
 extends Node
 ## Score d'un joueur :
-## - points de CLASSEMENT (rank_points) : le score général ;
-## - points d'OBJECTIF par objectif (Forage, Relais…) : chaque palier donne du classement.
+## - FAME (variable rank_points, nom gardé pour la synchro de player.tscn) : le score général ;
+## - points d'OBJECTIF par objectif (Forage, Relais…) : chaque palier donne de la Fame.
 ## SEUL LE SERVEUR le modifie ; ScoreSync (autorité 1, voir player.gd::_enter_tree)
 ## l'envoie à tous les clients.
 ## `beacon` : texte affiché au-dessus du joueur pour TOUS les autres, à travers le décor
@@ -46,7 +46,7 @@ func add_rank_points(amount: int) -> void:
 
 
 ## Serveur : ajoute des points d'objectif ; chaque palier franchi donne des points de
-## classement (voir ObjectiveTrack) et prévient le joueur.
+## Fame (voir ObjectiveTrack) et prévient le joueur.
 func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 	if not multiplayer.is_server() or track == null or amount <= 0:
 		return
@@ -59,7 +59,7 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 	for tier in range(track.tiers_reached(before), track.tiers_reached(after)):
 		var reward := track.reward(tier)
 		add_rank_points(reward)
-		_notify_tier.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d pts de classement)" % [track.display_name, tier + 1, reward], track.color)
+		notify.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d Fame)" % [track.display_name, tier + 1, reward], track.color)
 
 
 ## Serveur : gain continu en cours pour un objectif (0 = aucun). Arrondi au dixième pour
@@ -80,7 +80,7 @@ func set_objective_rate(track: ObjectiveTrack, rate: float) -> void:
 
 
 @rpc("authority", "call_local", "reliable")
-func _notify_tier(text: String, color: Color) -> void:
+func notify(text: String, color: Color) -> void:
 	Events.announcement.emit(text, color)
 
 

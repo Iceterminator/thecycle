@@ -6,6 +6,7 @@
 script = ExtResource("1_h2gum")
 id = &"s76_pdw"
 display_name = "Guêpe"
+reference_name = "S-76 PDW"
 type = 0
 damage = 29.0
 rpm = 857.0

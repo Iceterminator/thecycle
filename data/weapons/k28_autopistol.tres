@@ -6,6 +6,7 @@
 script = ExtResource("1_137oj")
 id = &"k28_autopistol"
 display_name = "Dard"
+reference_name = "K-28 Autopistol"
 type = 6
 slot = 1
 fire_mode = 1

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="MonsterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
+
+[resource]
+script = ExtResource("1_monster")
+id = &"cracheur"
+display_name = "Cracheur"
+max_health = 90.0
+walk_speed = 2.2
+run_speed = 5.5
+detection_radius = 24.0
+lose_radius = 34.0
+leash_radius = 38.0
+attack_range = 20.0
+attack_damage = 10.0
+attack_windup = 0.6
+attack_cooldown = 1.8
+post_hit_pause = 0.0
+credits = 20
+biomass_drop = 1
+radius = 0.45
+height = 1.4
+color = Color(0.35, 0.75, 0.3, 1)
+ranged = true
+projectile_speed = 22.0
+min_range = 7.0

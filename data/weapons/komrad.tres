@@ -6,6 +6,7 @@
 script = ExtResource("1_i2atr")
 id = &"komrad"
 display_name = "Grêle"
+reference_name = "KOMRAD"
 faction = 1
 faction_level = 3
 type = 7

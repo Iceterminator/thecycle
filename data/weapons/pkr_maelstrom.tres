@@ -6,6 +6,7 @@
 script = ExtResource("1_3unx8")
 id = &"pkr_maelstrom"
 display_name = "Tornade"
+reference_name = "PKR Maelstrom"
 faction = 1
 faction_level = 8
 type = 4

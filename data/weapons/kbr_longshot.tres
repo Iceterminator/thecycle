@@ -6,6 +6,7 @@
 script = ExtResource("1_t0mh4")
 id = &"kbr_longshot"
 display_name = "Héron"
+reference_name = "KBR Longshot"
 faction = 1
 faction_level = 5
 type = 2

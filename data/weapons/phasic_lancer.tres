@@ -6,6 +6,7 @@
 script = ExtResource("1_ld8mu")
 id = &"phasic_lancer"
 display_name = "Trident"
+reference_name = "Phasic Lancer"
 faction = 2
 faction_level = 3
 type = 2

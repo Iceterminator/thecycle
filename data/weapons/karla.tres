@@ -6,6 +6,7 @@
 script = ExtResource("1_sa7y8")
 id = &"karla"
 display_name = "Marteau-pilon"
+reference_name = "KARLA"
 faction = 1
 faction_level = 10
 type = 8

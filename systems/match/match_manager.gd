@@ -13,6 +13,7 @@ extends Node
 enum Phase { PLAYING, EVAC, ENDED }
 
 const ANNOUNCE_COLOR := Color(0.6, 0.85, 1.0)
+const MONSTER_COLOR := Color(1.0, 0.5, 0.35)
 
 @onready var world: World = get_parent()
 
@@ -80,6 +81,14 @@ func _advance(to: float) -> void:
 		Events.evac_landed.emit()
 		Events.announce_requested.emit("L'évac se pose au centre ! Montez à bord par la rampe.", ANNOUNCE_COLOR)
 		_broadcast_clock()
+	# Niveau des monstres (1 au départ, puis 2 et 3 aux temps de Config).
+	for i in Config.MONSTER_LEVEL_TIMES.size():
+		var t: float = Config.MONSTER_LEVEL_TIMES[i]
+		if before < t and elapsed >= t:
+			Events.monster_level_changed.emit(i + 2)
+			Events.announce_requested.emit("Les monstres passent au niveau %d : plus résistants, plus de crédits !" % (i + 2), MONSTER_COLOR)
+	if before < Config.CRYSTAL_UPGRADE_TIME and elapsed >= Config.CRYSTAL_UPGRADE_TIME:
+		Events.crystal_upgrade_requested.emit()
 	if elapsed >= Config.MATCH_DURATION:
 		_end_match()
 
@@ -135,6 +144,8 @@ func _end_match() -> void:
 
 ## Nouvelle partie : chaque système de carte se remet à zéro (Events), puis les joueurs.
 func _restart() -> void:
+	# Niveau 1 d'abord : les camps sont repeuplés pendant match_reset_requested.
+	Events.monster_level_changed.emit(1)
 	Events.match_reset_requested.emit()
 	for node in world.players.get_children():
 		var player := node as Player

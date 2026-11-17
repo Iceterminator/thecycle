@@ -12,8 +12,8 @@ extends Resource
 @export var hold_time: float = 3.0              ## maintenir E (s)
 
 @export_group("Récompense")
-@export var track: ObjectiveTrack                ## objectif à paliers (relais, Ambrine, cœur, collecteurs) ; vide = points de classement directs
-@export var points: int = 100                   ## points ponctuels / par unité (d'objectif si `track`, sinon de classement)
+@export var track: ObjectiveTrack                ## objectif à paliers (relais, Ambrine, cœur, collecteurs) ; vide = Fame directs
+@export var points: int = 100                   ## points ponctuels / par unité (d'objectif si `track`, sinon de Fame)
 @export var points_per_second: float = 0.0      ## gain continu (relais, cœur, extracteur)
 @export var points_growth: float = 0.0          ## extracteur : + pts/s gagnés par minute tenue
 

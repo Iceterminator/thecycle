@@ -6,6 +6,7 @@
 script = ExtResource("1_pvy3j")
 id = &"kinetic_arbiter"
 display_name = "Longue-vue"
+reference_name = "Kinetic Arbiter"
 faction = 3
 faction_level = 4
 type = 3

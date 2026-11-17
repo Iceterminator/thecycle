@@ -6,6 +6,7 @@
 script = ExtResource("1_yx3qa")
 id = &"bulldog"
 display_name = "Tromblon"
+reference_name = "Bulldog"
 faction = 3
 faction_level = 1
 type = 6

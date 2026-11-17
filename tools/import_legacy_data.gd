@@ -113,6 +113,7 @@ func _save_weapon(w: Dictionary, falloff_min: float) -> bool:
 	var res: Resource = load(WEAPON_SCRIPT).new()
 	res.set("id", StringName(id))
 	res.set("display_name", WEAPON_NAMES.get(id, id))
+	res.set("reference_name", w.get("name", ""))
 	res.set("faction", FACTIONS.get(w.get("faction"), 0))
 	res.set("type", TYPES.get(w.get("type"), 1))
 	res.set("slot", SLOTS.get(w.get("slot"), 0))

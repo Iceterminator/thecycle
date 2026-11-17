@@ -27,14 +27,13 @@ const MAX_PLAYERS := 20
 const MATCH_DURATION := 20.0 * 60.0     # décollage de l'évac
 const EVAC_LANDING_TIME := 15.0 * 60.0  # l'évac se pose
 const EVENT_TIMES := [5.0 * 60.0, 10.0 * 60.0]
-const MONSTER_TIER_INTERVAL := 5.0 * 60.0
 const RESPAWN_DELAY := 5.0
 const EVAC_BOARD_TIME := 5.0            # temps à rester dans la soute pour embarquer
 const MATCH_RESTART_DELAY := 20.0       # écran de fin, puis nouvelle partie (s)
 const MATCH_CLOCK_RESYNC := 5.0         # le serveur renvoie l'horloge aux clients toutes les N s
-const EVAC_FIRST_BONUS := 50            # classement : premier joueur embarqué
-const EVAC_OTHER_BONUS := 0             # classement : joueurs embarqués suivants
-const EVAC_MISSED_PENALTY := 100        # classement perdu si pas à bord au décollage
+const EVAC_FIRST_BONUS := 50            # Fame : premier joueur embarqué
+const EVAC_OTHER_BONUS := 0             # Fame : joueurs embarqués suivants
+const EVAC_MISSED_PENALTY := 100        # Fame perdue si pas à bord au décollage
 const EVAC_SKY_HEIGHT := 150.0          # altitude du vaisseau hors de la carte (m)
 const EVAC_FLIGHT_TIME := 8.0           # durée de la descente / de la montée (s)
 const EVAC_POSITION := Vector3(0, 0.5, 0)  # posé sur l'EvacPad (centre de la carte)
@@ -78,6 +77,20 @@ const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (
 # --- Monstres ---
 const MONSTER_KILLER_ID := -1            # killer_id quand un joueur est tué par un monstre
 const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce délai (tests)
+const STORM_KILLER_ID := -2              # killer_id quand un joueur est tué par la tempête
+## Niveau des monstres (1 au début) : il monte à ces temps de partie. Appliqué aux monstres qui
+## apparaissent ensuite (camps repeuplés, vagues), pas à ceux déjà en vie. Index 0 = niveau 1.
+const MONSTER_LEVEL_TIMES := [5.0 * 60.0, 10.0 * 60.0]
+const MONSTER_LEVEL_HEALTH_MULT := [1.0, 1.25, 1.5]
+const MONSTER_LEVEL_DAMAGE_MULT := [1.0, 1.15, 1.3]
+const MONSTER_LEVEL_CREDITS_MULT := [1.0, 1.5, 2.0]
+## À ce temps de partie, les cristaux pas encore commencés montent d'un niveau (le max reste max).
+const CRYSTAL_UPGRADE_TIME := 10.0 * 60.0
+
+# --- Tempête (façon zone qui se referme ; phases dans data/storm/) ---
+const STORM_START_RADIUS := 145.0        # zone sûre de départ : toute la carte (200 x 200 m)
+const STORM_TICK := 1.0                  # les dégâts tombent toutes les N s
+const STORM_MONSTER_MULT := 1.3          # monstres dans la tempête : détection et vitesse de course
 
 # --- Boutique et largages (valeurs provisoires) ---
 const DROP_POD_FALL_TIME := 3.0          # délai entre l'achat et l'atterrissage de la capsule (s)
@@ -90,6 +103,9 @@ const ADMIN_SPAWN_DISTANCE := 3.0        # les objets apparaissent à cette dist
 const ADMIN_CRYSTAL_DISTANCE := 7.0      # distance pour un cristal (il est large)
 const ADMIN_MAX_CREDITS := 100000        # montant max par demande
 const ADMIN_MAX_TIME_SKIP := 1200.0      # avance max du temps par demande (s)
+## Temporaire : affiche le nom des armes dans le jeu d'origine (WeaponData.reference_name)
+## au lieu de nos noms, pour se repérer pendant les tests. Mettre à false pour nos noms.
+const SHOW_REFERENCE_WEAPON_NAMES := true
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
 const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
 
@@ -111,10 +127,10 @@ const TICK_INTERVAL := 24.0              # Tiques : une toutes les (TICK_INTERVA
 const TICK_MIN_INTERVAL := 4.0
 const BOUNTY_INTERVAL := 90.0            # une prime est posée toutes les… (s)
 const BOUNTY_DURATION := 120.0           # survivre ce temps = la cible touche la moitié de la prime
-const BOUNTY_BASE := 20                  # prime de base (points de classement)
-const BOUNTY_SHARE := 0.10               # + cette part des points de classement de la cible
+const BOUNTY_BASE := 20                  # prime de base (Fame)
+const BOUNTY_SHARE := 0.10               # + cette part des Fame de la cible
 
 # --- Score ---
-const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort
+const PLAYER_KILL_FAME := 50            # Fame gagnée pour chaque joueur tué (on ne perd rien en mourant)
 const MAX_ACTIVE_CONTRACTS := 2
 const CONTRACTS_OFFERED := 4

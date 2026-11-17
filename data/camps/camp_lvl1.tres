@@ -1,13 +1,14 @@
-[gd_resource type="Resource" script_class="CampData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="CampData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://resources/camp_data.gd" id="1_camp"]
 [ext_resource type="Script" path="res://resources/monster_data.gd" id="2_monster"]
 [ext_resource type="Resource" path="res://data/monsters/colosse.tres" id="3_colosse"]
 [ext_resource type="Resource" path="res://data/monsters/rodeur.tres" id="4_rodeur"]
+[ext_resource type="Resource" path="res://data/monsters/cracheur.tres" id="5_cracheur"]
 
 [resource]
 script = ExtResource("1_camp")
 level = 1
-monsters = Array[ExtResource("2_monster")]([ExtResource("3_colosse"), ExtResource("4_rodeur")])
-min_counts = PackedInt32Array(1, 3)
-max_counts = PackedInt32Array(1, 5)
+monsters = Array[ExtResource("2_monster")]([ExtResource("3_colosse"), ExtResource("4_rodeur"), ExtResource("5_cracheur")])
+min_counts = PackedInt32Array(1, 3, 1)
+max_counts = PackedInt32Array(1, 5, 2)

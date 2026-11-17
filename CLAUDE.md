@@ -36,13 +36,13 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
 - `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
-  LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (points de classement + points d'objectif à paliers),
+  LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (Fame = `rank_points` + points d'objectif à paliers ; FameManager : +50 par joueur tué),
   `inventory/`, `interaction/` (E, y compris « maintenir E »), `monsters/` (monstre, camps, MonsterManager,
   navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`),
   `admin/` (menu de test, touche 0 : armes, crédits, cristaux, avance du temps → `Events.time_skip_requested` ;
   désactivable via `Config.ADMIN_MENU_ENABLED`) ;
   `match/` (minuteur de partie, fin, relance : `MatchManager`, créé par World), `evac/` (vaisseau, soute,
-  embarquement : `EvacShip`, créé par World) ; tempête… (à venir). Nouvelle partie : `Events.match_reset_requested`,
+  embarquement : `EvacShip`, créé par World) ; `storm/` (tempête en zone qui se referme : `StormManager`, phases dans `data/storm/`). Nouvelle partie : `Events.match_reset_requested`,
   chaque système de carte se remet à zéro lui-même
 - `resources/` scripts de types de données
 - `data/reference/the_cycle_legacy_data.json` : chiffres des armes et kits du jeu d'origine (référence) ;

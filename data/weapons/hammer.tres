@@ -6,6 +6,7 @@
 script = ExtResource("1_oln0t")
 id = &"hammer"
 display_name = "Barillet"
+reference_name = "Hammer"
 faction = 1
 faction_level = 1
 type = 6

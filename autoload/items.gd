@@ -31,7 +31,19 @@ func _ready() -> void:
 			continue
 		_items[item.id] = item
 	_add_missing_weapons()
+	if Config.SHOW_REFERENCE_WEAPON_NAMES:
+		_use_reference_names()
 	print("[Items] %d objets chargés" % _items.size())
+
+
+## Temporaire (Config.SHOW_REFERENCE_WEAPON_NAMES) : les armes s'affichent partout sous leur
+## nom d'origine. Les ressources sont partagées : changer le nom ici le change pour tout
+## le jeu (HUD, boutique, objets au sol, menu admin), sans toucher aux fichiers.
+func _use_reference_names() -> void:
+	for item: ItemData in _items.values():
+		if item.weapon and item.weapon.reference_name != "":
+			item.display_name = item.weapon.reference_name
+			item.weapon.display_name = item.weapon.reference_name
 
 
 func _add_missing_weapons() -> void:

@@ -6,6 +6,7 @@
 script = ExtResource("1_sy10y")
 id = &"voltaic_brute"
 display_name = "Étincelle"
+reference_name = "Voltaic Brute"
 faction = 3
 faction_level = 5
 type = 0

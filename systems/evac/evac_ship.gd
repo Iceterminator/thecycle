@@ -177,8 +177,10 @@ func _build() -> void:
 	_box(body, Vector3(3.0, 4.2, 0.5), Vector3(2.75, 3.6, 5.25), 0.0, hull)
 	_box(body, Vector3(2.5, 1.7, 0.5), Vector3(0, 4.85, 5.25), 0.0, hull)
 	# Rampe : du seuil de la porte (z = 5,5, y = 1,5) jusqu'au sol (z = 10,5, y = 0).
-	var ramp_angle := -atan2(1.5, 5.0)
-	_box(body, Vector3(3.0, 0.25, 5.25), Vector3(0, 0.7, 8.0), ramp_angle, hull)
+	# Rotation positive autour de X = le bout côté +z (loin de la porte) descend.
+	var ramp_angle := atan2(1.5, 5.0)
+	# Un peu plus longue que la pente : le bas s'enfonce dans le sol (pas de marche).
+	_box(body, Vector3(3.0, 0.25, 5.6), Vector3(0, 0.62, 8.0), ramp_angle, hull)
 	# Pieds sous le plancher, aux quatre coins.
 	for corner: Vector2 in [Vector2(-3.6, -4.6), Vector2(3.6, -4.6), Vector2(-3.6, 4.6), Vector2(3.6, 4.6)]:
 		_box(body, Vector3(0.4, 1.2, 0.4), Vector3(corner.x, 0.6, corner.y), 0.0, hull)

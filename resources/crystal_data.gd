@@ -18,4 +18,4 @@ extends Resource
 
 @export_group("Récompense")
 @export var objective_points: int = 100       ## points d'objectif « Forage » gagnés à l'extraction
-@export var track: ObjectiveTrack                ## objectif « Forage » (paliers -> classement)
+@export var track: ObjectiveTrack                ## objectif « Forage » (paliers -> Fame)

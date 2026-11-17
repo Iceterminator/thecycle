@@ -2,7 +2,7 @@ class_name ObjectiveTrack
 extends Resource
 ## Progression d'un objectif (Forage, Relais, Ambrine, Cœur stellaire, Biomasse, Lumicèpes).
 ## Le joueur cumule des POINTS D'OBJECTIF propres à cet objectif ; chaque palier atteint
-## lui donne des POINTS DE CLASSEMENT. Un fichier .tres par objectif dans data/objectives/.
+## lui donne des de la FAME. Un fichier .tres par objectif dans data/objectives/.
 ## Après le dernier palier, les paliers continuent avec le même écart et la même récompense
 ## que le dernier (on ne plafonne pas).
 
@@ -10,7 +10,7 @@ extends Resource
 @export var display_name: String
 @export var color: Color = Color.WHITE
 @export var thresholds: PackedInt32Array = PackedInt32Array([100, 250, 500])  ## points d'objectif cumulés
-@export var rewards: PackedInt32Array = PackedInt32Array([10, 15, 25])        ## points de classement par palier
+@export var rewards: PackedInt32Array = PackedInt32Array([10, 15, 25])        ## Fame par palier
 
 
 ## Seuil du palier n (0 = premier), y compris au-delà de la liste.

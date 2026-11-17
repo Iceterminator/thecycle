@@ -7,6 +7,8 @@ extends Node3D
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const MATCH_SCRIPT := preload("res://systems/match/match_manager.gd")
 const EVAC_SCRIPT := preload("res://systems/evac/evac_ship.gd")
+const STORM_SCRIPT := preload("res://systems/storm/storm_manager.gd")
+const FAME_SCRIPT := preload("res://systems/score/fame_manager.gd")
 
 @onready var players: Node3D = $Players
 @onready var spawn_points: Node3D = $SpawnPoints
@@ -24,6 +26,12 @@ func _ready() -> void:
 	match_manager = MATCH_SCRIPT.new()
 	match_manager.name = "MatchManager"
 	add_child(match_manager)
+	var storm: StormManager = STORM_SCRIPT.new()
+	storm.name = "StormManager"
+	add_child(storm)
+	var fame: FameManager = FAME_SCRIPT.new()
+	fame.name = "FameManager"
+	add_child(fame)
 	if not multiplayer.is_server():
 		return
 	Events.player_joined.connect(_add_player)
