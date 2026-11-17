@@ -4,9 +4,10 @@ extends CharacterBody3D
 ## - Le nom du nœud = l'id réseau du joueur (donné par world.gd).
 ## - Ce client a l'autorité sur SON joueur : il lit les touches et bouge.
 ## - Le Synchronizer envoie position/rotation/accroupi aux autres.
-## - Santé, bouclier et mort (nœud Health) sont décidés par le SERVEUR :
-##   ce nœud et son HealthSync gardent l'autorité 1.
-## - L'arme (nœud Weapon) demande au serveur de tirer, voir systems/combat/weapon.gd.
+## - Santé/bouclier/mort (Health) et inventaire (Inventory) sont décidés par le
+##   SERVEUR : ces nœuds et leurs synchronizers gardent l'autorité 1.
+## - L'arme (Weapon) et l'interaction (Interactor) DEMANDENT au serveur.
+## - Couches : le joueur est sur la couche 2 (« joueurs ») et collisionne avec 1 et 2.
 
 const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 
@@ -15,7 +16,9 @@ const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 @onready var body_mesh: MeshInstance3D = $BodyMesh
 @onready var collision: CollisionShape3D = $CollisionShape3D
 @onready var health: Health = $Health
+@onready var inventory: Inventory = $Inventory
 @onready var weapon: Weapon = $Weapon
+@onready var interactor: Interactor = $Interactor
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 ## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.
@@ -28,8 +31,9 @@ const HEAD_OFFSET := 0.2  # distance entre le haut de la capsule et les yeux
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
-	# La santé reste au serveur (récursif : HealthSync aussi).
+	# Santé et inventaire restent au serveur (récursif : leurs synchronizers aussi).
 	$Health.set_multiplayer_authority(1)
+	$Inventory.set_multiplayer_authority(1)
 
 
 func get_peer_id() -> int:

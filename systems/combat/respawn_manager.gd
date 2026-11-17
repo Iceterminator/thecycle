@@ -30,5 +30,6 @@ func _on_player_died(victim_id: int, _killer_id: int) -> void:
 	if not is_instance_valid(player):
 		return
 	player.health.revive()
+	player.inventory.reset_loadout()
 	player.weapon.server_refill()
 	print("[Combat] Joueur %d réapparu en %s" % [victim_id, pos])

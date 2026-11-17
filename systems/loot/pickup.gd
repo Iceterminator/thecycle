@@ -1,0 +1,96 @@
+class_name Pickup
+extends Area3D
+## Objet au sol (arme, soin, recharge, crédits). Créé par le serveur via le
+## LootSpawner (spawn_function de LootManager) : ses données arrivent à la création
+## et ne changent plus. Ramasser = le serveur le supprime, le spawner le retire partout.
+## Couche de collision 4 (« interaction ») : ne bloque ni les joueurs ni les balles.
+
+var item: ItemData
+var amount: int = 1
+var ammo: int = -1  ## chargeur restant pour une arme lâchée (-1 = plein)
+
+var _taken: bool = false
+var _mesh: MeshInstance3D
+
+
+func setup(item_data: ItemData, item_amount: int, item_ammo: int) -> void:
+	item = item_data
+	amount = item_amount
+	ammo = item_ammo
+
+
+func _ready() -> void:
+	add_to_group("interactable")
+	collision_layer = 1 << 3
+	collision_mask = 0
+	monitoring = false
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.45
+	shape.shape = sphere
+	add_child(shape)
+	_build_visual()
+	if multiplayer.is_server():
+		get_tree().create_timer(Config.PICKUP_LIFETIME).timeout.connect(queue_free)
+
+
+func _process(delta: float) -> void:
+	_mesh.rotate_y(1.5 * delta)
+
+
+func get_prompt(player: Player) -> String:
+	var inv := player.inventory
+	match item.kind:
+		ItemData.Kind.WEAPON:
+			if inv.slot_ids.has(""):
+				return "E : Ramasser %s" % item.display_name
+			return "E : Échanger contre %s" % item.display_name
+		ItemData.Kind.HEAL:
+			if inv.medkits >= Config.MAX_MEDKITS:
+				return "Kits de soin pleins"
+		ItemData.Kind.SHIELD_RECHARGE:
+			if inv.shield_cells >= Config.MAX_SHIELD_CELLS:
+				return "Cellules de bouclier pleines"
+		ItemData.Kind.CREDITS:
+			return "E : Ramasser %d crédits" % amount
+	return "E : Ramasser %s" % item.display_name
+
+
+## Serveur uniquement (appelé par Interactor après vérification de distance).
+func server_interact(player: Player) -> void:
+	if _taken:
+		return
+	if player.inventory.server_take(item, amount, ammo):
+		_taken = true
+		Events.item_picked_up.emit(player.get_peer_id(), item.id, amount)
+		queue_free()
+
+
+func _build_visual() -> void:
+	_mesh = MeshInstance3D.new()
+	if item.kind == ItemData.Kind.WEAPON:
+		var box := BoxMesh.new()
+		box.size = Vector3(0.7, 0.18, 0.18)
+		_mesh.mesh = box
+	else:
+		var sphere := SphereMesh.new()
+		sphere.radius = 0.18
+		sphere.height = 0.36
+		_mesh.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = item.color
+	mat.emission_enabled = true
+	mat.emission = item.color * 0.4
+	_mesh.material_override = mat
+	_mesh.position.y = 0.3
+	add_child(_mesh)
+
+	var label := Label3D.new()
+	label.text = "%d crédits" % amount if item.kind == ItemData.Kind.CREDITS else item.display_name
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = false
+	label.font_size = 40
+	label.outline_size = 8
+	label.pixel_size = 0.004
+	label.position.y = 0.75
+	add_child(label)

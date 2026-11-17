@@ -16,12 +16,14 @@ signal hit_confirmed(headshot: bool, killed: bool)
 
 enum HitKind { NONE, WORLD, PLAYER }
 
-@export var data: WeaponData
+## Arme en main : suit l'emplacement actif de l'Inventory (synchronisé par le serveur).
+var data: WeaponData
 
 @onready var player: Player = get_parent()
 @onready var head: Node3D = $"../Head"
 @onready var camera: Camera3D = $"../Head/Camera3D"
 @onready var health: Health = $"../Health"
+@onready var inventory: Inventory = $"../Inventory"
 
 # --- État client (prédiction locale, pour le ressenti) ---
 var ammo: int = 0
@@ -30,9 +32,9 @@ var is_aiming: bool = false
 var _fire_cooldown: float = 0.0
 var _reload_left: float = 0.0
 
-# --- État serveur (c'est lui qui fait foi) ---
-var _srv_ammo: int = 0
+# --- État serveur (c'est lui qui fait foi ; le chargeur est dans Inventory.slot_ammo) ---
 var _srv_reload_end_ms: int = 0
+var _srv_switch_until_ms: int = 0
 var _srv_tokens: float = 0.0
 var _srv_last_ms: int = 0
 
@@ -43,12 +45,32 @@ var _impact_mat_player: StandardMaterial3D
 
 
 func _ready() -> void:
-	ammo = data.magazine_size
-	_srv_ammo = data.magazine_size
+	data = inventory.get_active_weapon()
+	ammo = inventory.get_active_ammo()
 	_srv_tokens = Config.FIRE_BURST_TOLERANCE
 	_srv_last_ms = Time.get_ticks_msec()
+	inventory.active_weapon_changed.connect(_on_active_weapon_changed)
 	set_process(player.is_multiplayer_authority())
 	_build_effect_resources()
+
+
+## Changement d'arme (sur tous les peers, quand le serveur change l'emplacement actif).
+func _on_active_weapon_changed() -> void:
+	var new_data := inventory.get_active_weapon()
+	if new_data == null:
+		return
+	data = new_data
+	ammo = inventory.get_active_ammo()
+	is_reloading = false
+	_reload_left = 0.0
+	_fire_cooldown = Config.WEAPON_SWITCH_TIME
+	if multiplayer.is_server():
+		_srv_reload_end_ms = 0
+		_srv_switch_until_ms = Time.get_ticks_msec() + int(Config.WEAPON_SWITCH_TIME * 900.0)
+		# Le client peut ne pas voir le changement (même modèle d'arme échangé) :
+		# on lui renvoie le bon chargeur.
+		_sync_ammo.rpc_id(player.get_peer_id(), ammo)
+	_emit_ammo()
 
 
 # =========================================================================
@@ -56,6 +78,8 @@ func _ready() -> void:
 # =========================================================================
 
 func _process(delta: float) -> void:
+	if data == null:
+		return
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
 	var can_act := not health.is_dead and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	is_aiming = can_act and Input.is_action_pressed("aim")
@@ -73,11 +97,18 @@ func _process(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("reload") and ammo < data.magazine_size:
 		_start_reload()
-	elif Input.is_action_pressed("fire") and _fire_cooldown <= 0.0:
+	elif _wants_to_fire() and _fire_cooldown <= 0.0:
 		if ammo <= 0:
 			_start_reload()
 		else:
 			_fire()
+
+
+## Automatique : on tire tant que le clic est maintenu. Semi-auto : un clic = un tir.
+func _wants_to_fire() -> bool:
+	if data.automatic:
+		return Input.is_action_pressed("fire")
+	return Input.is_action_just_pressed("fire")
 
 
 func _fire() -> void:
@@ -130,8 +161,9 @@ func _confirm_hit(headshot: bool, killed: bool) -> void:
 func request_reload() -> void:
 	if not multiplayer.is_server() or not _sender_is_owner():
 		return
-	if _srv_reload_end_ms > 0 or _srv_ammo >= data.magazine_size:
+	if health.is_dead or _srv_reload_end_ms > 0 or inventory.get_active_ammo() >= data.magazine_size:
 		return
+	inventory.cancel_use()
 	# 10 % de marge : la demande de rechargement et les tirs suivants n'arrivent
 	# pas forcément avec le même délai.
 	_srv_reload_end_ms = Time.get_ticks_msec() + int(data.reload_time * 900.0)
@@ -150,13 +182,16 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 		return
 
 	var now := Time.get_ticks_msec()
+	# Changement d'arme en cours ?
+	if now < _srv_switch_until_ms:
+		return
 	# Rechargement en cours ?
 	if _srv_reload_end_ms > 0:
 		if now < _srv_reload_end_ms:
 			return
-		_srv_ammo = data.magazine_size
+		inventory.set_active_ammo(data.magazine_size)
 		_srv_reload_end_ms = 0
-	if _srv_ammo <= 0:
+	if inventory.get_active_ammo() <= 0:
 		_sync_ammo.rpc_id(player.get_peer_id(), 0)
 		return
 
@@ -174,7 +209,8 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 		push_warning("[Weapon] Tir refusé : origine trop loin du joueur %d" % player.get_peer_id())
 		return
 
-	_srv_ammo -= 1
+	inventory.set_active_ammo(inventory.get_active_ammo() - 1)
+	inventory.cancel_use()  # tirer interrompt un soin
 	# Le flag « visée » vient du client : au pire un tricheur obtient la précision ADS.
 	var spread := data.ads_spread_deg if aiming else data.spread_deg
 	for i in data.pellets:
@@ -201,13 +237,13 @@ func _server_trace(origin: Vector3, dir: Vector3) -> void:
 	_show_shot.rpc(origin, end, kind)
 
 
-## Remet le chargeur à neuf (réapparition).
+## Réapparition : à appeler après Inventory.reset_loadout().
 func server_refill() -> void:
-	_srv_ammo = data.magazine_size
 	_srv_reload_end_ms = 0
+	_srv_switch_until_ms = 0
 	_srv_tokens = Config.FIRE_BURST_TOLERANCE
 	_srv_last_ms = Time.get_ticks_msec()
-	_sync_ammo.rpc_id(player.get_peer_id(), data.magazine_size)
+	_sync_ammo.rpc_id(player.get_peer_id(), inventory.get_active_ammo())
 
 
 func _sender_is_owner() -> bool:

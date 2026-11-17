@@ -15,6 +15,11 @@ var _hitmarker: Label
 var _damage_flash: ColorRect
 var _death_panel: ColorRect
 var _death_label: Label
+var _slot_labels: Array[Label] = []
+var _items_label: Label
+var _credits_label: Label
+var _prompt_label: Label
+var _use_bar: ProgressBar
 
 var _last_total: float = -1.0
 var _respawn_left: float = 0.0
@@ -29,7 +34,10 @@ func setup(player: Player) -> void:
 	player.health.dead_changed.connect(_on_dead_changed)
 	player.weapon.ammo_changed.connect(_on_ammo_changed)
 	player.weapon.hit_confirmed.connect(_on_hit_confirmed)
+	player.inventory.changed.connect(_on_inventory_changed)
+	player.interactor.prompt_changed.connect(func(text: String) -> void: _prompt_label.text = text)
 	_on_health_changed()
+	_on_inventory_changed()
 	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine_size, false)
 	_on_dead_changed(player.health.is_dead)
 
@@ -39,6 +47,22 @@ func _process(delta: float) -> void:
 		_respawn_left = maxf(_respawn_left - delta, 0.0)
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
 	_crosshair.visible = not _player.weapon.is_aiming and not _player.health.is_dead
+	var inv := _player.inventory
+	_use_bar.visible = inv.using_item != ""
+	if _use_bar.visible:
+		var duration := maxf(inv.get_use_duration(), 0.01)
+		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
+
+
+func _on_inventory_changed() -> void:
+	var inv := _player.inventory
+	for i in _slot_labels.size():
+		var item := Items.get_item(StringName(inv.slot_ids[i]))
+		var label := _slot_labels[i]
+		label.text = "[%d] %s" % [i + 1, item.display_name if item else "—"]
+		label.modulate = Color(1, 0.85, 0.3) if i == inv.active_slot else Color(1, 1, 1, 0.55)
+	_items_label.text = "[3] Soins ×%d    [4] Recharges ×%d" % [inv.medkits, inv.shield_cells]
+	_credits_label.text = "%d crédits" % inv.credits
 
 
 # --- Réactions aux signaux ---
@@ -134,6 +158,50 @@ func _build() -> void:
 	_ammo_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_ammo_label.offset_right = -32
 	_ammo_label.offset_bottom = -24
+
+	# Emplacements d'arme, au-dessus des munitions.
+	var slots := VBoxContainer.new()
+	slots.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slots.alignment = BoxContainer.ALIGNMENT_END
+	add_child(slots)
+	slots.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	slots.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	slots.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	slots.offset_right = -32
+	slots.offset_bottom = -70
+	for i in 2:
+		var label := _make_label("", 18)
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		slots.add_child(label)
+		_slot_labels.append(label)
+
+	# Consommables (au-dessus des barres) et crédits (en haut à droite).
+	_items_label = _make_label("", 16)
+	_items_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	bars.add_child(_items_label)
+	bars.move_child(_items_label, 0)
+	_credits_label = _make_label("", 22)
+	add_child(_credits_label)
+	_credits_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_credits_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_credits_label.offset_right = -32
+	_credits_label.offset_top = 20
+
+	# Message d'interaction + barre d'utilisation, sous le viseur.
+	var below := VBoxContainer.new()
+	below.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(below)
+	below.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	below.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	below.offset_top = 50
+	below.offset_bottom = 50
+	_prompt_label = _make_label("", 20)
+	below.add_child(_prompt_label)
+	_use_bar = _make_bar(Color(1, 1, 1, 0.85), 1.0)
+	_use_bar.custom_minimum_size = Vector2(200, 8)
+	_use_bar.step = 0.0
+	_use_bar.visible = false
+	below.add_child(_use_bar)
 
 	# Écran de mort.
 	_death_panel = ColorRect.new()

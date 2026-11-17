@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"pistol"
+display_name = "Pistolet"
+family = 4
+rarity = 0
+damage = 25.0
+fire_rate_rpm = 300.0
+pellets = 1
+headshot_multiplier = 1.5
+range_m = 80.0
+hitscan = true
+automatic = false
+magazine_size = 12
+reload_time = 1.4
+spread_deg = 1.0
+ads_spread_deg = 0.3
+recoil_deg = 1.6

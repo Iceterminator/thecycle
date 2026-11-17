@@ -33,6 +33,19 @@ const ADS_FOV := 60.0                    # champ de vision en visée
 const HEAD_ZONE_HEIGHT := 0.45           # haut de la capsule compté comme « tête » (m)
 const SHOT_ORIGIN_TOLERANCE := 2.0       # écart max (m) entre l'origine d'un tir et les yeux vus par le serveur
 const FIRE_BURST_TOLERANCE := 3.0        # tirs d'avance tolérés par le serveur (gigue réseau)
+const WEAPON_SWITCH_TIME := 0.4          # pas de tir pendant le changement d'arme (s)
+
+# --- Loot et inventaire (valeurs provisoires, à revoir avec la boucle complète) ---
+const BASE_WEAPON := &"assault_rifle"    # équipement de départ (emplacement 1)
+const HEAL_ITEM := &"medkit"             # consommable de la touche 3
+const SHIELD_ITEM := &"shield_cell"      # consommable de la touche 4
+const MAX_MEDKITS := 3
+const MAX_SHIELD_CELLS := 3
+const INTERACT_RANGE := 2.5              # portée de l'interaction (E), en m
+const INTERACT_SERVER_MARGIN := 1.0      # tolérance côté serveur (latence, centre de l'objet)
+const PICKUP_LIFETIME := 180.0           # un objet au sol disparaît après ce délai (s)
+const LOOT_SCATTER_RADIUS := 1.2         # éparpillement du loot autour d'une caisse / d'un mort
+const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (va au tueur)
 
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort

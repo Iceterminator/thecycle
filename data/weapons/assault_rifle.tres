@@ -14,6 +14,7 @@ pellets = 1
 headshot_multiplier = 1.5
 range_m = 120.0
 hitscan = true
+automatic = true
 magazine_size = 30
 reload_time = 2.0
 spread_deg = 1.5

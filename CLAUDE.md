@@ -31,13 +31,14 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
     (Godot 4.7.2, pas dans le PATH ; chemin relatif à la racine du projet).
 
 ## Arborescence
-- `autoload/` singletons : `Config`, `Events`, `Net`
+- `autoload/` singletons : `Config`, `Events`, `Net`, `Items` (registre des objets de `data/items/`)
 - `scenes/main/` menu + conteneur du monde (`/root/Main/World`)
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
-- `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD) ; match, contrats, tempête, évac, monstres… (à venir)
+- `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (caisses,
+  objets au sol, LootManager), `inventory/`, `interaction/` ; match, contrats, tempête, évac, monstres… (à venir)
 - `resources/` scripts de types de données
-- `data/` valeurs d'équilibrage `.tres`
+- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `items/` (un objet ramassable = un fichier), `loot/`
 - `assets/` modèles, sons, textures
 
 ## Tester

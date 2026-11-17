@@ -65,6 +65,18 @@ func apply_damage(amount: float, attacker_id: int) -> bool:
 	return false
 
 
+## Serveur uniquement : soin (kit de soin). La santé ne remonte jamais seule.
+func heal(amount: float) -> void:
+	if not is_dead:
+		health = minf(health + amount, Config.MAX_HEALTH)
+
+
+## Serveur uniquement : recharge de bouclier (cellule).
+func restore_shield(amount: float) -> void:
+	if not is_dead:
+		shield = minf(shield + amount, max_shield)
+
+
 ## Serveur uniquement : remet le joueur sur pied (réapparition).
 func revive() -> void:
 	health = Config.MAX_HEALTH

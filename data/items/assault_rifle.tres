@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://data/weapons/assault_rifle.tres" id="2_weapon"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"assault_rifle"
+display_name = "Fusil d'assaut"
+kind = 0
+weapon = ExtResource("2_weapon")
+color = Color(0.95, 0.6, 0.2, 1)

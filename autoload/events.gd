@@ -13,6 +13,14 @@ signal player_left(peer_id: int)
 signal player_damaged(peer_id: int, amount: float, attacker_id: int)
 signal player_died(victim_id: int, killer_id: int)
 
+# Loot et inventaire (étape 3) — émis côté serveur
+## Demande au LootManager de poser un objet au sol (caisse ouverte, arme remplacée, mort).
+## ammo = -1 : chargeur plein. scatter = éparpiller autour de la position.
+signal loot_drop_requested(item_id: StringName, amount: int, ammo: int, position: Vector3, scatter: bool)
+signal crate_opened(peer_id: int)
+signal item_picked_up(peer_id: int, item_id: StringName, amount: int)
+signal credits_changed(peer_id: int, credits: int)
+
 # Partie (étapes 5-7)
 signal fame_changed(peer_id: int, new_fame: int)
 signal contract_completed(peer_id: int, contract_id: StringName)

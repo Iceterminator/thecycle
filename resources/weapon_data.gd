@@ -18,6 +18,7 @@ enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 @export var headshot_multiplier: float = 1.5
 @export var range_m: float = 120.0
 @export var hitscan: bool = true               ## false = projectile (armes lourdes)
+@export var automatic: bool = true             ## false = semi-auto (un clic = un tir)
 
 @export_group("Chargeur")
 @export var magazine_size: int = 30
