@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_yul0u"]
+
+[resource]
+script = ExtResource("1_yul0u")
+id = &"karma_1"
+display_name = "Tonnerre"
+faction = 1
+faction_level = 9
+type = 3
+fire_mode = 3
+projectile_type = 2
+damage = 500.0
+rpm = 27.9
+fire_interval_s = 2.15
+dps = 233.0
+charge_time_s = 1.0
+weakspot_multiplier = 2.0
+projectile_speed_mps = 600.0
+aoe_damage = 100.0
+aoe_radius_m = 1.5
+magazine = 2
+reload_s = 2.2
+ads_time_s = 0.65
+equip_time_s = 0.8
+stability = 8.32
+scope_zoom = 6.0
+hip_spread_deg = 4.0
+ads_spread_deg = 0.0
+recoil_deg = 3.0
+spawn_cost_credits = 800
+unlock_cost = 12000
+estimated_fields = PackedStringArray("charge_time_s", "projectile_speed_mps", "aoe_damage", "aoe_radius_m", "scope_zoom")
+behavior = "Railgun : maintenir la gâchette pour charger, le tir part chargé. Énorme dégâts, x2 à la tête, l'impact endommage aussi la zone autour. Seulement 2 tirs par chargeur. Pas de baisse de dégâts avec la distance."

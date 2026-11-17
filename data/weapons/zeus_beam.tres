@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_4chwe"]
+
+[resource]
+script = ExtResource("1_4chwe")
+id = &"zeus_beam"
+display_name = "Fournaise"
+faction = 2
+faction_level = 10
+type = 8
+fire_mode = 5
+damage = 20.0
+rpm = 1622.0
+fire_interval_s = 0.037
+dps = 541.0
+spin_up_s = 1.15
+weakspot_multiplier = 1.0
+falloff_start_m = 30.0
+falloff_end_m = 50.0
+max_range_m = 50.0
+magazine = 100
+reload_s = 2.6
+ads_time_s = 0.6
+equip_time_s = 1.2
+stability = 2.08
+hip_spread_deg = 1.0
+ads_spread_deg = 0.3
+recoil_deg = 2.0
+spawn_cost_credits = 800
+unlock_cost = 12000
+estimated_fields = PackedStringArray("falloff_start_m", "falloff_end_m", "max_range_m")
+behavior = "Rayon d'énergie continu. Montée en régime de 1.15 s avant de faire des dégâts, puis vide boucliers et santé en continu tant qu'on maintient le tir. Pas de bonus de point faible."

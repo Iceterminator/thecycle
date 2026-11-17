@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="KitData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_data.gd" id="1_fxkck"]
+
+[resource]
+script = ExtResource("1_fxkck")
+id = &"aani_quicksuit"
+display_name = "Combinaison Furet"
+faction = 2
+faction_level = 1
+health = 400.0
+shield = 400.0
+move_speed_mps = 4.4
+mobility_type = 2
+movement = {
+"dodge": {
+"activation": "Taper Saut en tenant une direction (gauche, droite ou arrière) au sol : esquive rapide dans cette direction.",
+"charge_cost": 1.0,
+"damage_reduction_during_dodge": 0.0,
+"distance_m": 4.0,
+"duration_s": 0.2
+},
+"double_jump": {
+"activation": "Appuyer sur Saut en l'air.",
+"charge_cost": 1.0,
+"jump_velocity_mps": 6.0,
+"max_air_jumps": 1.0,
+"max_air_jumps_at_level_4": 2.0
+},
+"energy_charges": {
+"max": 4.0,
+"note": "Les mouvements spéciaux consomment des charges. Plus de charge = plus de mouvement spécial.",
+"regen_s_per_charge": 3.0
+},
+"slide": {
+"activation": "Accroupi pendant un sprint : glissade basse et longue. Sauter pendant la glissade donne un boost vers l'avant (slide-jump).",
+"charge_cost": 0.0,
+"slide_duration_s": 0.8,
+"slide_jump_boost_mps": 3.0,
+"slide_speed_mps": 10.0
+}
+}
+level_perks = PackedStringArray("Défense contre les créatures +20 %", "Santé et bouclier +50", "Énergie +1 charge", "Triple saut", "Santé et bouclier +50", "Dégâts contre les créatures +20 %")
+mods = Array[Dictionary]([{
+"effect": "Dégâts subis réduits pendant l'esquive (damage_reduction_during_dodge = 0.5)",
+"id": "reduced_dodge_damage"
+}, {
+"effect": "+1 charge d'énergie",
+"id": "extra_charge"
+}, {
+"effect": "Glissade plus longue (slide_duration_s +50 %)",
+"id": "longer_slide"
+}, {
+"effect": "+2 charges, mais perd 1 charge quand le joueur subit des dégâts",
+"id": "more_charges_fragile"
+}])
+estimated_fields = PackedStringArray("movement.energy_charges.regen_s_per_charge", "movement.double_jump.jump_velocity_mps", "movement.dodge.distance_m", "movement.dodge.duration_s", "movement.slide.slide_speed_mps", "movement.slide.slide_duration_s", "movement.slide.slide_jump_boost_mps", "level_perks[5]", "mods[*].effect (valeurs chiffrées)")
+history = "Une autre version de la fiche donne 300 santé / 300 bouclier."
+playstyle = "Agilité au sol : esquiver les tirs, glisser entre les couverts, double/triple saut. Le kit le plus fragile."

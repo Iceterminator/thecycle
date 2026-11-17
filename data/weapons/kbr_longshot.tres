@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_t0mh4"]
+
+[resource]
+script = ExtResource("1_t0mh4")
+id = &"kbr_longshot"
+display_name = "Héron"
+faction = 1
+faction_level = 5
+type = 2
+fire_mode = 1
+projectile_type = 1
+damage = 120.0
+rpm = 133.0
+fire_interval_s = 0.45
+dps = 267.0
+weakspot_multiplier = 1.75
+falloff_start_m = 60.0
+falloff_end_m = 100.0
+projectile_speed_mps = 300.0
+magazine = 12
+reload_s = 2.4
+ads_time_s = 0.45
+equip_time_s = 0.5
+stability = 4.5
+scope_zoom = 2.5
+ads_spread_deg = 0.3
+recoil_deg = 1.2
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray("projectile_speed_mps", "scope_zoom")
+behavior = "Fusil de combat semi-automatique à lunette, façon DMR. Pensé pour la moyenne portée. Une variante (mod) tire en rafale de 3."

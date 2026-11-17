@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_o00ny"]
+
+[resource]
+script = ExtResource("1_o00ny")
+id = &"gorgon"
+display_name = "Orage"
+faction = 2
+faction_level = 6
+fire_mode = 4
+damage = 12.0
+rpm = 1187.0
+fire_interval_s = 0.25
+dps = 237.0
+burst_count = 15
+burst_interval_s = 0.027
+charge_time_s = 0.35
+weakspot_multiplier = 1.3
+falloff_start_m = 35.0
+falloff_end_m = 70.0
+magazine = 90
+reload_s = 1.55
+ads_time_s = 0.3
+stability = 0.0662
+spawn_cost_credits = 200
+unlock_cost = 4000
+estimated_fields = PackedStringArray()
+behavior = "Fusil à rayon : chaque tir demande une charge de 0.35 s, puis libère une rafale rapide de petits impacts (effet de rayon électrique). Très précis (dispersion quasi nulle)."

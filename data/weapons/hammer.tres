@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_oln0t"]
+
+[resource]
+script = ExtResource("1_oln0t")
+id = &"hammer"
+display_name = "Barillet"
+faction = 1
+faction_level = 1
+type = 6
+slot = 1
+fire_mode = 1
+damage = 31.0
+rpm = 149.0
+fire_interval_s = 0.404
+dps = 77.0
+falloff_start_m = 20.0
+falloff_end_m = 70.0
+falloff_min_multiplier = 0.2
+magazine = 8
+reload_s = 2.17
+equip_time_s = 0.3
+stability = 3.0
+hip_spread_deg = 1.0
+ads_spread_deg = 0.3
+recoil_deg = 1.6
+estimated_fields = PackedStringArray("projectile_type", "stability")
+behavior = "Pistolet façon revolver, 8 coups. Cadence lente mais très stable."

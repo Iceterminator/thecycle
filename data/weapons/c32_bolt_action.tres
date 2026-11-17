@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_jog4y"]
+
+[resource]
+script = ExtResource("1_jog4y")
+id = &"c32_bolt_action"
+display_name = "Faucon"
+type = 3
+fire_mode = 1
+projectile_type = 1
+damage = 250.0
+rpm = 46.2
+fire_interval_s = 1.3
+dps = 192.0
+weakspot_multiplier = 1.75
+falloff_start_m = 150.0
+falloff_end_m = 150.0
+projectile_speed_mps = 400.0
+magazine = 5
+reload_s = 2.65
+ads_time_s = 0.6
+equip_time_s = 0.5
+stability = 6.78
+scope_zoom = 4.0
+hip_spread_deg = 4.0
+ads_spread_deg = 0.0
+recoil_deg = 3.0
+spawn_cost_credits = 500
+unlock_cost = 0
+estimated_fields = PackedStringArray("projectile_speed_mps", "scope_zoom")
+behavior = "Sniper à verrou : un tir puis réarmement de 1.3 s. Gros dégâts, x1.75 à la tête. Projectile : anticiper les cibles mobiles. Pas de baisse de dégâts avant 150 m."

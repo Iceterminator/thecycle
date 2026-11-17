@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_de3bh"]
+
+[resource]
+script = ExtResource("1_de3bh")
+id = &"asp_flechette_gun"
+display_name = "Aiguille"
+faction = 2
+faction_level = 2
+type = 0
+projectile_type = 1
+damage = 37.0
+rpm = 667.0
+fire_interval_s = 0.09
+dps = 411.0
+weakspot_multiplier = 1.3
+falloff_start_m = 15.0
+falloff_end_m = 60.0
+projectile_speed_mps = 100.0
+magazine = 24
+reload_s = 1.5
+equip_time_s = 0.35
+stability = 0.983
+hip_spread_deg = 2.5
+ads_spread_deg = 0.9
+recoil_deg = 0.5
+spawn_cost_credits = 200
+unlock_cost = 4000
+estimated_fields = PackedStringArray()
+behavior = "SMG à fléchettes (projectiles à 100 m/s). Cadence plus lente que les autres SMG mais plus stable et plus de portée."

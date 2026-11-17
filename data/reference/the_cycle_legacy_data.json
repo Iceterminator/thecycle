@@ -1,0 +1,492 @@
+{
+  "meta": {
+    "game": "The Cycle (Yager, 2019-2021, version legacy, PAS The Cycle: Frontier)",
+    "purpose": "Référence complète pour recréer les armes et les kits (combinaisons) dans un remake Godot 4. Contient les chiffres ET le fonctionnement de chaque élément.",
+    "how_to_read": [
+      "Chaque arme/kit a un 'id' stable : l'utiliser comme nom de fichier .tres et comme clé dans le code.",
+      "Les chiffres viennent des wikis archivés du jeu (un instantané d'un patch ; les valeurs ont changé à chaque mise à jour).",
+      "Tout champ listé dans 'estimated_fields' n'existe pas dans les sources : c'est une valeur de départ cohérente choisie pour le remake, à équilibrer en jouant.",
+      "null = valeur inconnue ET sans estimation (ignorer le champ ou utiliser la valeur par défaut de 'combat_rules').",
+      "Les unités sont déjà converties pour Godot : mètres, secondes, mètres/seconde."
+    ],
+    "units": {
+      "damage": "points par balle/projectile (par plomb pour les fusils à pompe si 'pellets' > 1 : voir pellet_damage)",
+      "dps": "dégâts par seconde théoriques (tous les tirs touchent le corps)",
+      "rpm": "coups par minute",
+      "fire_interval_s": "secondes entre deux tirs (= 60 / rpm)",
+      "magazine": "munitions par chargeur",
+      "reload_s": "secondes",
+      "weakspot_multiplier": "multiplicateur de dégâts sur point faible (tête des joueurs, points faibles des monstres)",
+      "falloff_start_m / falloff_end_m": "distance en mètres où les dégâts commencent à baisser / atteignent leur minimum",
+      "projectile_speed_mps": "vitesse du projectile en m/s (seulement si projectile_type = projectile)",
+      "ads_time_s": "temps pour viser (ADS)",
+      "equip_time_s": "temps pour sortir l'arme",
+      "stability": "valeur interne du jeu d'origine : plus haut = moins de recul. Sert à classer les armes entre elles",
+      "spawn_cost_credits": "coût en crédits pour obtenir l'arme PENDANT la partie",
+      "unlock_cost": "coût de déblocage HORS partie",
+      "health / shield": "points",
+      "move_speed_mps": "vitesse de marche en m/s"
+    }
+  },
+
+  "glossary": {
+    "fire_mode": {
+      "auto": "tir continu tant que la gâchette est maintenue, un tir tous les fire_interval_s",
+      "semi": "un tir par appui, au plus un tir tous les fire_interval_s",
+      "burst": "un appui = 'burst_count' tirs espacés de 'burst_interval_s', puis attente fire_interval_s avant la rafale suivante",
+      "charge": "maintenir la gâchette pendant 'charge_time_s' ; le tir part au relâchement (ou automatiquement quand la charge est pleine) ; relâcher trop tôt = pas de tir",
+      "charge_burst": "comme 'charge' mais le tir chargé part en rafale de 'burst_count'",
+      "beam": "rayon continu : après 'spin_up_s' de montée en régime, inflige 'damage' à chaque tick (fire_interval_s) tant que la gâchette est maintenue ; consomme 1 munition par tick"
+    },
+    "projectile_type": {
+      "hitscan": "raycast instantané depuis la caméra : touche immédiatement ce qui est sous le viseur (+ dispersion)",
+      "projectile": "objet physique qui voyage à projectile_speed_mps ; il faut anticiper les cibles mobiles",
+      "explosive_projectile": "projectile qui explose à l'impact : dégâts directs 'damage' sur la cible touchée + dégâts de zone 'aoe_damage' dans 'aoe_radius_m' (décroissants vers le bord)"
+    },
+    "slot": {
+      "primary": "2 emplacements d'arme principale par joueur",
+      "secondary": "1 emplacement de pistolet ; le pistolet fait partie du loadout de départ et n'est jamais perdu"
+    },
+    "faction": {
+      "starter": "disponible dès le début, sans faction",
+      "korolev": "industrie lourde : armes puissantes, lentes, explosives",
+      "osiris": "technologie : fléchettes, rayons, armes précises",
+      "ica": "équilibre : armes polyvalentes, électriques (batteries)"
+    },
+    "faction_level": "niveau de réputation (1 à 10) à atteindre auprès de la faction pour débloquer l'arme ; 0 = arme de départ"
+  },
+
+  "combat_rules": {
+    "damage_order": "Les dégâts touchent d'abord le BOUCLIER ; le surplus passe sur la SANTÉ. À 0 santé le joueur est abattu.",
+    "damage_formula": "dégâts_finaux = damage × weakspot_multiplier (si point faible touché) × multiplicateur_de_distance × modificateurs (mods, kit)",
+    "falloff": "multiplicateur_de_distance = 1.0 jusqu'à falloff_start_m, puis baisse linéairement jusqu'à 'falloff_min_multiplier' à falloff_end_m, et reste à ce minimum au-delà.",
+    "falloff_min_multiplier": 0.6,
+    "falloff_min_multiplier_note": "Valeur par défaut du jeu d'origine pour la plupart des armes ; les pistolets sont passés à 0.2 dans un patch.",
+    "shield_regen": {"delay_s": 7.0, "rate_per_s": 90, "note": "Le bouclier se recharge seul après 7 s sans dégâts (90 pts/s ; 120 avant un patch)."},
+    "health_regen": {"delay_s": 7.0, "rate_per_s": 25, "note": "Régénération lente de la santé (valeur de l'Aani QuickSuit ; la Boxer a une régénération plus rapide)."},
+    "sprint_multiplier": 1.9,
+    "sprint_note": "Vitesse de sprint = move_speed_mps × 1.9 (1.7 avant le Release 8).",
+    "slide": "Tous les kits peuvent glisser brièvement : sprint + accroupi (ajouté au Release 8).",
+    "air_control": 0.25,
+    "air_control_note": "Part de contrôle directionnel en l'air (0 = aucun, 1 = total). Le jetpack de la Dragonfly donne un contrôle complet pendant la poussée.",
+    "kit_leveling": "Pendant la partie, le joueur gagne de l'XP (kills, contrats). Le kit monte de niveau (1 à 6) et débloque ses bonus 'level_perks' dans l'ordre. Remis à zéro à chaque partie.",
+    "credits_in_match": "Les crédits gagnés en partie servent à faire apparaître des armes (spawn_cost_credits) et à améliorer son équipement sans quitter la carte."
+  },
+
+  "weapons": [
+    {"id": "s76_pdw", "name": "S-76 PDW", "faction": "starter", "faction_level": 0, "type": "smg", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 29, "dps": 414, "rpm": 857, "fire_interval_s": 0.07, "magazine": 30, "reload_s": 1.8,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 15, "falloff_end_m": 50,
+     "ads_time_s": 0.25, "equip_time_s": 0.35, "stability": 0.917, "spawn_cost_credits": 200, "unlock_cost": 0,
+     "estimated_fields": [],
+     "behavior": "SMG de départ. Tir automatique très rapide, dégâts faibles par balle. Excellente à courte portée, inefficace au-delà de 50 m."},
+
+    {"id": "ar55_phase_autorifle", "name": "AR-55 Phase Autorifle", "faction": "starter", "faction_level": 0, "type": "assault_rifle", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 45, "dps": 321, "rpm": 429, "fire_interval_s": 0.14, "magazine": 28, "reload_s": 2.2,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 40, "falloff_end_m": 80,
+     "ads_time_s": 0.25, "equip_time_s": 0.5, "stability": 0.949, "spawn_cost_credits": 500, "unlock_cost": 0,
+     "estimated_fields": ["projectile_type"],
+     "behavior": "Fusil d'assaut de départ, polyvalent. Cadence modérée, bon à moyenne portée."},
+
+    {"id": "c32_bolt_action", "name": "C-32 Bolt Action", "faction": "starter", "faction_level": 0, "type": "sniper_rifle", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "projectile", "projectile_speed_mps": 400,
+     "damage": 250, "dps": 192, "rpm": 46.2, "fire_interval_s": 1.3, "magazine": 5, "reload_s": 2.65,
+     "weakspot_multiplier": 1.75, "falloff_start_m": 150, "falloff_end_m": 150,
+     "ads_time_s": 0.6, "equip_time_s": 0.5, "stability": 6.78, "spawn_cost_credits": 500, "unlock_cost": 0, "scope_zoom": 4.0,
+     "estimated_fields": ["projectile_speed_mps", "scope_zoom"],
+     "behavior": "Sniper à verrou : un tir puis réarmement de 1.3 s. Gros dégâts, x1.75 à la tête. Projectile : anticiper les cibles mobiles. Pas de baisse de dégâts avant 150 m."},
+
+    {"id": "ff4_detonator", "name": "FF4 Detonator", "faction": "starter", "faction_level": 0, "type": "missile_launcher", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "explosive_projectile", "projectile_speed_mps": 40,
+     "damage": 375, "aoe_damage": 150, "aoe_radius_m": 3.0, "dps": 490, "rpm": 78.4, "fire_interval_s": 0.77, "magazine": 4, "reload_s": 2.5,
+     "weakspot_multiplier": 1.0, "falloff_start_m": null, "falloff_end_m": null,
+     "ads_time_s": 0.6, "equip_time_s": 1.2, "stability": 7.06, "spawn_cost_credits": 800, "unlock_cost": 0,
+     "estimated_fields": ["projectile_speed_mps", "aoe_damage", "aoe_radius_m", "ads_time_s", "equip_time_s"],
+     "behavior": "Arme lourde de départ. Tire des projectiles explosifs lents : dégâts directs + zone. Idéale contre les monstres et les groupes. Pas de bonus de point faible."},
+
+    {"id": "k28_autopistol", "name": "K-28 Autopistol", "faction": "starter", "faction_level": 0, "type": "pistol", "slot": "secondary",
+     "fire_mode": "semi", "projectile_type": "hitscan",
+     "damage": 43, "dps": 265, "rpm": 370, "fire_interval_s": 0.16, "magazine": 14, "reload_s": 1.5,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 20, "falloff_end_m": 70,
+     "ads_time_s": 0.2, "equip_time_s": 0.3, "stability": 2.0, "spawn_cost_credits": null, "unlock_cost": 0,
+     "estimated_fields": ["reload_s", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s", "stability"],
+     "behavior": "Pistolet semi-automatique standard : précision, cadence et dégâts corrects. Arme de secours."},
+
+    {"id": "kor_47", "name": "KOR-47", "faction": "korolev", "faction_level": 2, "type": "assault_rifle", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 34, "dps": 315, "rpm": 556, "fire_interval_s": 0.108, "magazine": 28, "reload_s": 2.3,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 30, "falloff_end_m": 80,
+     "ads_time_s": 0.35, "equip_time_s": 0.5, "stability": 0.696, "spawn_cost_credits": 200, "unlock_cost": 4000,
+     "estimated_fields": ["projectile_type"],
+     "behavior": "Fusil d'assaut bullpup de Korolev. Cadence plus lente que ses équivalents mais plus de dégâts par balle. Recul assez fort."},
+
+    {"id": "komrad", "name": "KOMRAD", "faction": "korolev", "faction_level": 3, "type": "missile_launcher", "slot": "primary",
+     "fire_mode": "burst", "burst_count": 3, "burst_interval_s": 0.11, "projectile_type": "explosive_projectile", "projectile_speed_mps": 50,
+     "damage": 120, "aoe_damage": 80, "aoe_radius_m": 2.0, "dps": 353, "rpm": 176, "fire_interval_s": 0.8, "magazine": 12, "reload_s": 2.9,
+     "weakspot_multiplier": 1.0, "falloff_start_m": null, "falloff_end_m": null,
+     "ads_time_s": 0.5, "equip_time_s": 0.5, "stability": 9.52, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": ["projectile_speed_mps"],
+     "behavior": "Lance-roquettes en rafale : un appui = 3 roquettes espacées de 0.11 s. Chaque roquette : dégâts directs + 80 de zone sur 2 m. Moins de dégâts par roquette que les autres lanceurs, mais plus de munitions."},
+
+    {"id": "kbr_longshot", "name": "KBR Longshot", "faction": "korolev", "faction_level": 5, "type": "battle_rifle", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "projectile", "projectile_speed_mps": 300,
+     "damage": 120, "dps": 267, "rpm": 133, "fire_interval_s": 0.45, "magazine": 12, "reload_s": 2.4,
+     "weakspot_multiplier": 1.75, "falloff_start_m": 60, "falloff_end_m": 100,
+     "ads_time_s": 0.45, "equip_time_s": 0.5, "stability": 4.5, "spawn_cost_credits": 500, "unlock_cost": 8000, "scope_zoom": 2.5,
+     "estimated_fields": ["projectile_speed_mps", "scope_zoom"],
+     "behavior": "Fusil de combat semi-automatique à lunette, façon DMR. Pensé pour la moyenne portée. Une variante (mod) tire en rafale de 3."},
+
+    {"id": "km9_scrapper", "name": "KM-9 Scrapper", "faction": "korolev", "faction_level": 7, "type": "smg", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 35, "dps": 432, "rpm": 741, "fire_interval_s": 0.081, "magazine": 24, "reload_s": 1.8,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 10, "falloff_end_m": 32.5,
+     "ads_time_s": 0.2, "equip_time_s": 0.25, "stability": 1.77, "spawn_cost_credits": 200, "unlock_cost": 4000,
+     "estimated_fields": [],
+     "behavior": "SMG qui tire des éclats de cristal. Stable, très efficace à courte portée, les dégâts chutent vite après 10 m."},
+
+    {"id": "pkr_maelstrom", "name": "PKR Maelstrom", "faction": "korolev", "faction_level": 8, "type": "shotgun", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan", "pellets": 8, "pellet_damage": 20, "spread_deg": 6.0,
+     "damage": 160, "dps": 381, "rpm": 143, "fire_interval_s": 0.42, "magazine": 10, "reload_s": 2.2,
+     "weakspot_multiplier": 1.2, "falloff_start_m": 8, "falloff_end_m": 25,
+     "ads_time_s": 0.3, "equip_time_s": 0.5, "stability": 0.044, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": ["pellets", "pellet_damage", "spread_deg", "weakspot_multiplier", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s"],
+     "data_fix": "La source donnait 1143 coups/min, incompatible avec 381 DPS. rpm recalculé depuis le DPS (381 × 60 / 160 = 143).",
+     "behavior": "Prototype de fusil à pompe AUTOMATIQUE : cadence élevée pour un fusil à pompe. 'damage' = total si tous les plombs touchent. Dévastateur de près, mauvais choix à distance."},
+
+    {"id": "karma_1", "name": "KARMA-1", "faction": "korolev", "faction_level": 9, "type": "sniper_rifle", "slot": "primary",
+     "fire_mode": "charge", "charge_time_s": 1.0, "projectile_type": "explosive_projectile", "projectile_speed_mps": 600,
+     "damage": 500, "aoe_damage": 100, "aoe_radius_m": 1.5, "dps": 233, "rpm": 27.9, "fire_interval_s": 2.15, "magazine": 2, "reload_s": 2.2,
+     "weakspot_multiplier": 2.0, "falloff_start_m": null, "falloff_end_m": null,
+     "ads_time_s": 0.65, "equip_time_s": 0.8, "stability": 8.32, "spawn_cost_credits": 800, "unlock_cost": 12000, "scope_zoom": 6.0,
+     "estimated_fields": ["charge_time_s", "projectile_speed_mps", "aoe_damage", "aoe_radius_m", "scope_zoom"],
+     "behavior": "Railgun : maintenir la gâchette pour charger, le tir part chargé. Énorme dégâts, x2 à la tête, l'impact endommage aussi la zone autour. Seulement 2 tirs par chargeur. Pas de baisse de dégâts avec la distance."},
+
+    {"id": "karla", "name": "KARLA", "faction": "korolev", "faction_level": 10, "type": "heavy", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "explosive_projectile", "projectile_speed_mps": 60,
+     "damage": 450, "aoe_damage": 200, "aoe_radius_m": 3.0, "dps": 265, "rpm": 35.3, "fire_interval_s": 1.7, "magazine": 5, "reload_s": 4.2,
+     "weakspot_multiplier": 1.0, "falloff_start_m": null, "falloff_end_m": null,
+     "ads_time_s": 0.6, "equip_time_s": 1.2, "stability": 4.98, "spawn_cost_credits": 800, "unlock_cost": 12000,
+     "estimated_fields": ["projectile_speed_mps", "aoe_damage", "aoe_radius_m", "weakspot_multiplier", "ads_time_s", "equip_time_s"],
+     "behavior": "Arme lourde explosive. Cadence très lente (1.7 s entre tirs) et rechargement très long (4.2 s). Gagne le combat si les premiers tirs touchent ; sinon le joueur est vulnérable."},
+
+    {"id": "hammer", "name": "Hammer", "faction": "korolev", "faction_level": 1, "type": "pistol", "slot": "secondary",
+     "fire_mode": "semi", "projectile_type": "hitscan",
+     "damage": 31, "dps": 77, "rpm": 149, "fire_interval_s": 0.404, "magazine": 8, "reload_s": 2.17,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 20, "falloff_end_m": 70,
+     "ads_time_s": 0.25, "equip_time_s": 0.3, "stability": 3.0, "spawn_cost_credits": null, "unlock_cost": null,
+     "estimated_fields": ["projectile_type", "stability"],
+     "behavior": "Pistolet façon revolver, 8 coups. Cadence lente mais très stable."},
+
+    {"id": "asp_flechette_gun", "name": "Asp Flechette Gun", "faction": "osiris", "faction_level": 2, "type": "smg", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "projectile", "projectile_speed_mps": 100,
+     "damage": 37, "dps": 411, "rpm": 667, "fire_interval_s": 0.09, "magazine": 24, "reload_s": 1.5,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 15, "falloff_end_m": 60,
+     "ads_time_s": 0.25, "equip_time_s": 0.35, "stability": 0.983, "spawn_cost_credits": 200, "unlock_cost": 4000,
+     "estimated_fields": [],
+     "behavior": "SMG à fléchettes (projectiles à 100 m/s). Cadence plus lente que les autres SMG mais plus stable et plus de portée."},
+
+    {"id": "phasic_lancer", "name": "Phasic Lancer", "faction": "osiris", "faction_level": 3, "type": "battle_rifle", "slot": "primary",
+     "fire_mode": "burst", "burst_count": 3, "burst_interval_s": 0.07, "projectile_type": "hitscan",
+     "damage": 42, "dps": 296, "rpm": 424, "fire_interval_s": 0.425, "magazine": 24, "reload_s": 2.3,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 55, "falloff_end_m": 85,
+     "ads_time_s": 0.3, "equip_time_s": 0.4, "stability": 1.03, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": ["burst_interval_s", "ads_time_s", "equip_time_s"],
+     "behavior": "Fusil en rafale de 3 balles par appui. Fiable à moyenne portée ; gros dégâts si les 3 balles touchent."},
+
+    {"id": "manticore", "name": "Manticore", "faction": "osiris", "faction_level": 5, "type": "assault_rifle", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "projectile", "projectile_speed_mps": 150,
+     "damage": 47, "dps": 348, "rpm": 444, "fire_interval_s": 0.135, "magazine": 27, "reload_s": 1.9,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 30, "falloff_end_m": 80, "max_range_m": 85.5,
+     "ads_time_s": 0.3, "equip_time_s": 0.5, "stability": 6.02, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": [],
+     "behavior": "Fusil d'assaut à fléchettes (projectiles à 150 m/s). Précis et léger, fait pour la moyenne portée ; peu utile de loin."},
+
+    {"id": "gorgon", "name": "Gorgon", "faction": "osiris", "faction_level": 6, "type": "assault_rifle", "slot": "primary",
+     "fire_mode": "charge_burst", "charge_time_s": 0.35, "burst_count": 15, "burst_interval_s": 0.027, "projectile_type": "hitscan",
+     "damage": 12, "dps": 237, "rpm": 1187, "fire_interval_s": 0.25, "magazine": 90, "reload_s": 1.55,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 35, "falloff_end_m": 70,
+     "ads_time_s": 0.3, "equip_time_s": 0.4, "stability": 0.0662, "spawn_cost_credits": 200, "unlock_cost": 4000,
+     "estimated_fields": [],
+     "behavior": "Fusil à rayon : chaque tir demande une charge de 0.35 s, puis libère une rafale rapide de petits impacts (effet de rayon électrique). Très précis (dispersion quasi nulle)."},
+
+    {"id": "basilisk", "name": "Basilisk", "faction": "osiris", "faction_level": 8, "type": "sniper_rifle", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "projectile", "projectile_speed_mps": 400,
+     "damage": 150, "dps": 188, "rpm": 75, "fire_interval_s": 0.85, "magazine": 7, "reload_s": 1.9,
+     "weakspot_multiplier": 2.0, "falloff_start_m": 150, "falloff_end_m": 150,
+     "ads_time_s": 0.7, "equip_time_s": 0.65, "stability": 2.4, "spawn_cost_credits": 500, "unlock_cost": 8000, "scope_zoom": 4.0,
+     "estimated_fields": ["projectile_type", "projectile_speed_mps", "scope_zoom"],
+     "behavior": "Sniper compact à cadence élevée pour un sniper (0.85 s entre tirs). Moins de dégâts par tir que le C-32 mais x2 à la tête."},
+
+    {"id": "zeus_beam", "name": "Zeus Beam", "faction": "osiris", "faction_level": 10, "type": "heavy", "slot": "primary",
+     "fire_mode": "beam", "spin_up_s": 1.15, "projectile_type": "hitscan",
+     "damage": 20, "dps": 541, "rpm": 1622, "fire_interval_s": 0.037, "magazine": 100, "reload_s": 2.6,
+     "weakspot_multiplier": 1.0, "falloff_start_m": 30, "falloff_end_m": 50, "max_range_m": 50,
+     "ads_time_s": 0.6, "equip_time_s": 1.2, "stability": 2.08, "spawn_cost_credits": 800, "unlock_cost": 12000,
+     "estimated_fields": ["falloff_start_m", "falloff_end_m", "max_range_m"],
+     "behavior": "Rayon d'énergie continu. Montée en régime de 1.15 s avant de faire des dégâts, puis vide boucliers et santé en continu tant qu'on maintient le tir. Pas de bonus de point faible."},
+
+    {"id": "scarab_pistol", "name": "Scarab Pistol", "faction": "osiris", "faction_level": 1, "type": "pistol", "slot": "secondary",
+     "fire_mode": "burst", "burst_count": 3, "burst_interval_s": 0.07, "projectile_type": "hitscan",
+     "damage": 38, "dps": 112, "rpm": 176, "fire_interval_s": 0.34, "magazine": 18, "reload_s": 1.4,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 10, "falloff_end_m": 40, "max_range_m": 40,
+     "ads_time_s": 0.15, "equip_time_s": 0.3, "stability": 2.0, "spawn_cost_credits": null, "unlock_cost": null,
+     "estimated_fields": ["faction_level", "stability"],
+     "behavior": "Pistolet à phase Osiris en rafale de 3. Rechargement rapide."},
+
+    {"id": "ica_guarantee", "name": "ICA Guarantee", "faction": "ica", "faction_level": 2, "type": "lmg", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 50, "dps": 526, "rpm": 632, "fire_interval_s": 0.095, "magazine": 80, "reload_s": 3.9,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 55, "falloff_end_m": 100,
+     "ads_time_s": 0.6, "equip_time_s": 1.2, "stability": 1.17, "hipfire_spread_multiplier": 2.0, "spawn_cost_credits": 800, "unlock_cost": 12000,
+     "estimated_fields": ["hipfire_spread_multiplier"],
+     "behavior": "Mitrailleuse légère à batteries. Tir très rapide, gros chargeur, rechargement long. Bien plus précise en visée (ADS) qu'à la hanche."},
+
+    {"id": "shattergun", "name": "Shattergun", "faction": "ica", "faction_level": 3, "type": "shotgun", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "hitscan", "pellets": 10, "pellet_damage": 41.8, "spread_deg": 7.0,
+     "damage": 418, "dps": 333, "rpm": 48, "fire_interval_s": 1.27, "magazine": 4, "reload_s": 2.4,
+     "weakspot_multiplier": 1.2, "falloff_start_m": 6, "falloff_end_m": 20,
+     "damage_vs_shield_multiplier": 1.0, "damage_vs_health_multiplier": 1.3,
+     "ads_time_s": 0.3, "equip_time_s": 0.5, "stability": 0.57, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": ["pellets", "pellet_damage", "spread_deg", "falloff_start_m", "falloff_end_m", "damage_vs_health_multiplier", "ads_time_s", "equip_time_s"],
+     "data_fix": "La source donnait 526 coups/min, incompatible avec 333 DPS. rpm recalculé depuis l'intervalle de tir mesuré (1.27 s).",
+     "behavior": "Fusil à pompe à levier : 1 tir puis réarmement de 1.27 s. 'damage' = total si tous les plombs touchent. Efficace contre les boucliers et encore plus mortel une fois la santé atteinte."},
+
+    {"id": "kinetic_arbiter", "name": "Kinetic Arbiter", "faction": "ica", "faction_level": 4, "type": "sniper_rifle", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "projectile", "projectile_speed_mps": 700,
+     "damage": 345, "dps": 203, "rpm": 35, "fire_interval_s": 1.7, "magazine": 4, "reload_s": 2.5,
+     "weakspot_multiplier": 2.0, "falloff_start_m": 200, "falloff_end_m": 200,
+     "ads_time_s": 0.7, "equip_time_s": 0.65, "stability": 7.03, "spawn_cost_credits": 500, "unlock_cost": null, "scope_zoom": 8.0,
+     "estimated_fields": ["projectile_type", "projectile_speed_mps", "falloff_start_m", "falloff_end_m", "scope_zoom"],
+     "note": "Stats tirées d'une autre version du jeu que les autres armes.",
+     "behavior": "Sniper à très longue portée (une des plus longues du jeu). Peu de munitions, rechargement lent, x2 à la tête."},
+
+    {"id": "voltaic_brute", "name": "Voltaic Brute", "faction": "ica", "faction_level": 5, "type": "smg", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 40, "dps": 444, "rpm": 667, "fire_interval_s": 0.09, "magazine": 25, "reload_s": 1.9,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 20, "falloff_end_m": 50,
+     "ads_time_s": 0.25, "equip_time_s": 0.3, "stability": 1.26, "recoil_multiplier": 1.5, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": ["recoil_multiplier"],
+     "behavior": "SMG électrique à batterie. Très gros DPS mais recul fort : idéal à courte portée."},
+
+    {"id": "lacerator", "name": "Lacerator", "faction": "ica", "faction_level": 8, "type": "battle_rifle", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "hitscan",
+     "damage": 70, "dps": 233, "rpm": 200, "fire_interval_s": 0.3, "magazine": 12, "reload_s": 2.2,
+     "weakspot_multiplier": 1.5, "falloff_start_m": 40, "falloff_end_m": 75,
+     "ads_time_s": 0.22, "equip_time_s": 0.4, "stability": 1.2, "spawn_cost_credits": 200, "unlock_cost": 4000,
+     "estimated_fields": [],
+     "behavior": "Fusil semi-automatique : dégâts par tir au-dessus de la moyenne, petit chargeur (12)."},
+
+    {"id": "advocate", "name": "Advocate", "faction": "ica", "faction_level": 9, "type": "assault_rifle", "slot": "primary",
+     "fire_mode": "auto", "projectile_type": "hitscan",
+     "damage": 41, "dps": 380, "rpm": 556, "fire_interval_s": 0.108, "magazine": 30, "reload_s": 2.2,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 45, "falloff_end_m": 75,
+     "ads_time_s": 0.25, "equip_time_s": 0.4, "stability": 0.732, "spawn_cost_credits": 500, "unlock_cost": 8000,
+     "estimated_fields": [],
+     "behavior": "Fusil d'assaut à cadence rapide, bon à moyenne portée."},
+
+    {"id": "haze", "name": "HAZE", "faction": "ica", "faction_level": 10, "type": "missile_launcher", "slot": "primary",
+     "fire_mode": "semi", "projectile_type": "explosive_projectile", "projectile_speed_mps": 35,
+     "damage": 125, "aoe_damage": 150, "aoe_radius_m": 5.0, "dps": 184, "rpm": 88.2, "fire_interval_s": 0.68, "magazine": 6, "reload_s": 3.5,
+     "weakspot_multiplier": 1.0, "falloff_start_m": null, "falloff_end_m": null,
+     "ads_time_s": 0.6, "equip_time_s": 1.2, "stability": 3.02, "spawn_cost_credits": 800, "unlock_cost": 12000,
+     "estimated_fields": ["projectile_speed_mps", "aoe_damage", "aoe_radius_m"],
+     "behavior": "Lance-roquettes à grosse zone d'effet. Cadence lente, mais la zone (5 m) touche tout ce qui est autour de l'impact : bon pour déloger les groupes et les campeurs."},
+
+    {"id": "bulldog", "name": "Bulldog", "faction": "ica", "faction_level": 1, "type": "pistol", "slot": "secondary",
+     "fire_mode": "semi", "projectile_type": "hitscan", "pellets": 7, "pellet_damage": 43, "spread_deg": 5.0,
+     "damage": 301, "dps": 643, "rpm": 128, "fire_interval_s": 0.468, "magazine": 2, "reload_s": 1.6,
+     "weakspot_multiplier": 1.3, "falloff_start_m": 10, "falloff_end_m": 30,
+     "ads_time_s": 0.3, "equip_time_s": 0.3, "stability": 1.78, "spawn_cost_credits": null, "unlock_cost": null,
+     "estimated_fields": ["faction_level", "spread_deg"],
+     "behavior": "Pistolet à plombs à 2 coups (7 plombs par tir). Dévastateur de près, inutile de loin."}
+  ],
+
+  "kits": [
+    {"id": "dragonfly_flightsuit", "name": "Dragonfly Flightsuit", "faction": "ica", "faction_level": 1,
+     "health": 500, "shield": 500, "move_speed_mps": 4.4,
+     "mobility_type": "jetpack",
+     "movement": {
+       "jetpack": {
+         "activation": "Maintenir Saut pendant 0.2 s en l'air (ou depuis le sol) active le jetpack ; relâcher l'arrête.",
+         "activation_hold_s": 0.2,
+         "fuel_max": 100,
+         "fuel_consumption_per_s": 35,
+         "fuel_regen_per_s": 25,
+         "fuel_regen_delay_s": 1.0,
+         "thrust_acceleration_mps2": 18.0,
+         "max_vertical_speed_mps": 6.0,
+         "air_control": 1.0
+       },
+       "dive_attack": {
+         "activation": "En l'air, appuyer sur Accroupi : plongée rapide vers le sol en direction du viseur ; à l'impact, dégâts de zone et léger recul des ennemis.",
+         "dive_speed_mps": 25.0,
+         "damage": 150,
+         "radius_m": 3.0,
+         "cooldown_s": 8.0,
+         "pauses_fuel_regen_s": 1.5
+       }
+     },
+     "level_perks": [
+       {"level": 1, "perk": "Défense contre les créatures +20 %"},
+       {"level": 2, "perk": "Santé et bouclier +50"},
+       {"level": 3, "perk": "Dégâts de plongée +50"},
+       {"level": 4, "perk": "Régénération du carburant +25 %"},
+       {"level": 5, "perk": "Santé et bouclier +50"},
+       {"level": 6, "perk": "Dégâts contre les créatures +20 %"}
+     ],
+     "mods": [
+       {"id": "slow_and_steady", "effect": "Vol plus long mais poussée plus faible (fuel_consumption -30 %, thrust -25 %)"},
+       {"id": "catapult", "effect": "Poussée beaucoup plus forte mais grosse consommation (thrust +50 %, fuel_consumption +60 %)"}
+     ],
+     "estimated_fields": ["movement.jetpack.fuel_max", "movement.jetpack.fuel_consumption_per_s", "movement.jetpack.fuel_regen_per_s", "movement.jetpack.fuel_regen_delay_s", "movement.jetpack.thrust_acceleration_mps2", "movement.jetpack.max_vertical_speed_mps", "movement.dive_attack.activation", "movement.dive_attack.dive_speed_mps", "movement.dive_attack.damage", "movement.dive_attack.radius_m", "movement.dive_attack.cooldown_s", "movement.dive_attack.pauses_fuel_regen_s", "level_perks[5]", "mods[*].effect (pourcentages)"],
+     "history": "Avant le Release 8 : 600 santé / 300 bouclier.",
+     "playstyle": "Mobilité verticale : prendre de la hauteur, franchir les obstacles, tomber sur les ennemis. Cible facile en l'air."},
+
+    {"id": "aani_quicksuit", "name": "Aani QuickSuit", "faction": "osiris", "faction_level": 1,
+     "health": 400, "shield": 400, "move_speed_mps": 4.4,
+     "mobility_type": "dash",
+     "movement": {
+       "energy_charges": {
+         "max": 4,
+         "regen_s_per_charge": 3.0,
+         "note": "Les mouvements spéciaux consomment des charges. Plus de charge = plus de mouvement spécial."
+       },
+       "double_jump": {"activation": "Appuyer sur Saut en l'air.", "jump_velocity_mps": 6.0, "charge_cost": 1, "max_air_jumps": 1, "max_air_jumps_at_level_4": 2},
+       "dodge": {"activation": "Taper Saut en tenant une direction (gauche, droite ou arrière) au sol : esquive rapide dans cette direction.", "distance_m": 4.0, "duration_s": 0.2, "charge_cost": 1, "damage_reduction_during_dodge": 0.0},
+       "slide": {"activation": "Accroupi pendant un sprint : glissade basse et longue. Sauter pendant la glissade donne un boost vers l'avant (slide-jump).", "slide_speed_mps": 10.0, "slide_duration_s": 0.8, "slide_jump_boost_mps": 3.0, "charge_cost": 0}
+     },
+     "level_perks": [
+       {"level": 1, "perk": "Défense contre les créatures +20 %"},
+       {"level": 2, "perk": "Santé et bouclier +50"},
+       {"level": 3, "perk": "Énergie +1 charge"},
+       {"level": 4, "perk": "Triple saut"},
+       {"level": 5, "perk": "Santé et bouclier +50"},
+       {"level": 6, "perk": "Dégâts contre les créatures +20 %"}
+     ],
+     "mods": [
+       {"id": "reduced_dodge_damage", "effect": "Dégâts subis réduits pendant l'esquive (damage_reduction_during_dodge = 0.5)"},
+       {"id": "extra_charge", "effect": "+1 charge d'énergie"},
+       {"id": "longer_slide", "effect": "Glissade plus longue (slide_duration_s +50 %)"},
+       {"id": "more_charges_fragile", "effect": "+2 charges, mais perd 1 charge quand le joueur subit des dégâts"}
+     ],
+     "estimated_fields": ["movement.energy_charges.regen_s_per_charge", "movement.double_jump.jump_velocity_mps", "movement.dodge.distance_m", "movement.dodge.duration_s", "movement.slide.slide_speed_mps", "movement.slide.slide_duration_s", "movement.slide.slide_jump_boost_mps", "level_perks[5]", "mods[*].effect (valeurs chiffrées)"],
+     "history": "Une autre version de la fiche donne 300 santé / 300 bouclier.",
+     "playstyle": "Agilité au sol : esquiver les tirs, glisser entre les couverts, double/triple saut. Le kit le plus fragile."},
+
+    {"id": "boxer_warsuit", "name": "Boxer Warsuit", "faction": "korolev", "faction_level": 1,
+     "health": 600, "shield": 600, "move_speed_mps": 3.9,
+     "mobility_type": "super_jump",
+     "movement": {
+       "super_jump": {
+         "activation": "Maintenir Saut pour charger, relâcher : saut très haut (proportionnel à la charge).",
+         "charge_time_max_s": 1.0,
+         "jump_velocity_min_mps": 5.0,
+         "jump_velocity_max_mps": 12.0,
+         "cooldown_s": 6.0
+       },
+       "charge_punch": {
+         "activation": "Touche de mêlée maintenue puis relâchée : ruée vers l'avant + coup de poing qui repousse la cible.",
+         "damage_vs_monsters": 200,
+         "damage_vs_players": 160,
+         "dash_distance_m": 6.0,
+         "knockback_mps": 8.0,
+         "cooldown_s": 8.0
+       },
+       "fast_health_regen": {"health_regen_delay_s": 4.0, "health_regen_per_s": 40}
+     },
+     "level_perks": [
+       {"level": 1, "perk": "Super saut +10 %"},
+       {"level": 2, "perk": "Résistance aux créatures +20 %"},
+       {"level": 3, "perk": "Dégâts de charge +25 %"},
+       {"level": 4, "perk": "Super saut +10 %"},
+       {"level": 5, "perk": "Dégâts de charge +25 %"},
+       {"level": 6, "perk": "Délai de régénération de santé -25 % et vitesse de charge +25 %"}
+     ],
+     "mods": [
+       {"id": "more_shields", "effect": "+200 bouclier, vitesse de déplacement -0.66 m/s"},
+       {"id": "super_duper_jump", "effect": "Super saut plus puissant (jump_velocity_max +30 %)"},
+       {"id": "stronger_charge_punch", "effect": "Coup de poing plus puissant (+25 % dégâts)"},
+       {"id": "faster_charge_punch", "effect": "Recharge du coup de poing plus rapide (cooldown -2 s)"}
+     ],
+     "estimated_fields": ["movement.super_jump.charge_time_max_s", "movement.super_jump.jump_velocity_min_mps", "movement.super_jump.jump_velocity_max_mps", "movement.super_jump.cooldown_s", "movement.charge_punch.activation", "movement.charge_punch.dash_distance_m", "movement.charge_punch.knockback_mps", "movement.charge_punch.cooldown_s", "movement.fast_health_regen", "faction_level", "level_perks (répartition exacte par niveau)", "mods[1].effect (valeur)", "mods[2].effect (valeur)"],
+     "history": "Le développeur a réduit la vitesse de son coup de poing car il était trop puissant avec les mods ; il ne doit pas être aussi rapide que les autres kits.",
+     "playstyle": "Tank de corps à corps : le plus de santé, le plus lent. Super saut pour atteindre les hauteurs, coup de poing chargé pour finir ou repousser."},
+
+    {"id": "basic_prospector_kit", "name": "Basic Prospector Kit", "faction": "starter", "faction_level": 0,
+     "health": 500, "shield": 500, "move_speed_mps": 3.9,
+     "mobility_type": "jetboosters",
+     "movement": {
+       "jetboosters": {
+         "activation": "Maintenir Saut en l'air : petite poussée verticale pour prolonger un saut ou amortir une chute.",
+         "fuel_max": 50,
+         "fuel_consumption_per_s": 50,
+         "fuel_regen_per_s": 20,
+         "fuel_regen_delay_s": 1.0,
+         "thrust_acceleration_mps2": 12.0
+       }
+     },
+     "level_perks": [
+       {"level": 1, "perk": "Vitesse +10 %"},
+       {"level": 2, "perk": "Défense contre les créatures +20 %"},
+       {"level": 3, "perk": "Régénération du carburant +15 %"},
+       {"level": 4, "perk": "Recharge des capacités -20 %"},
+       {"level": 5, "perk": "Régénération de santé +20 % et poussée +20 %"},
+       {"level": 6, "perk": "Dégâts contre les monstres +30 %"}
+     ],
+     "mods": [],
+     "estimated_fields": ["movement.jetboosters (toutes les valeurs)", "level_perks (répartition exacte par niveau)"],
+     "playstyle": "Kit par défaut, équilibré, sans spécialité."},
+
+    {"id": "augment", "name": "Augment", "faction": null, "faction_level": null,
+     "health": null, "shield": null, "move_speed_mps": null,
+     "mobility_type": "none",
+     "movement": {},
+     "level_perks": [],
+     "mods": [],
+     "estimated_fields": [],
+     "playstyle": "4e kit sans aucune capacité de mouvement, jugé presque inutilisable. Optionnel pour le remake."}
+  ],
+
+  "implementation_notes_for_ai": [
+    "Créer un script resources/weapon_data.gd (class_name WeaponData) avec un @export par champ ci-dessus, puis un .tres par arme dans data/weapons/<id>.tres.",
+    "Créer un script resources/kit_data.gd (class_name KitData) et un .tres par kit dans data/kits/<id>.tres. Les capacités de mouvement (jetpack, dodge, super_jump…) deviennent des scripts de composant attachés au joueur selon 'mobility_type'.",
+    "Tout calcul de dégâts se fait SUR LE SERVEUR (voir CLAUDE.md) : le client envoie 'je tire' via RPC, le serveur fait le raycast (hitscan) ou crée le projectile, applique combat_rules et réplique le résultat.",
+    "Implémenter un seul système de tir générique piloté par fire_mode et projectile_type ; aucune arme ne doit avoir son propre script de tir.",
+    "Les champs listés dans 'estimated_fields' sont des valeurs de départ : les garder telles quelles tant que l'utilisatrice n'a pas testé en jeu.",
+    "Les vitesses sont en m/s et les distances en mètres : 1 unité Godot = 1 mètre."
+  ],
+
+  "sources": [
+    "https://thecycle.fandom.com/wiki/Weapon_Comparison",
+    "https://thecycle.fandom.com/wiki/Gear_Comparison",
+    "https://thecycle.wiki/Gear_Comparison",
+    "https://thecycle.fandom.com/wiki/Weapon_Comparison_Meta_Test",
+    "https://thecycle.fandom.com/wiki/Manticore",
+    "https://thecycle.fandom.com/wiki/Asp_Flechette_Gun",
+    "https://thecycle.fandom.com/wiki/Gorgon",
+    "https://thecycle.fandom.com/wiki/Basilisk",
+    "https://thecyclefrontier.fandom.com/wiki/Archive:Zeus_Beam",
+    "https://thecycle.fandom.com/wiki/KOMRAD",
+    "https://thecycle.fandom.com/wiki/Scarab_Pistol",
+    "https://thecyclefrontier.fandom.com/wiki/Archive:Bulldog",
+    "https://thecycle.fandom.com/wiki/Hammer",
+    "https://thecyclefrontier.fandom.com/wiki/Archive:K-28_Autopistol",
+    "https://thecyclefrontier.fandom.com/wiki/Archive:Kinetic_Arbiter",
+    "https://thecyclefrontier.fandom.com/wiki/Archive:C-32_Bolt_Action",
+    "https://thecycle.fandom.com/wiki/S-76_PDW",
+    "https://thecycle.fandom.com/wiki/AR-55_Phase_Autorifle",
+    "https://www.gamepur.com/guides/the-cycle-complete-weapon-list",
+    "https://thecycle.fandom.com/wiki/Kits",
+    "https://thecycle.fandom.com/wiki/Dragonfly_Flightsuit",
+    "https://thecycle.fandom.com/wiki/Release_8",
+    "https://thecycle.fandom.com/wiki/Patch_Notes",
+    "https://thecycle.wiki/Release_4",
+    "https://thecycle.gamepedia.com/Release_3",
+    "https://thecycle.wiki/Aani_QuickSuit",
+    "https://thecycle.wiki/Boxer_Warsuit",
+    "https://thecycle.gamepedia.com/Gear/fr",
+    "https://akrg.dyndns.info/the-cycle-playtest-guide/"
+  ]
+}

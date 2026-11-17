@@ -113,7 +113,7 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 		return false
 	health = maxf(health - amount, 0.0)
 	var attacker := players_root.get_node_or_null(str(attacker_id)) as Player if players_root else null
-	if attacker and not attacker.health.is_dead:
+	if attacker and attacker.can_be_hit():
 		aggro(attacker, true)
 	if health <= 0.0:
 		_die(attacker_id)
@@ -299,7 +299,7 @@ func _find_player() -> Player:
 	var best_dist := data.detection_radius
 	for node in players_root.get_children():
 		var player := node as Player
-		if player == null or player.health.is_dead:
+		if player == null or not player.can_be_hit():
 			continue
 		var dist := global_position.distance_to(player.global_position)
 		if dist <= best_dist and _has_line_of_sight(player):

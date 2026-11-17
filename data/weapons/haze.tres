@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_my2y2"]
+
+[resource]
+script = ExtResource("1_my2y2")
+id = &"haze"
+display_name = "Nuée"
+faction = 3
+faction_level = 10
+type = 7
+fire_mode = 1
+projectile_type = 2
+damage = 125.0
+rpm = 88.2
+fire_interval_s = 0.68
+dps = 184.0
+weakspot_multiplier = 1.0
+projectile_speed_mps = 35.0
+aoe_damage = 150.0
+aoe_radius_m = 5.0
+magazine = 6
+reload_s = 3.5
+ads_time_s = 0.6
+equip_time_s = 1.2
+stability = 3.02
+hip_spread_deg = 1.0
+ads_spread_deg = 0.3
+recoil_deg = 2.0
+spawn_cost_credits = 800
+unlock_cost = 12000
+estimated_fields = PackedStringArray("projectile_speed_mps", "aoe_damage", "aoe_radius_m")
+behavior = "Lance-roquettes à grosse zone d'effet. Cadence lente, mais la zone (5 m) touche tout ce qui est autour de l'impact : bon pour déloger les groupes et les campeurs."

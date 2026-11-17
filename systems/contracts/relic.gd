@@ -67,6 +67,7 @@ func _ready() -> void:
 	if multiplayer.is_server():
 		Events.player_died.connect(func(victim: int, _k: int) -> void: if victim == carrier_id: _drop())
 		Events.player_left.connect(func(peer: int) -> void: if peer == carrier_id: _drop())
+		Events.player_evacuated.connect(func(peer: int) -> void: if peer == carrier_id: _drop())
 
 
 func _process(delta: float) -> void:

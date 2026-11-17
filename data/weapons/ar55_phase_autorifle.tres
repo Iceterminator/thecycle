@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_1q6me"]
+
+[resource]
+script = ExtResource("1_1q6me")
+id = &"ar55_phase_autorifle"
+display_name = "Vigie"
+damage = 45.0
+rpm = 429.0
+fire_interval_s = 0.14
+dps = 321.0
+falloff_start_m = 40.0
+falloff_end_m = 80.0
+magazine = 28
+reload_s = 2.2
+equip_time_s = 0.5
+stability = 0.949
+spawn_cost_credits = 500
+unlock_cost = 0
+estimated_fields = PackedStringArray("projectile_type")
+behavior = "Fusil d'assaut de départ, polyvalent. Cadence modérée, bon à moyenne portée."

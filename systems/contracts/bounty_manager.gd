@@ -22,6 +22,8 @@ func _ready() -> void:
 		return
 	Events.player_died.connect(_on_player_died)
 	Events.player_left.connect(func(peer: int) -> void: if peer == _target_id: _clear(""))
+	Events.player_evacuated.connect(func(peer: int) -> void: if peer == _target_id: _clear("La cible de la prime a embarqué : prime annulée."))
+	Events.match_reset_requested.connect(func() -> void: _clear(""))
 
 
 func _physics_process(delta: float) -> void:
@@ -40,7 +42,7 @@ func _physics_process(delta: float) -> void:
 	var alive: Array[Player] = []
 	for node in players_root.get_children():
 		var p := node as Player
-		if p and not p.health.is_dead:
+		if p and p.can_be_hit():
 			alive.append(p)
 	if alive.size() < 2:
 		return

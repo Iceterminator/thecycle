@@ -33,6 +33,8 @@ signal quest_started(quest_name: StringName, peer_id: int)
 signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
 signal rank_points_changed(peer_id: int, total: int)
+## Serveur, menu admin : poser un cristal (chemin du CrystalData) à une position.
+signal crystal_spawn_requested(crystal_data_path: String, position: Vector3)
 
 # Contrats (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime)
 ## Serveur : demande d'annonce à tous les joueurs (le QuestManager la diffuse).
@@ -47,5 +49,22 @@ signal storm_warning(seconds_left: float)
 signal evac_landed()
 signal evac_departed()
 signal match_ended()
+## Serveur, menu admin : avancer le temps de partie de `seconds` (MatchManager).
+signal time_skip_requested(seconds: float)
+## Serveur, menu admin : aller directement à ce temps de partie (s depuis le début).
+signal match_time_set_requested(seconds: float)
+## Serveur : un joueur vient d'embarquer dans l'évac (EvacShip -> MatchManager).
+signal player_evacuated(peer_id: int)
+## Serveur : nouvelle partie, chaque système de carte se remet à zéro (loot, monstres,
+## cristaux, contrats, prime, évac). Les joueurs sont remis à zéro par le MatchManager.
+signal match_reset_requested()
+## Client (local) : le HUD demande l'horloge ; le MatchManager répond par match_clock_synced.
+signal match_clock_requested()
+## Client : horloge de partie reçue du serveur (phase = MatchManager.Phase).
+signal match_clock_synced(elapsed: float, phase: int)
+## Client : progression de l'embarquement du joueur local (0 = hors de la soute).
+signal evac_board_progress(ratio: float)
+## Client : classement de fin de partie (liste de { peer, points, evacuated }).
+signal match_results_received(results: Array, restart_in: float)
 
 @warning_ignore_restore("unused_signal")

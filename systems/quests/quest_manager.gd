@@ -37,7 +37,14 @@ func _ready() -> void:
 	if not multiplayer.is_server():
 		return
 	Events.announce_requested.connect(func(text: String, color: Color) -> void: _announce.rpc(text, color))
+	Events.crystal_spawn_requested.connect(_on_crystal_spawn_requested)
+	Events.match_reset_requested.connect(_on_match_reset)
 	_spawn_all.call_deferred()
+
+
+## Menu admin : un cristal de plus, à la position demandée (le chemin est déjà vérifié).
+func _on_crystal_spawn_requested(crystal_data_path: String, position: Vector3) -> void:
+	_spawn({"kind": &"crystal", "data": crystal_data_path, "pos": position})
 
 
 func _spawn_all() -> void:
@@ -95,7 +102,7 @@ func _physics_process(delta: float) -> void:
 		_regrow_lumiceps()
 	for node in players_root.get_children():
 		var player := node as Player
-		if player == null or player.health.is_dead:
+		if player == null or not player.can_be_hit():
 			continue
 		var carried := player.inventory.get_resource(LUMICEP)
 		var peer := player.get_peer_id()
@@ -124,3 +131,13 @@ func _regrow_lumiceps() -> void:
 				break
 		if not present:
 			Events.loot_drop_requested.emit(LUMICEP, 1, -1, spot, false)
+
+
+## Nouvelle partie : cristaux et contrats sont recréés neufs. Les Lumicèpes au sol sont
+## retirés par le LootManager ; on les fait repousser tout de suite.
+func _on_match_reset() -> void:
+	for node in spawner.get_node(spawner.spawn_path).get_children():
+		node.queue_free()
+	_lumicep_spots.clear()
+	_tick_timers.clear()
+	_spawn_all.call_deferred()

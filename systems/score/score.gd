@@ -91,3 +91,13 @@ func set_beacon(reason: StringName, text: String) -> void:
 	else:
 		_beacons[reason] = text
 	beacon = "  ".join(PackedStringArray(_beacons.values()))
+
+
+## Serveur : nouvelle partie. Tout le score repart de zéro.
+func server_reset() -> void:
+	_beacons.clear()
+	beacon = ""
+	objective_rates = {}
+	objective_points = {}
+	rank_points = 0
+	Events.rank_points_changed.emit(get_peer_id(), rank_points)

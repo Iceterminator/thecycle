@@ -1,0 +1,52 @@
+[gd_resource type="Resource" script_class="KitData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_data.gd" id="1_nso3a"]
+
+[resource]
+script = ExtResource("1_nso3a")
+id = &"boxer_warsuit"
+display_name = "Armure Bastion"
+faction = 1
+faction_level = 1
+health = 600.0
+shield = 600.0
+move_speed_mps = 3.9
+mobility_type = 3
+movement = {
+"charge_punch": {
+"activation": "Touche de mêlée maintenue puis relâchée : ruée vers l'avant + coup de poing qui repousse la cible.",
+"cooldown_s": 8.0,
+"damage_vs_monsters": 200.0,
+"damage_vs_players": 160.0,
+"dash_distance_m": 6.0,
+"knockback_mps": 8.0
+},
+"fast_health_regen": {
+"health_regen_delay_s": 4.0,
+"health_regen_per_s": 40.0
+},
+"super_jump": {
+"activation": "Maintenir Saut pour charger, relâcher : saut très haut (proportionnel à la charge).",
+"charge_time_max_s": 1.0,
+"cooldown_s": 6.0,
+"jump_velocity_max_mps": 12.0,
+"jump_velocity_min_mps": 5.0
+}
+}
+level_perks = PackedStringArray("Super saut +10 %", "Résistance aux créatures +20 %", "Dégâts de charge +25 %", "Super saut +10 %", "Dégâts de charge +25 %", "Délai de régénération de santé -25 % et vitesse de charge +25 %")
+mods = Array[Dictionary]([{
+"effect": "+200 bouclier, vitesse de déplacement -0.66 m/s",
+"id": "more_shields"
+}, {
+"effect": "Super saut plus puissant (jump_velocity_max +30 %)",
+"id": "super_duper_jump"
+}, {
+"effect": "Coup de poing plus puissant (+25 % dégâts)",
+"id": "stronger_charge_punch"
+}, {
+"effect": "Recharge du coup de poing plus rapide (cooldown -2 s)",
+"id": "faster_charge_punch"
+}])
+estimated_fields = PackedStringArray("movement.super_jump.charge_time_max_s", "movement.super_jump.jump_velocity_min_mps", "movement.super_jump.jump_velocity_max_mps", "movement.super_jump.cooldown_s", "movement.charge_punch.activation", "movement.charge_punch.dash_distance_m", "movement.charge_punch.knockback_mps", "movement.charge_punch.cooldown_s", "movement.fast_health_regen", "faction_level", "level_perks (répartition exacte par niveau)", "mods[1].effect (valeur)", "mods[2].effect (valeur)")
+history = "Le développeur a réduit la vitesse de son coup de poing car il était trop puissant avec les mods ; il ne doit pas être aussi rapide que les autres kits."
+playstyle = "Tank de corps à corps : le plus de santé, le plus lent. Super saut pour atteindre les hauteurs, coup de poing chargé pour finir ou repousser."

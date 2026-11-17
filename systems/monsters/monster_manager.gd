@@ -14,6 +14,8 @@ const MONSTER_SCRIPT := preload("res://systems/monsters/monster.gd")
 @export var map: Node3D  ## géométrie de la carte (CSG) servant au navmesh
 
 var _next_uid: int = 0
+## Incrémenté à chaque nouvelle partie : les repeuplements en attente sont annulés.
+var _generation: int = 0
 
 
 func _ready() -> void:
@@ -21,6 +23,7 @@ func _ready() -> void:
 	if not multiplayer.is_server():
 		return
 	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
+	Events.match_reset_requested.connect(_on_match_reset)
 	_setup.call_deferred()
 
 
@@ -93,8 +96,9 @@ func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, posi
 
 
 func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
+	var generation := _generation
 	await get_tree().create_timer(Config.CAMP_RESPAWN_DELAY).timeout
-	if is_instance_valid(camp):
+	if is_instance_valid(camp) and generation == _generation:
 		_spawn_camp(camp)
 
 
@@ -118,3 +122,16 @@ func _ground(pos: Vector3) -> Vector3:
 func _new_uid() -> int:
 	_next_uid += 1
 	return _next_uid
+
+
+## Nouvelle partie : tous les monstres disparaissent (le spawner les retire chez les
+## clients), puis chaque camp est repeuplé.
+func _on_match_reset() -> void:
+	_generation += 1
+	for node in spawner.get_node(spawner.spawn_path).get_children():
+		node.queue_free()
+	for node in camps.get_children():
+		var camp := node as MonsterCamp
+		if camp:
+			camp.alive.clear()
+			_spawn_camp(camp)

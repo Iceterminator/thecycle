@@ -112,3 +112,9 @@ func _physics_process(delta: float) -> void:
 		shield = minf(shield + max_shield * Config.SHIELD_REGEN_FRACTION * delta, max_shield)
 	if _since_damage >= Config.HEALTH_REGEN_DELAY and health < Config.MAX_HEALTH:
 		health = minf(health + Config.HEALTH_REGEN_RATE * delta, Config.MAX_HEALTH)
+
+
+## Serveur : nouvelle partie. Palier de bouclier de départ (les achats sont perdus), plein.
+func server_reset() -> void:
+	set_shield_tier(Config.STARTING_SHIELD_TIER)
+	revive()

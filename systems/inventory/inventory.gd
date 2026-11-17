@@ -183,7 +183,7 @@ func cancel_use() -> void:
 ## Serveur : équipement de base (réapparition). Les crédits sont conservés.
 func reset_loadout() -> void:
 	var base := Items.get_item(Config.BASE_WEAPON)
-	slot_ammo = PackedInt32Array([base.weapon.magazine_size, 0])
+	slot_ammo = PackedInt32Array([base.weapon.magazine, 0])
 	active_slot = 0
 	slot_ids = PackedStringArray([String(Config.BASE_WEAPON), ""])
 	medkits = 0
@@ -202,7 +202,7 @@ func set_active_ammo(value: int) -> void:
 func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 	match item.kind:
 		ItemData.Kind.WEAPON:
-			var mag := ammo if ammo >= 0 else item.weapon.magazine_size
+			var mag := ammo if ammo >= 0 else item.weapon.magazine
 			var free := slot_ids.find("")
 			if free >= 0:
 				_set_slot(free, item.id, mag)
@@ -310,3 +310,11 @@ func _drop_position() -> Vector3:
 
 func _sender_is_owner() -> bool:
 	return multiplayer.get_remote_sender_id() == player.get_peer_id()
+
+
+## Serveur : nouvelle partie. Équipement de base, plus de crédits ni de ressources.
+func server_reset() -> void:
+	reset_loadout()
+	carried = {}
+	credits = 0
+	Events.credits_changed.emit(player.get_peer_id(), credits)

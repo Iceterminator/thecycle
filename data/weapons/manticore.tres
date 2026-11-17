@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_i7hi4"]
+
+[resource]
+script = ExtResource("1_i7hi4")
+id = &"manticore"
+display_name = "Lynx"
+faction = 2
+faction_level = 5
+projectile_type = 1
+damage = 47.0
+rpm = 444.0
+fire_interval_s = 0.135
+dps = 348.0
+falloff_start_m = 30.0
+falloff_end_m = 80.0
+max_range_m = 85.5
+projectile_speed_mps = 150.0
+magazine = 27
+reload_s = 1.9
+ads_time_s = 0.3
+equip_time_s = 0.5
+stability = 6.02
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray()
+behavior = "Fusil d'assaut à fléchettes (projectiles à 150 m/s). Précis et léger, fait pour la moyenne portée ; peu utile de loin."

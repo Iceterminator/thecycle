@@ -38,10 +38,16 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
   LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (points de classement + points d'objectif à paliers),
   `inventory/`, `interaction/` (E, y compris « maintenir E »), `monsters/` (monstre, camps, MonsterManager,
-  navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`) ;
-  match, tempête, évac… (à venir)
+  navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`),
+  `admin/` (menu de test, touche 0 : armes, crédits, cristaux, avance du temps → `Events.time_skip_requested` ;
+  désactivable via `Config.ADMIN_MENU_ENABLED`) ;
+  `match/` (minuteur de partie, fin, relance : `MatchManager`, créé par World), `evac/` (vaisseau, soute,
+  embarquement : `EvacShip`, créé par World) ; tempête… (à venir). Nouvelle partie : `Events.match_reset_requested`,
+  chaque système de carte se remet à zéro lui-même
 - `resources/` scripts de types de données
-- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
+- `data/reference/the_cycle_legacy_data.json` : chiffres des armes et kits du jeu d'origine (référence) ;
+  `tools/import_legacy_data.gd` en génère `data/weapons/` et `data/kits/` (noms affichés = les nôtres)
+- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (pas encore utilisés en jeu), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
 - `assets/` modèles, sons, textures
 
 ## Tester

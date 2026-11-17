@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_137oj"]
+
+[resource]
+script = ExtResource("1_137oj")
+id = &"k28_autopistol"
+display_name = "Dard"
+type = 6
+slot = 1
+fire_mode = 1
+damage = 43.0
+rpm = 370.0
+fire_interval_s = 0.16
+dps = 265.0
+weakspot_multiplier = 1.3
+falloff_start_m = 20.0
+falloff_end_m = 70.0
+falloff_min_multiplier = 0.2
+magazine = 14
+reload_s = 1.5
+ads_time_s = 0.2
+equip_time_s = 0.3
+stability = 2.0
+hip_spread_deg = 1.0
+ads_spread_deg = 0.3
+recoil_deg = 1.6
+unlock_cost = 0
+estimated_fields = PackedStringArray("reload_s", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s", "stability")
+behavior = "Pistolet semi-automatique standard : précision, cadence et dégâts corrects. Arme de secours."

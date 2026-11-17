@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_3unx8"]
+
+[resource]
+script = ExtResource("1_3unx8")
+id = &"pkr_maelstrom"
+display_name = "Tornade"
+faction = 1
+faction_level = 8
+type = 4
+damage = 160.0
+pellets = 8
+pellet_damage = 20.0
+spread_deg = 6.0
+rpm = 143.0
+fire_interval_s = 0.42
+dps = 381.0
+weakspot_multiplier = 1.2
+falloff_start_m = 8.0
+falloff_end_m = 25.0
+magazine = 10
+reload_s = 2.2
+ads_time_s = 0.3
+equip_time_s = 0.5
+stability = 0.044
+hip_spread_deg = 1.0
+ads_spread_deg = 0.5
+recoil_deg = 2.5
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray("pellets", "pellet_damage", "spread_deg", "weakspot_multiplier", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s")
+behavior = "Prototype de fusil à pompe AUTOMATIQUE : cadence élevée pour un fusil à pompe. 'damage' = total si tous les plombs touchent. Dévastateur de près, mauvais choix à distance."
+notes = "La source donnait 1143 coups/min, incompatible avec 381 DPS. rpm recalculé depuis le DPS (381 × 60 / 160 = 143)."

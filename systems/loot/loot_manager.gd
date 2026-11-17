@@ -13,6 +13,8 @@ const DROP_POD_SCRIPT := preload("res://systems/shop/drop_pod.gd")
 @export var spawner: MultiplayerSpawner
 
 var _next_uid: int = 0
+## Incrémenté à chaque nouvelle partie : les largages en cours d'une partie finie s'arrêtent.
+var _generation: int = 0
 
 
 func _ready() -> void:
@@ -21,6 +23,14 @@ func _ready() -> void:
 		return
 	Events.loot_drop_requested.connect(_on_drop_requested)
 	Events.drop_pod_requested.connect(_on_drop_pod_requested)
+	Events.match_reset_requested.connect(_on_match_reset)
+
+
+## Nouvelle partie : plus rien au sol (le spawner retire aussi les objets chez les clients).
+func _on_match_reset() -> void:
+	_generation += 1
+	for node in spawner.get_node(spawner.spawn_path).get_children():
+		node.queue_free()
 
 
 func _on_drop_requested(item_id: StringName, amount: int, ammo: int, position: Vector3, scatter: bool) -> void:
@@ -47,8 +57,11 @@ func _on_drop_pod_requested(item_id: StringName, position: Vector3) -> void:
 		push_error("[Loot] Largage d'un objet inconnu : %s" % item_id)
 		return
 	var landing := _ground(position)
+	var generation := _generation
 	var pod := spawner.spawn({"type": "pod", "uid": _new_uid(), "pos": landing})
 	await get_tree().create_timer(Config.DROP_POD_FALL_TIME).timeout
+	if generation != _generation:
+		return
 	spawner.spawn({
 		"type": "pickup",
 		"uid": _new_uid(),

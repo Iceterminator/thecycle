@@ -6,6 +6,7 @@ extends Node
 ## l'éditeur Godot, s'il est ouvert, peut réécrire project.godot et les effacer.
 const CODE_KEY_ACTIONS := {
 	&"open_shop": KEY_T,
+	&"admin_menu": KEY_0,
 }
 
 
@@ -29,6 +30,15 @@ const EVENT_TIMES := [5.0 * 60.0, 10.0 * 60.0]
 const MONSTER_TIER_INTERVAL := 5.0 * 60.0
 const RESPAWN_DELAY := 5.0
 const EVAC_BOARD_TIME := 5.0            # temps à rester dans la soute pour embarquer
+const MATCH_RESTART_DELAY := 20.0       # écran de fin, puis nouvelle partie (s)
+const MATCH_CLOCK_RESYNC := 5.0         # le serveur renvoie l'horloge aux clients toutes les N s
+const EVAC_FIRST_BONUS := 50            # classement : premier joueur embarqué
+const EVAC_OTHER_BONUS := 0             # classement : joueurs embarqués suivants
+const EVAC_MISSED_PENALTY := 100        # classement perdu si pas à bord au décollage
+const EVAC_SKY_HEIGHT := 150.0          # altitude du vaisseau hors de la carte (m)
+const EVAC_FLIGHT_TIME := 8.0           # durée de la descente / de la montée (s)
+const EVAC_POSITION := Vector3(0, 0.5, 0)  # posé sur l'EvacPad (centre de la carte)
+const SPECTATOR_SPEED := 15.0           # vol libre des joueurs embarqués (m/s)
 
 # --- Joueur ---
 const WALK_SPEED := 5.0
@@ -54,7 +64,7 @@ const FIRE_BURST_TOLERANCE := 3.0        # tirs d'avance tolérés par le serveu
 const WEAPON_SWITCH_TIME := 0.4          # pas de tir pendant le changement d'arme (s)
 
 # --- Loot et inventaire (valeurs provisoires, à revoir avec la boucle complète) ---
-const BASE_WEAPON := &"pistol"           # équipement de départ (emplacement 1)
+const BASE_WEAPON := &"k28_autopistol"   # équipement de départ (emplacement 1), jamais perdu
 const HEAL_ITEM := &"medkit"             # consommable de la touche 3
 const SHIELD_ITEM := &"shield_cell"      # consommable de la touche 4
 const MAX_MEDKITS := 3
@@ -73,6 +83,13 @@ const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce 
 const DROP_POD_FALL_TIME := 3.0          # délai entre l'achat et l'atterrissage de la capsule (s)
 const DROP_POD_DISTANCE := 3.0           # la capsule tombe à cette distance devant le joueur (m)
 const DROP_POD_HEIGHT := 60.0            # hauteur de départ de la capsule (m)
+
+# --- Menu admin (touche 0, tests) ---
+const ADMIN_MENU_ENABLED := true         # false = le serveur refuse toutes les demandes admin
+const ADMIN_SPAWN_DISTANCE := 3.0        # les objets apparaissent à cette distance devant le joueur (m)
+const ADMIN_CRYSTAL_DISTANCE := 7.0      # distance pour un cristal (il est large)
+const ADMIN_MAX_CREDITS := 100000        # montant max par demande
+const ADMIN_MAX_TIME_SKIP := 1200.0      # avance max du temps par demande (s)
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
 const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
 

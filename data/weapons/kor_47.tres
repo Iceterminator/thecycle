@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_f0dig"]
+
+[resource]
+script = ExtResource("1_f0dig")
+id = &"kor_47"
+display_name = "Enclume"
+faction = 1
+faction_level = 2
+damage = 34.0
+rpm = 556.0
+fire_interval_s = 0.108
+dps = 315.0
+falloff_start_m = 30.0
+falloff_end_m = 80.0
+magazine = 28
+reload_s = 2.3
+ads_time_s = 0.35
+equip_time_s = 0.5
+stability = 0.696
+spawn_cost_credits = 200
+unlock_cost = 4000
+estimated_fields = PackedStringArray("projectile_type")
+behavior = "Fusil d'assaut bullpup de Korolev. Cadence plus lente que ses équivalents mais plus de dégâts par balle. Recul assez fort."

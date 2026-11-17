@@ -5,12 +5,25 @@ extends Node3D
 ## Le MultiplayerSpawner réplique automatiquement ces joueurs chez tous les clients.
 
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
+const MATCH_SCRIPT := preload("res://systems/match/match_manager.gd")
+const EVAC_SCRIPT := preload("res://systems/evac/evac_ship.gd")
 
 @onready var players: Node3D = $Players
 @onready var spawn_points: Node3D = $SpawnPoints
 
+## Créés en code sur tous les peers (mêmes noms partout, pour les RPC).
+var match_manager: MatchManager
+var evac_ship: EvacShip
+
 
 func _ready() -> void:
+	evac_ship = EVAC_SCRIPT.new()
+	evac_ship.name = "EvacShip"
+	evac_ship.players_root = players
+	add_child(evac_ship)
+	match_manager = MATCH_SCRIPT.new()
+	match_manager.name = "MatchManager"
+	add_child(match_manager)
 	if not multiplayer.is_server():
 		return
 	Events.player_joined.connect(_add_player)

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_sy10y"]
+
+[resource]
+script = ExtResource("1_sy10y")
+id = &"voltaic_brute"
+display_name = "Étincelle"
+faction = 3
+faction_level = 5
+type = 0
+damage = 40.0
+rpm = 667.0
+fire_interval_s = 0.09
+dps = 444.0
+weakspot_multiplier = 1.3
+falloff_start_m = 20.0
+falloff_end_m = 50.0
+magazine = 25
+reload_s = 1.9
+equip_time_s = 0.3
+stability = 1.26
+recoil_multiplier = 1.5
+hip_spread_deg = 2.5
+ads_spread_deg = 0.9
+recoil_deg = 0.5
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray("recoil_multiplier")
+behavior = "SMG électrique à batterie. Très gros DPS mais recul fort : idéal à courte portée."

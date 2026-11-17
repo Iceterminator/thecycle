@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_pvy3j"]
+
+[resource]
+script = ExtResource("1_pvy3j")
+id = &"kinetic_arbiter"
+display_name = "Longue-vue"
+faction = 3
+faction_level = 4
+type = 3
+fire_mode = 1
+projectile_type = 1
+damage = 345.0
+rpm = 35.0
+fire_interval_s = 1.7
+dps = 203.0
+weakspot_multiplier = 2.0
+falloff_start_m = 200.0
+falloff_end_m = 200.0
+projectile_speed_mps = 700.0
+magazine = 4
+reload_s = 2.5
+ads_time_s = 0.7
+equip_time_s = 0.65
+stability = 7.03
+scope_zoom = 8.0
+hip_spread_deg = 4.0
+ads_spread_deg = 0.0
+recoil_deg = 3.0
+spawn_cost_credits = 500
+estimated_fields = PackedStringArray("projectile_type", "projectile_speed_mps", "falloff_start_m", "falloff_end_m", "scope_zoom")
+behavior = "Sniper à très longue portée (une des plus longues du jeu). Peu de munitions, rechargement lent, x2 à la tête."
+notes = "Stats tirées d'une autre version du jeu que les autres armes."

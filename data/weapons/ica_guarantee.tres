@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_q73qc"]
+
+[resource]
+script = ExtResource("1_q73qc")
+id = &"ica_guarantee"
+display_name = "Rempart"
+faction = 3
+faction_level = 2
+type = 5
+damage = 50.0
+rpm = 632.0
+fire_interval_s = 0.095
+dps = 526.0
+weakspot_multiplier = 1.3
+falloff_start_m = 55.0
+falloff_end_m = 100.0
+magazine = 80
+reload_s = 3.9
+ads_time_s = 0.6
+equip_time_s = 1.2
+stability = 1.17
+hipfire_spread_multiplier = 2.0
+hip_spread_deg = 2.5
+ads_spread_deg = 0.5
+recoil_deg = 0.7
+spawn_cost_credits = 800
+unlock_cost = 12000
+estimated_fields = PackedStringArray("hipfire_spread_multiplier")
+behavior = "Mitrailleuse légère à batteries. Tir très rapide, gros chargeur, rechargement long. Bien plus précise en visée (ADS) qu'à la hanche."

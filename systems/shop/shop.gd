@@ -28,6 +28,8 @@ func _ready() -> void:
 func check_purchase(item: ItemData) -> String:
 	if player.health.is_dead:
 		return "Indisponible : vous êtes mort"
+	if player.is_evacuated:
+		return "Indisponible : vous êtes à bord"
 	if item.kind == ItemData.Kind.SHIELD_UPGRADE and player.health.shield_tier >= item.shield_tier:
 		return "Déjà acquis"
 	if player.inventory.credits < item.price:

@@ -69,6 +69,15 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 | Pistolet | Secours | 25 dégâts, semi-auto |
 | Arme lourde | Contre monstres | Projectile explosif |
 
+> **Tir générique (17/11/2026).** Un seul script de tir (`systems/combat/weapon.gd`) piloté par
+> `WeaponData` : modes AUTO, SEMI, BURST ; tir HITSCAN ou PROJECTILE (balle simulée par le serveur,
+> en ligne droite). Baisse des dégâts avec la distance (`falloff_*`), multiplicateur de point faible,
+> lunette (`scope_zoom`). Les 28 armes et 5 kits de référence sont dans `data/weapons/` et `data/kits/`,
+> générés depuis `data/reference/the_cycle_legacy_data.json` ; les valeurs sont celles du jeu d'origine
+> (pensées pour des joueurs à 500 PV), donc à équilibrer. En boutique : Guêpe (SMG, 200 cr.),
+> Trident (rafale, 500 cr.), Faucon (sniper à projectile, 500 cr.).
+> Pas encore codés : CHARGE, CHARGE_BURST, BEAM, dégâts de zone, `damage_vs_shield/health`.
+
 ### 3. Santé et boucliers
 - 100 PV + bouclier par palier : 25 au départ (palier 0), puis 50, 100, 150 (paliers 1 à 3), achetés en boutique. Le palier acheté est gardé à la mort.
 - Le bouclier absorbe d'abord. Il se recharge seul après 10 s sans dégâts, de 1/20 de son maximum par seconde. La santé remonte seule de 1 PV/s après 20 s sans dégâts, et plus vite avec des soins. *(valeurs du 17/11/2026, provisoires)*
@@ -80,8 +89,8 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 - Ressources récoltables (minerais, plantes) : à rapporter pour certains contrats.
 
 > **Boutique et largages (17/11/2026) — remplace les caisses.** Les caisses de loot sont supprimées.
-> Au largage, le joueur a seulement un **pistolet** et **25 de bouclier**. Avec **T**, il ouvre la
-> **boutique** : armes (SMG 150, fusil d'assaut 250) et améliorations de bouclier (50 → 100 cr.,
+> Au largage, le joueur a seulement le pistolet **Dard** (K-28 de la référence) et **25 de bouclier**. Avec **T**, il ouvre la
+> **boutique** : armes (Guêpe 200, Trident 500, Faucon 500) et améliorations de bouclier (50 → 100 cr.,
 > 100 → 200 cr., 150 → 350 cr.), payées en crédits. L'achat fait tomber une **capsule de largage**
 > à 3 m devant le joueur, qui atterrit au bout de 3 s ; l'objet est dedans, au sol, et **n'importe quel
 > joueur peut le ramasser**. Prix dans `data/items/*.tres` (`price`), délais dans `Config`.
@@ -107,7 +116,7 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - **Station de recherche** : 3 nœuds couverts de biomasse ; chaque activation (E 3 s) fait venir une vague qui attaque l'activateur ; puis l'ordinateur central = 300 pts.
 - **Drones en panne** : protéger 3 drones pendant 45 s contre 2 vagues, puis envoyer chaque survivant (E 1,5 s) = 120 pts × PV restants.
 - **Prime** : toutes les 90 s, prime sur le joueur qui a le plus de points (150 + 25 % de ses points), position visible ; son tueur la gagne, s'il survit 120 s il en touche la moitié.
-- **Évac** : pas encore codé, il dépend du minuteur de partie et du vaisseau (étape 6).
+- **Évac** : codé à l'étape 6, voir §9.
 - Pas encore de tableau « 4 contrats proposés, 2 actifs » : tous les contrats sont ouverts à tous.
 > **Deux types de points (17/11/2026).** Les **points de classement** forment le score général. Les objectifs Forage, Relais, Ambrine, Cœur stellaire, Biomasse et Lumicèpes rapportent des **points d'objectif** propres à chacun ; chaque **palier** atteint donne des points de classement (par défaut +10, +15, +20, +25, puis +25 par palier supplémentaire). Paliers dans `data/objectives/*.tres`. La station (+40), les drones (+15 par drone × PV restants) et la prime (20 + 10 % du classement de la cible) donnent directement des points de classement. Les chiffres en « pts » des lignes ci-dessus sont des points d'objectif, sauf pour ces trois contrats.
 
@@ -146,6 +155,14 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - Le vaisseau se pose au centre à 15:00 et décolle à 20:00.
 - Embarquement : rester 5 s dans la zone de la soute. Ensuite le joueur est en sécurité.
 - Places illimitées, mais une seule rampe d'accès : c'est le point chaud de la partie.
+- *(codé, 17/11/2026)* Une fois à bord : spectateur intouchable (vol libre, Espace / Ctrl), ne tire plus et
+  n'interagit plus ; s'il portait le Cœur stellaire, il le lâche ; une prime sur lui est annulée.
+- Classement : le **premier** embarqué gagne +50, les suivants +0 ; au décollage, ceux qui ne sont
+  pas à bord perdent **100** points de classement (`Config.EVAC_*`).
+- Après le décollage : écran de fin (classement) pendant 20 s, puis **nouvelle partie sur place** :
+  points, crédits, inventaire et bouclier remis à zéro, loot effacé, monstres, cristaux et contrats recréés.
+- Le vaisseau : soute surélevée, une porte et une rampe ; on passe sous le plancher accroupi
+  (le Cœur stellaire est au centre). Menu admin : « Aller à 14:50 » et « Aller à 19:50 » pour tester.
 
 ### 10. Pactes
 - Deux joueurs (solos ou escouades) peuvent proposer un pacte : Fame des contrats partagée, pas de dégâts entre eux.
@@ -172,9 +189,28 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses ont ensuite été remplacées par la boutique et les capsules de largage, voir §4.)*
 - [x] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur. *(fait : 2 types en camps de niveau 1 et 2 ; validé par test automatisé, à vérifier en jeu)*
 - [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.
-- [ ] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».**
+- [x] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».** *(fait le 17/11/2026 : validé par test automatisé à 2 instances, à vérifier en jeu)*
 - [ ] **Étape 7 – Tempête et événements** — vagues, paliers de monstres, événements à 5 et 10 min, largages.
-- [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ».
+- [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
+  > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
+  > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,
+  > Kit nu), générés depuis `data/reference/the_cycle_legacy_data.json`.
+  > À faire :
+  > - PV, bouclier et vitesse de marche du kit appliqués au joueur.
+  > - Capacités de mouvement, une par `mobility_type`, en composants attachés au joueur :
+  >   Martinet = jetpack + plongée (dégâts de zone) ; Furet = charges d'énergie, double saut (triple
+  >   au niveau 4), esquive, glissade + saut glissé ; Bastion = super saut chargé, coup de poing chargé,
+  >   régénération rapide des PV ; Kit de prospecteur = petits propulseurs. Valeurs dans le `.tres`.
+  > - Obtenir un kit en partie (objet au sol, comme les armes) puis l'ajouter au menu admin.
+  > - Montée de niveau en partie (XP des kills et contrats, bonus de niveau 1 à 6) : à décider.
+  > - Mods de kit : étape 9.
+  >
+  > **Questions à trancher au début de l'étape 8 :**
+  > 1. Périmètre : stats + capacités seulement, ou aussi les niveaux en partie ?
+  > 2. PV et bouclier : les kits ont 400 à 600 PV et autant de bouclier (valeurs pour lesquelles les
+  >    armes importées sont réglées), contre 100 PV + 25 de bouclier aujourd'hui. Soit le kit remplace
+  >    tout et les améliorations de bouclier quittent la boutique, soit le kit donne la base et la
+  >    boutique ajoute du bouclier en plus.
 - [ ] **Étape 9 – Méta et lobby** — factions, réputation, déblocages, mods, sauvegarde, menu, matchmaking simple.
 - [ ] **Étape 10 – En ligne** — serveur dédié hébergé (VPS), tests à 10-20 joueurs, optimisation réseau.
 

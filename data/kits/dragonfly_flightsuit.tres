@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="KitData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_data.gd" id="1_uhrn2"]
+
+[resource]
+script = ExtResource("1_uhrn2")
+id = &"dragonfly_flightsuit"
+display_name = "Combinaison Martinet"
+faction = 3
+faction_level = 1
+health = 500.0
+shield = 500.0
+move_speed_mps = 4.4
+mobility_type = 1
+movement = {
+"dive_attack": {
+"activation": "En l'air, appuyer sur Accroupi : plongée rapide vers le sol en direction du viseur ; à l'impact, dégâts de zone et léger recul des ennemis.",
+"cooldown_s": 8.0,
+"damage": 150.0,
+"dive_speed_mps": 25.0,
+"pauses_fuel_regen_s": 1.5,
+"radius_m": 3.0
+},
+"jetpack": {
+"activation": "Maintenir Saut pendant 0.2 s en l'air (ou depuis le sol) active le jetpack ; relâcher l'arrête.",
+"activation_hold_s": 0.2,
+"air_control": 1.0,
+"fuel_consumption_per_s": 35.0,
+"fuel_max": 100.0,
+"fuel_regen_delay_s": 1.0,
+"fuel_regen_per_s": 25.0,
+"max_vertical_speed_mps": 6.0,
+"thrust_acceleration_mps2": 18.0
+}
+}
+level_perks = PackedStringArray("Défense contre les créatures +20 %", "Santé et bouclier +50", "Dégâts de plongée +50", "Régénération du carburant +25 %", "Santé et bouclier +50", "Dégâts contre les créatures +20 %")
+mods = Array[Dictionary]([{
+"effect": "Vol plus long mais poussée plus faible (fuel_consumption -30 %, thrust -25 %)",
+"id": "slow_and_steady"
+}, {
+"effect": "Poussée beaucoup plus forte mais grosse consommation (thrust +50 %, fuel_consumption +60 %)",
+"id": "catapult"
+}])
+estimated_fields = PackedStringArray("movement.jetpack.fuel_max", "movement.jetpack.fuel_consumption_per_s", "movement.jetpack.fuel_regen_per_s", "movement.jetpack.fuel_regen_delay_s", "movement.jetpack.thrust_acceleration_mps2", "movement.jetpack.max_vertical_speed_mps", "movement.dive_attack.activation", "movement.dive_attack.dive_speed_mps", "movement.dive_attack.damage", "movement.dive_attack.radius_m", "movement.dive_attack.cooldown_s", "movement.dive_attack.pauses_fuel_regen_s", "level_perks[5]", "mods[*].effect (pourcentages)")
+history = "Avant le Release 8 : 600 santé / 300 bouclier."
+playstyle = "Mobilité verticale : prendre de la hauteur, franchir les obstacles, tomber sur les ennemis. Cible facile en l'air."

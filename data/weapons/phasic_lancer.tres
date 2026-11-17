@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_ld8mu"]
+
+[resource]
+script = ExtResource("1_ld8mu")
+id = &"phasic_lancer"
+display_name = "Trident"
+faction = 2
+faction_level = 3
+type = 2
+fire_mode = 2
+damage = 42.0
+rpm = 424.0
+fire_interval_s = 0.425
+dps = 296.0
+burst_count = 3
+burst_interval_s = 0.07
+falloff_start_m = 55.0
+falloff_end_m = 85.0
+magazine = 24
+reload_s = 2.3
+ads_time_s = 0.3
+stability = 1.03
+ads_spread_deg = 0.3
+recoil_deg = 1.2
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray("burst_interval_s", "ads_time_s", "equip_time_s")
+behavior = "Fusil en rafale de 3 balles par appui. Fiable à moyenne portée ; gros dégâts si les 3 balles touchent."

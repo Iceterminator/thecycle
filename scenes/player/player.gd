@@ -10,6 +10,7 @@ extends CharacterBody3D
 ## - Couches : le joueur est sur la couche 2 (« joueurs ») et collisionne avec 1 et 2.
 
 const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
+const ADMIN_SCRIPT := preload("res://systems/admin/admin.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -22,9 +23,20 @@ const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 @onready var shop: Shop = $Shop
 @onready var score: Score = $Score
 
+## Menu admin (touche 0) : créé en code sur tous les peers, même chemin partout (RPC).
+var admin: Admin
+
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 ## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.
 var is_crouching: bool = false
+## À bord de l'évac (décidé par le serveur, envoyé par set_evacuated) : spectateur
+## intouchable, ne tire plus, n'interagit plus, vole librement.
+var is_evacuated: bool = false
+
+signal evacuated_changed(evacuated: bool)
+
+## Hauteur ajoutée quand on passe spectateur (vue d'ensemble de la carte).
+const SPECTATOR_LIFT := 20.0
 
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.1
@@ -51,6 +63,9 @@ func _ready() -> void:
 	body_mesh.visible = not is_local
 	health.dead_changed.connect(_on_dead_changed)
 	add_to_group("damageable")
+	admin = ADMIN_SCRIPT.new()
+	admin.name = "Admin"
+	add_child(admin)
 	if not is_local:
 		_build_beacon()
 	if is_local:
@@ -79,7 +94,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 			else Input.MOUSE_MODE_CAPTURED
 		)
-	elif event is InputEventMouseButton and event.pressed:
+	elif event is InputEventMouseButton and event.pressed \
+			and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		# Un vrai clic recapture la souris ; pas la molette (sinon, défiler dans un menu
+		# ouvert recapturait la souris par-dessus le menu).
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -88,6 +106,9 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if is_evacuated:
+		_spectator_move(delta)
+		return
 	if not is_on_floor():
 		velocity.y -= gravity * delta
 
@@ -128,9 +149,38 @@ func _apply_crouch_shape(delta: float) -> void:
 	head.position.y = shape.height - HEAD_OFFSET
 
 
+## Spectateur (embarqué) : vol libre sans collision. Espace monte, Ctrl descend, Maj accélère.
+func _spectator_move(delta: float) -> void:
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var direction := head.global_basis * Vector3(input_dir.x, 0, input_dir.y)
+	if Input.is_action_pressed("jump"):
+		direction += Vector3.UP
+	if Input.is_action_pressed("crouch"):
+		direction += Vector3.DOWN
+	if direction.length_squared() > 0.0:
+		var speed := Config.SPECTATOR_SPEED * (2.0 if Input.is_action_pressed("sprint") else 1.0)
+		global_position += direction.normalized() * speed * delta
+
+
+## Envoyé par le serveur à tous (embarquement, nouvelle partie).
+@rpc("any_peer", "call_local", "reliable")
+func set_evacuated(value: bool) -> void:
+	if multiplayer.get_remote_sender_id() != 1 or value == is_evacuated:
+		return
+	is_evacuated = value
+	collision.set_deferred("disabled", value or health.is_dead)
+	body_mesh.visible = not value and not health.is_dead and not is_multiplayer_authority()
+	if is_multiplayer_authority():
+		velocity = Vector3.ZERO
+		is_crouching = false
+		if value:
+			global_position += Vector3.UP * SPECTATOR_LIFT
+	evacuated_changed.emit(value)
+
+
 ## Interface « damageable » (armes, monstres) — côté serveur.
 func can_be_hit() -> bool:
-	return not health.is_dead
+	return not health.is_dead and not is_evacuated
 
 
 ## Renvoie true si le coup tue le joueur. attacker_id = Config.MONSTER_KILLER_ID pour un monstre.

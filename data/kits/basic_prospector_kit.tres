@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="KitData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_data.gd" id="1_ipx56"]
+
+[resource]
+script = ExtResource("1_ipx56")
+id = &"basic_prospector_kit"
+display_name = "Kit de prospecteur"
+health = 500.0
+shield = 500.0
+move_speed_mps = 3.9
+mobility_type = 4
+movement = {
+"jetboosters": {
+"activation": "Maintenir Saut en l'air : petite poussée verticale pour prolonger un saut ou amortir une chute.",
+"fuel_consumption_per_s": 50.0,
+"fuel_max": 50.0,
+"fuel_regen_delay_s": 1.0,
+"fuel_regen_per_s": 20.0,
+"thrust_acceleration_mps2": 12.0
+}
+}
+level_perks = PackedStringArray("Vitesse +10 %", "Défense contre les créatures +20 %", "Régénération du carburant +15 %", "Recharge des capacités -20 %", "Régénération de santé +20 % et poussée +20 %", "Dégâts contre les monstres +30 %")
+estimated_fields = PackedStringArray("movement.jetboosters (toutes les valeurs)", "level_perks (répartition exacte par niveau)")
+playstyle = "Kit par défaut, équilibré, sans spécialité."

@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_hr11q"]
+
+[resource]
+script = ExtResource("1_hr11q")
+id = &"shattergun"
+display_name = "Brise-roc"
+faction = 3
+faction_level = 3
+type = 4
+fire_mode = 1
+damage = 418.0
+pellets = 10
+pellet_damage = 41.8
+spread_deg = 7.0
+rpm = 48.0
+fire_interval_s = 1.27
+dps = 333.0
+weakspot_multiplier = 1.2
+falloff_start_m = 6.0
+falloff_end_m = 20.0
+damage_vs_health_multiplier = 1.3
+magazine = 4
+reload_s = 2.4
+ads_time_s = 0.3
+equip_time_s = 0.5
+stability = 0.57
+hip_spread_deg = 1.0
+ads_spread_deg = 0.5
+recoil_deg = 2.5
+spawn_cost_credits = 500
+unlock_cost = 8000
+estimated_fields = PackedStringArray("pellets", "pellet_damage", "spread_deg", "falloff_start_m", "falloff_end_m", "damage_vs_health_multiplier", "ads_time_s", "equip_time_s")
+behavior = "Fusil à pompe à levier : 1 tir puis réarmement de 1.27 s. 'damage' = total si tous les plombs touchent. Efficace contre les boucliers et encore plus mortel une fois la santé atteinte."
+notes = "La source donnait 526 coups/min, incompatible avec 333 DPS. rpm recalculé depuis l'intervalle de tir mesuré (1.27 s)."

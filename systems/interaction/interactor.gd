@@ -32,7 +32,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var target: Node3D = null
-	if not player.health.is_dead:
+	if not player.health.is_dead and not player.is_evacuated:
 		target = _find_target()
 	var text: String = target.get_prompt(player) if target else ""
 	if text != _prompt:
@@ -98,7 +98,7 @@ func request_hold_start(path: NodePath) -> void:
 func request_interact(path: NodePath) -> void:
 	if not multiplayer.is_server():
 		return
-	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead:
+	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.is_evacuated:
 		return
 	var target := get_node_or_null(path) as Node3D
 	if target == null or not target.is_in_group("interactable") or not target.has_method("server_interact"):

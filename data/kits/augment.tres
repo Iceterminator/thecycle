@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="KitData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_data.gd" id="1_8yvco"]
+
+[resource]
+script = ExtResource("1_8yvco")
+id = &"augment"
+display_name = "Kit nu"
+faction_level = -1
+level_perks = PackedStringArray()
+estimated_fields = PackedStringArray()
+playstyle = "4e kit sans aucune capacité de mouvement, jugé presque inutilisable. Optionnel pour le remake."

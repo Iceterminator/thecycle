@@ -24,6 +24,17 @@ var _quest_label: Label
 var _banner: Label
 var _banner_tween: Tween
 
+# Partie (étape 6)
+var _clock_label: Label
+var _board_box: VBoxContainer
+var _board_bar: ProgressBar
+var _aboard_label: Label
+var _results_panel: ColorRect
+var _results_label: Label
+var _clock_elapsed: float = 0.0
+var _clock_phase: int = MatchManager.Phase.PLAYING
+var _restart_left: float = 0.0
+
 var _hold_ratio: float = 0.0  ## maintien de E en cours (cristal…)
 var _last_total: float = -1.0
 var _respawn_left: float = 0.0
@@ -46,11 +57,17 @@ func setup(player: Player) -> void:
 	Events.announcement.connect(_on_announcement)
 	_on_health_changed()
 	_on_inventory_changed()
-	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine_size, false)
+	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine, false)
 	_on_dead_changed(player.health.is_dead)
+	Events.match_clock_synced.connect(_on_clock_synced)
+	Events.evac_board_progress.connect(_on_board_progress)
+	Events.match_results_received.connect(_on_results)
+	player.evacuated_changed.connect(func(aboard: bool) -> void: _aboard_label.visible = aboard)
+	Events.match_clock_requested.emit()
 
 
 func _process(delta: float) -> void:
+	_update_clock(delta)
 	if _death_panel.visible:
 		_respawn_left = maxf(_respawn_left - delta, 0.0)
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
@@ -62,6 +79,59 @@ func _process(delta: float) -> void:
 	elif _use_bar.visible:
 		var duration := maxf(inv.get_use_duration(), 0.01)
 		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
+
+
+# --- Partie : minuteur, embarquement, écran de fin ---
+
+func _on_clock_synced(elapsed: float, phase: int) -> void:
+	_clock_elapsed = elapsed
+	_clock_phase = phase
+	if phase != MatchManager.Phase.ENDED:
+		_results_panel.visible = false
+
+
+func _update_clock(delta: float) -> void:
+	if _clock_phase == MatchManager.Phase.ENDED:
+		_clock_label.text = "Fin de partie"
+		_restart_left = maxf(_restart_left - delta, 0.0)
+		if _results_panel.visible:
+			_results_label.text = _results_text + "\nNouvelle partie dans %d s" % ceili(_restart_left)
+		return
+	_clock_elapsed = minf(_clock_elapsed + delta, Config.MATCH_DURATION)
+	var total := "%s / %s" % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
+	if _clock_phase == MatchManager.Phase.EVAC:
+		_clock_label.text = "%s — ÉVAC AU SOL : décollage dans %s" % [total, _fmt(Config.MATCH_DURATION - _clock_elapsed)]
+		_clock_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	else:
+		_clock_label.text = "%s — évac dans %s" % [total, _fmt(Config.EVAC_LANDING_TIME - _clock_elapsed)]
+		_clock_label.remove_theme_color_override("font_color")
+
+
+func _fmt(seconds: float) -> String:
+	var s := maxi(ceili(seconds), 0)
+	return "%d:%02d" % [floori(s / 60.0), s % 60]
+
+
+func _on_board_progress(ratio: float) -> void:
+	_board_box.visible = ratio > 0.0
+	_board_bar.value = ratio
+
+
+var _results_text: String = ""
+
+
+func _on_results(results: Array, restart_in: float) -> void:
+	_restart_left = restart_in
+	var lines: PackedStringArray = ["FIN DE PARTIE — CLASSEMENT", ""]
+	var rank := 1
+	for entry: Dictionary in results:
+		var peer: int = entry["peer"]
+		var who := "Vous" if peer == _player.get_peer_id() else "Joueur %d" % peer
+		var status := "évacué" if entry["evacuated"] else "resté au sol (-%d)" % Config.EVAC_MISSED_PENALTY
+		lines.append("%d. %s — %d pts — %s" % [rank, who, entry["points"], status])
+		rank += 1
+	_results_text = "\n".join(lines) + "\n"
+	_results_panel.visible = true
 
 
 func _on_announcement(text: String, color: Color) -> void:
@@ -285,6 +355,48 @@ func _build() -> void:
 	_death_label = _make_label("", 36)
 	death_center.add_child(_death_label)
 	_death_panel.visible = false
+
+	# Minuteur de partie, en haut au centre (le bandeau d'annonces est en dessous).
+	_clock_label = _make_label("", 24)
+	add_child(_clock_label)
+	_clock_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_clock_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_clock_label.offset_top = 20
+	# Embarquement en cours (au-dessus du viseur).
+	_board_box = VBoxContainer.new()
+	_board_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_board_box)
+	_board_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_board_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_board_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_board_box.offset_top = -110
+	_board_box.offset_bottom = -50
+	var board_label := _make_label("Embarquement… restez dans la soute", 22)
+	_board_box.add_child(board_label)
+	_board_bar = _make_bar(Color(0.6, 0.85, 1.0), 1.0)
+	_board_bar.step = 0.0
+	_board_box.add_child(_board_bar)
+	_board_box.visible = false
+	# À bord : spectateur.
+	_aboard_label = _make_label("À BORD DE L'ÉVAC — en sécurité\nSpectateur : déplacement libre, Espace / Ctrl pour monter / descendre", 22)
+	_aboard_label.add_theme_color_override("font_color", Color(0.6, 0.85, 1.0))
+	add_child(_aboard_label)
+	_aboard_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_aboard_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_aboard_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_aboard_label.offset_bottom = -120
+	_aboard_label.visible = false
+	# Écran de fin.
+	_results_panel = ColorRect.new()
+	_results_panel.color = Color(0.0, 0.02, 0.06, 0.8)
+	_add_full_rect(_results_panel)
+	var results_center := CenterContainer.new()
+	results_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_results_panel.add_child(results_center)
+	results_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_results_label = _make_label("", 28)
+	results_center.add_child(_results_label)
+	_results_panel.visible = false
 
 
 func _add_full_rect(control: Control) -> void:
