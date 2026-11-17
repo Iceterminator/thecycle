@@ -78,13 +78,22 @@ func _on_score_changed() -> void:
 	# Classement, puis la progression de chaque objectif commencé (vers le prochain palier).
 	var text := "%d pts de classement" % _player.score.rank_points
 	var objectives: Dictionary = _player.score.objective_points
-	for path: String in objectives:
+	var rates: Dictionary = _player.score.objective_rates
+	var paths: Array = objectives.keys()
+	for path: String in rates:
+		if not paths.has(path):
+			paths.append(path)
+	for path: String in paths:
 		var track := load(path) as ObjectiveTrack
 		if track == null:
 			continue
-		var pts: int = objectives[path]
+		var pts: int = objectives.get(path, 0)
 		var tier := track.tiers_reached(pts)
-		text += "\n%s : %d / %d (palier %d)" % [track.display_name, pts, track.threshold(tier), tier]
+		var line := "\n%s : %d / %d  → +%d pts de classement" % [track.display_name, pts, track.threshold(tier), track.reward(tier)]
+		var rate: float = rates.get(path, 0.0)
+		if rate > 0.0:
+			line += "  (+%.1f/s)" % rate
+		text += line
 	_quest_label.text = text
 
 

@@ -1,20 +1,19 @@
 class_name Extractor
 extends ContractSite
 ## Contrat « Extraction d'Ambrine ». Maintenir E (data.hold_time) pour installer
-## l'extracteur, ou le reprendre à un autre joueur (le stock accumulé est volé avec).
-## L'Ambrine s'accumule de plus en plus vite tant que l'extracteur reste au même
-## propriétaire : points_per_second + points_growth × minutes tenues.
-## Le propriétaire récolte le stock (maintenir E Config.COLLECT_HOLD_TIME) -> points.
+## l'extracteur, ou le reprendre à un autre joueur.
+## Tant qu'il le garde, son propriétaire reçoit DIRECTEMENT des points d'objectif
+## (pas besoin d'y retourner), de plus en plus vite :
+## points_per_second + points_growth × minutes tenues (remis à zéro quand il change de mains).
 ## Les monstres ne sont pas alertés ; les joueurs, si (annonce).
-## Champs utilisés : hold_time, points_per_second, points_growth, color.
+## Champs utilisés : hold_time, points_per_second, points_growth, track, color.
 
-var owner_id: int = 0      ## synchronisé
-var stock: float = 0.0     ## synchronisé
+var owner_id: int = 0          ## synchronisé
 var held_minutes: float = 0.0  ## synchronisé
 
 
 func _sync_props() -> Array[String]:
-	return ["owner_id", "stock", "held_minutes"]
+	return ["owner_id", "held_minutes"]
 
 
 func _build_visual() -> void:
@@ -48,40 +47,45 @@ func _refresh() -> void:
 	if owner_id == 0:
 		_label.text = "%s — libre" % data.display_name
 	else:
-		_label.text = "%s — %s\n%d pts d'objectif en stock (%.1f/s)" % [data.display_name, player_name(owner_id), int(stock), current_rate()]
+		_label.text = "%s — %s\n+%.1f pts d'objectif/s" % [data.display_name, player_name(owner_id), current_rate()]
 
 
 func get_prompt(player: Player) -> String:
 	if owner_id == player.get_peer_id():
-		return "Maintenir E : récolter %d pts d'objectif Ambrine" % int(stock)
+		return "Extracteur à vous : +%.1f pts d'objectif/s, de plus en plus vite" % current_rate()
 	if owner_id == 0:
 		return "Maintenir E (%d s) : installer un extracteur" % int(data.hold_time)
-	return "Maintenir E (%d s) : reprendre l'extracteur (%d pts d'objectif en stock)" % [int(data.hold_time), int(stock)]
+	return "Maintenir E (%d s) : reprendre l'extracteur" % int(data.hold_time)
 
 
 func get_hold_time(player: Player) -> float:
-	return Config.COLLECT_HOLD_TIME if owner_id == player.get_peer_id() else data.hold_time
+	return 0.0 if owner_id == player.get_peer_id() else data.hold_time
 
 
 func server_interact(player: Player) -> void:
 	var peer := player.get_peer_id()
 	if owner_id == peer:
-		var pts := int(stock)
-		if pts > 0:
-			player.score.add_objective_points(data.track, pts)
-			stock -= pts
 		return
 	var verb := "installé" if owner_id == 0 else "repris"
+	_set_owner(peer)
+	announce("%s a %s l'extracteur d'Ambrine !" % [player_name(peer), verb])
+
+
+func _set_owner(peer: int) -> void:
+	var old := find_player(owner_id)
+	if old:
+		old.score.set_objective_rate(data.track, 0.0)
 	owner_id = peer
 	held_minutes = 0.0
-	announce("%s a %s l'extracteur d'Ambrine !" % [player_name(peer), verb])
 
 
 func _physics_process(delta: float) -> void:
 	if owner_id == 0:
 		return
-	if find_player(owner_id) == null:
-		owner_id = 0
+	var owner := find_player(owner_id)
+	if owner == null:
+		_set_owner(0)
 		return
 	held_minutes += delta / 60.0
-	stock += current_rate() * delta
+	give_points_over_time(owner, current_rate(), delta)
+	owner.score.set_objective_rate(data.track, current_rate())

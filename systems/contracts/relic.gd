@@ -85,6 +85,7 @@ func server_interact(player: Player) -> void:
 	if carrier_id != 0:
 		return
 	carrier_id = player.get_peer_id()
+	player.score.set_objective_rate(data.track, data.points_per_second)
 	player.score.set_beacon(&"relic", "★ %s" % data.display_name)
 	Events.announce_requested.emit("%s porte le %s ! Sa position est visible." % [ContractSite.player_name(carrier_id), data.display_name], data.color)
 
@@ -110,6 +111,7 @@ func _drop() -> void:
 	var carrier := get_parent().get_parent().get_node("Players").get_node_or_null(str(carrier_id)) as Player
 	if carrier:
 		carrier.score.set_beacon(&"relic", "")
+		carrier.score.set_objective_rate(data.track, 0.0)
 		global_position = carrier.global_position
 	carrier_id = 0
 	Events.announce_requested.emit("Le %s est tombé au sol !" % data.display_name, data.color)

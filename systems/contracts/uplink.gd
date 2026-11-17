@@ -57,7 +57,11 @@ func get_hold_time(player: Player) -> float:
 func server_interact(player: Player) -> void:
 	if owner_id == player.get_peer_id():
 		return
+	var old := find_player(owner_id)
+	if old:
+		old.score.set_objective_rate(data.track, 0.0)
 	owner_id = player.get_peer_id()
+	player.score.set_objective_rate(data.track, data.points_per_second)
 	announce("%s a capturé le %s !" % [player_name(owner_id), data.display_name.to_lower()])
 
 

@@ -20,6 +20,11 @@ var objective_points: Dictionary = {}:
 	set(value):
 		objective_points = value
 		changed.emit()
+## Gain continu actuel par objectif (chemin du track -> points d'objectif / s), pour le HUD.
+var objective_rates: Dictionary = {}:
+	set(value):
+		objective_rates = value
+		changed.emit()
 var beacon: String = "":
 	set(value):
 		beacon = value
@@ -55,6 +60,23 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 		var reward := track.reward(tier)
 		add_rank_points(reward)
 		_notify_tier.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d pts de classement)" % [track.display_name, tier + 1, reward], track.color)
+
+
+## Serveur : gain continu en cours pour un objectif (0 = aucun). Arrondi au dixième pour
+## ne pas resynchroniser à chaque frame.
+func set_objective_rate(track: ObjectiveTrack, rate: float) -> void:
+	if track == null:
+		return
+	var key := track.resource_path
+	var rounded := snappedf(rate, 0.1)
+	if is_equal_approx(objective_rates.get(key, 0.0), rounded):
+		return
+	var d := objective_rates.duplicate()
+	if rounded <= 0.0:
+		d.erase(key)
+	else:
+		d[key] = rounded
+	objective_rates = d
 
 
 @rpc("authority", "call_local", "reliable")

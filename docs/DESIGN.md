@@ -100,7 +100,7 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `data/contracts/*.tres` et `Config`.
 - **Forage de cristal** : voir §4 bis.
 - **Relais satellite** : maintenir E 5 s pour le capturer ; +3 pts/s au propriétaire jusqu'à ce qu'un autre le reprenne. Capture annoncée à tous.
-- **Extracteur d'Ambrine** : maintenir E 4 s pour l'installer ou le reprendre (le stock est volé avec). Le stock monte de plus en plus vite (+1 pt/s, +1,5 pt/s par minute tenue) ; le propriétaire le récolte (E 1,5 s). Annoncé aux joueurs, pas aux monstres.
+- **Extracteur d'Ambrine** : maintenir E 4 s pour l'installer ou le reprendre. Son propriétaire reçoit directement des points d'objectif, sans y retourner, de plus en plus vite (+1 pt/s, +1,5 pt/s par minute tenue, remis à zéro quand il change de mains). Annoncé aux joueurs, pas aux monstres.
 - **Cœur stellaire** : objet unique au centre ; son porteur gagne +4 pts/s et sa position est visible par tous (balise). Il tombe au sol à sa mort.
 - **Chasse à la biomasse** : Rôdeurs (1) et Colosses (3) lâchent de la biomasse (20 max portés) ; dépôt au collecteur = 15 pts l'unité.
 - **Lumicèpes** : champignons qui repoussent sur 8 spots ; les porter attire des **Tiques**, de plus en plus souvent (24 s ÷ nombre porté) ; dépôt = 40 pts l'unité (10 max).
