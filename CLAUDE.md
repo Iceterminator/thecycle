@@ -47,3 +47,9 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 ## Tester
 - Éditeur : Debug → Customize Run Instances → 2 instances. Héberger dans l'une, Rejoindre dans l'autre.
 - Serveur dédié : `godot --headless -- --server` (port 7777 par défaut, `--port=XXXX` pour changer).
+
+## Règle de délégation
+- Collecte (chercher, lire, extraire) → sous-agent "chercheur" (Haiku)
+- Synthèse de plusieurs sources → sous-agent "analyste" (Sonnet)
+- Réfléchir, décider, écrire le code final → toi (Opus)
+Délègue systématiquement la collecte, ne lis pas toi-même des dizaines de fichiers.
