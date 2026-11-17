@@ -26,3 +26,13 @@ func on_monster_died(monster: Monster, killer_id: int) -> void:
 		print("[Monstres] Camp %s vidé par %d" % [name, killer_id])
 		Events.camp_cleared.emit(StringName(name), killer_id)
 		cleared.emit(self, killer_id)
+
+
+func _ready() -> void:
+	add_to_group("map_marker")  # écran Tab (systems/map/)
+
+
+## Écran Tab : camp de monstres (les clients ne connaissent pas le nombre de monstres vivants).
+func map_info() -> Dictionary:
+	var level := camp_data.level if camp_data else 1
+	return {"text": "Camp de monstres\nNiveau %d" % level, "color": Color(0.85, 0.25, 0.2), "kind": "camp", "radius": radius}

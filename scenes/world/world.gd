@@ -19,6 +19,7 @@ var evac_ship: EvacShip
 
 
 func _ready() -> void:
+	_build_border()
 	evac_ship = EVAC_SCRIPT.new()
 	evac_ship.name = "EvacShip"
 	evac_ship.players_root = players
@@ -69,3 +70,24 @@ func pick_spawn_point() -> Vector3:
 	if points.is_empty():
 		return Vector3(0, 2, 0)
 	return (points.pick_random() as Node3D).global_position
+
+
+## Murs invisibles autour de la carte (sur tous les peers : décor local, pas d'objet réseau).
+## Couche « monde » : ils arrêtent joueurs, monstres et tirs.
+func _build_border() -> void:
+	var half := Config.MAP_HALF_SIZE
+	var height := 80.0
+	var thick := 2.0
+	var body := StaticBody3D.new()
+	body.name = "MapBorder"
+	body.collision_layer = 1
+	body.collision_mask = 0
+	add_child(body)
+	for side: Vector3 in [Vector3(1, 0, 0), Vector3(-1, 0, 0), Vector3(0, 0, 1), Vector3(0, 0, -1)]:
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		var along_x := side.z != 0.0
+		box.size = Vector3(half * 2.0 + thick * 2.0 if along_x else thick, height, thick if along_x else half * 2.0 + thick * 2.0)
+		shape.shape = box
+		shape.position = side * (half + thick / 2.0) + Vector3.UP * (height / 2.0 - 10.0)
+		body.add_child(shape)

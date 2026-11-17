@@ -67,6 +67,7 @@ func setup(crystal_data: CrystalData) -> void:
 
 func _ready() -> void:
 	add_to_group("interactable")
+	add_to_group("map_marker")  # écran Tab (systems/map/)
 	_update_look()
 	set_physics_process(multiplayer.is_server())
 
@@ -369,3 +370,15 @@ func _update_label() -> void:
 		State.FAILED:
 			_label.text = "%s\nForeuse détruite !" % title
 			_label.modulate = Color(1, 0.3, 0.25)
+
+
+## Écran Tab : état du cristal (même texte que le texte flottant).
+func map_info() -> Dictionary:
+	var color: Color = _label.modulate if _label else data.color
+	return {"text": _label.text if _label else data.display_name, "color": color, "kind": "crystal"}
+
+
+## Texte flottant visible seulement de près (appelé par le HUD du joueur local).
+func set_map_tag_visible(value: bool) -> void:
+	if _label:
+		_label.visible = value

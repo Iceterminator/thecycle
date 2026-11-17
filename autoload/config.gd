@@ -7,6 +7,7 @@ extends Node
 const CODE_KEY_ACTIONS := {
 	&"open_shop": KEY_T,
 	&"admin_menu": KEY_0,
+	&"show_map": KEY_TAB,           # maintenir : carte, quêtes, classement
 }
 
 
@@ -106,6 +107,15 @@ const ADMIN_MAX_TIME_SKIP := 1200.0      # avance max du temps par demande (s)
 ## Temporaire : affiche le nom des armes dans le jeu d'origine (WeaponData.reference_name)
 ## au lieu de nos noms, pour se repérer pendant les tests. Mettre à false pour nos noms.
 const SHOW_REFERENCE_WEAPON_NAMES := true
+
+# --- Écran Tab (carte) ---
+const MAP_REVEAL_RADIUS := 40.0          # quêtes et monstres montrés (carte, minimap, textes flottants) à cette distance (m)
+const MINIMAP_HALF_SIZE := 45.0          # la minimap montre ± cette distance autour du joueur (m)
+
+# --- Limites de la carte ---
+const MAP_HALF_SIZE := 100.0             # la carte fait 200 x 200 m, centrée sur l'origine
+const KILL_Y := -15.0                    # en dessous de cette hauteur : mort (plus de chute infinie)
+const FALL_KILLER_ID := -3               # killer_id quand un joueur meurt en tombant hors de la carte
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
 const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
 

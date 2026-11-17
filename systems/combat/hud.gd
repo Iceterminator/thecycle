@@ -26,6 +26,8 @@ var _banner_tween: Tween
 
 # Partie (étape 6)
 var _clock_label: Label
+var _minimap: MapView
+var _tags_left: float = 0.0  ## prochaine mise à jour des textes flottants des quêtes
 var _storm_label: Label
 var _board_box: VBoxContainer
 var _board_bar: ProgressBar
@@ -65,10 +67,15 @@ func setup(player: Player) -> void:
 	Events.match_results_received.connect(_on_results)
 	player.evacuated_changed.connect(func(aboard: bool) -> void: _aboard_label.visible = aboard)
 	Events.match_clock_requested.emit()
+	_build_minimap()
 
 
 func _process(delta: float) -> void:
 	_update_clock(delta)
+	_tags_left -= delta
+	if _tags_left <= 0.0:
+		_tags_left = 0.2
+		_update_quest_tags()
 	if _death_panel.visible:
 		_respawn_left = maxf(_respawn_left - delta, 0.0)
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
@@ -235,6 +242,8 @@ func _killer_text() -> String:
 		return "Tué par un monstre"
 	if killer == Config.STORM_KILLER_ID:
 		return "Tué par la tempête"
+	if killer == Config.FALL_KILLER_ID:
+		return "Tombé hors de la carte"
 	if killer == _player.get_peer_id():
 		return "Vous vous êtes tué"
 	return "Tué par le joueur %d" % killer
@@ -440,3 +449,26 @@ func _make_bar(color: Color, max_value: float) -> ProgressBar:
 	bar.add_theme_stylebox_override("fill", fill)
 	bar.add_theme_stylebox_override("background", bg)
 	return bar
+
+
+# --- Minimap et textes flottants des quêtes ---
+
+## Minimap en haut à gauche : centrée sur le joueur, mêmes règles que la carte de l'écran Tab.
+func _build_minimap() -> void:
+	_minimap = MapView.new()
+	_minimap.player = _player
+	_minimap.world = _player.get_parent().get_parent() as Node3D
+	_minimap.follow = true
+	_minimap.view_half = Config.MINIMAP_HALF_SIZE
+	_minimap.show_labels = false
+	add_child(_minimap)
+	_minimap.position = Vector2(20, 20)
+	_minimap.size = Vector2(220, 220)
+
+
+## Les textes flottants des quêtes (cristaux, contrats, Cœur stellaire) ne se voient
+## qu'à moins de Config.MAP_REVEAL_RADIUS, comme sur la carte.
+func _update_quest_tags() -> void:
+	for node in get_tree().get_nodes_in_group("map_marker"):
+		if node.has_method("set_map_tag_visible"):
+			node.set_map_tag_visible(MapView.in_reveal_range((node as Node3D).global_position, _player.global_position))

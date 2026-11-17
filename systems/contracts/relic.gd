@@ -62,6 +62,7 @@ func setup(contract_data: ContractData) -> void:
 
 func _ready() -> void:
 	add_to_group("interactable")
+	add_to_group("map_marker")  # écran Tab (systems/map/)
 	carrier_id = carrier_id  # applique la visibilité
 	set_physics_process(multiplayer.is_server())
 	if multiplayer.is_server():
@@ -116,3 +117,15 @@ func _drop() -> void:
 		global_position = carrier.global_position
 	carrier_id = 0
 	Events.announce_requested.emit("Le %s est tombé au sol !" % data.display_name, data.color)
+
+
+## Écran Tab : au sol, ou qui le porte (sa position suit le porteur).
+func map_info() -> Dictionary:
+	var status := "au sol, à ramasser" if carrier_id == 0 else "porté par Joueur %d" % carrier_id
+	return {"text": "★ %s\n%s" % [data.display_name, status], "color": data.color, "kind": "relic"}
+
+
+## Texte flottant visible seulement de près, et jamais quand le cœur est porté.
+func set_map_tag_visible(value: bool) -> void:
+	if _label:
+		_label.visible = value and carrier_id == 0

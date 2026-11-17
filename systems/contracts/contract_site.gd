@@ -40,6 +40,7 @@ func setup(contract_data: ContractData) -> void:
 
 func _ready() -> void:
 	add_to_group("interactable")
+	add_to_group("map_marker")  # écran Tab (systems/map/)
 	set_physics_process(multiplayer.is_server())
 	_refresh()
 
@@ -139,3 +140,14 @@ static func make_mesh(mesh: Mesh, color: Color, emissive: bool = false) -> MeshI
 		mat.emission = color
 	mi.material_override = mat
 	return mi
+
+
+## Écran Tab : texte de l'état (le même que le texte flottant), couleur, type de repère.
+func map_info() -> Dictionary:
+	return {"text": _label.text if _label else data.display_name, "color": data.color, "kind": "contract"}
+
+
+## Texte flottant visible seulement de près (appelé par le HUD du joueur local).
+func set_map_tag_visible(value: bool) -> void:
+	if _label:
+		_label.visible = value

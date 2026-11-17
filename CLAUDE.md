@@ -42,7 +42,9 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
   `admin/` (menu de test, touche 0 : armes, crédits, cristaux, avance du temps → `Events.time_skip_requested` ;
   désactivable via `Config.ADMIN_MENU_ENABLED`) ;
   `match/` (minuteur de partie, fin, relance : `MatchManager`, créé par World), `evac/` (vaisseau, soute,
-  embarquement : `EvacShip`, créé par World) ; `storm/` (tempête en zone qui se referme : `StormManager`, phases dans `data/storm/`). Nouvelle partie : `Events.match_reset_requested`,
+  embarquement : `EvacShip`, créé par World) ; `storm/` (tempête en zone qui se referme : `StormManager`, phases dans `data/storm/`) ;
+  `map/` (écran Tab : carte, quêtes, classement ; `MapView` sert aussi à la minimap du HUD ; un objet apparaît sur la carte s'il est dans le groupe
+  `map_marker` et a `map_info() -> { text, color, kind, [position], [radius] }`). Nouvelle partie : `Events.match_reset_requested`,
   chaque système de carte se remet à zéro lui-même
 - `resources/` scripts de types de données
 - `data/reference/the_cycle_legacy_data.json` : chiffres des armes et kits du jeu d'origine (référence) ;

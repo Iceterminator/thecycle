@@ -34,6 +34,7 @@ var _send_left: float = 0.0
 
 func _ready() -> void:
 	_build()
+	add_to_group("map_marker")  # écran Tab (systems/map/)
 	_apply_state(State.SKY, false)
 	set_physics_process(multiplayer.is_server())
 	if not multiplayer.is_server():
@@ -214,3 +215,18 @@ func _box(body: StaticBody3D, size: Vector3, pos: Vector3, rot_x: float, mat: Ma
 	mesh.position = pos
 	mesh.rotation.x = rot_x
 	add_child(mesh)
+
+
+## Écran Tab : l'évac est toujours sur la carte (son point d'atterrissage).
+func map_info() -> Dictionary:
+	var status := ""
+	match state:
+		State.SKY:
+			status = "atterrit à %d:%02d" % [floori(Config.EVAC_LANDING_TIME / 60.0), int(Config.EVAC_LANDING_TIME) % 60]
+		State.LANDING:
+			status = "en approche"
+		State.LANDED:
+			status = "AU SOL — montez par la rampe"
+		State.DEPARTING:
+			status = "parti"
+	return {"text": "Évac\n%s" % status, "color": Color(0.6, 0.85, 1.0), "kind": "evac", "position": Config.EVAC_POSITION}

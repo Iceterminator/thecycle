@@ -275,3 +275,22 @@ func _make_cylinder(color: Color) -> MeshInstance3D:
 	mesh.visible = false
 	add_child(mesh)
 	return mesh
+
+
+
+## Carte et minimap : zone sûre actuelle (si la tempête a commencé) et prochaine zone
+## (si annoncée). { active, center, radius, has_next, next_center, next_radius }
+static func map_circles() -> Dictionary:
+	if _current == null:
+		return {"active": false, "has_next": false}
+	var s := _current.compute_state(_current._elapsed())
+	var next: int = s["next"]
+	var has_next := next >= 0 and next < _current.centers.size()
+	return {
+		"active": s["active"],
+		"center": s["center"],
+		"radius": s["radius"],
+		"has_next": has_next,
+		"next_center": _current.centers[next] if has_next else Vector2.ZERO,
+		"next_radius": _current.phases[next].radius if has_next else 0.0,
+	}

@@ -107,6 +107,11 @@ func revive() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+	# Tombé sous la carte : mort (le serveur a la position envoyée par le client).
+	var body := get_parent() as Player
+	if body and not body.is_evacuated and body.global_position.y < Config.KILL_Y:
+		apply_damage(health + shield + 1.0, Config.FALL_KILLER_ID)
+		return
 	_since_damage += delta
 	if _since_damage >= Config.SHIELD_REGEN_DELAY and shield < max_shield:
 		shield = minf(shield + max_shield * Config.SHIELD_REGEN_FRACTION * delta, max_shield)

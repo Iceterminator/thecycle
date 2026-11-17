@@ -11,6 +11,7 @@ extends CharacterBody3D
 
 const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 const ADMIN_SCRIPT := preload("res://systems/admin/admin.gd")
+const MAP_OVERLAY_SCRIPT := preload("res://systems/map/map_overlay.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -73,6 +74,10 @@ func _ready() -> void:
 		var hud: CombatHud = HUD_SCRIPT.new()
 		add_child(hud)
 		hud.setup(self)
+		var map_overlay: MapOverlay = MAP_OVERLAY_SCRIPT.new()
+		map_overlay.name = "MapOverlay"
+		add_child(map_overlay)
+		map_overlay.setup(self)
 	set_physics_process(is_local)
 	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
 	set_process(not is_local)

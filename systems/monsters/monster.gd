@@ -161,6 +161,9 @@ func aggro(player: Player, alert_camp: bool) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if global_position.y < Config.KILL_Y:
+		_die(0)  # tombé hors de la carte : pas de crédits
+		return
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	else:
