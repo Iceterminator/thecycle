@@ -79,6 +79,12 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 - Les crédits gagnés pendant la partie servent aux améliorations sur place : terminaux d'achat ou **largage de ravitaillement** que le joueur appelle (arrive en 30 s, visible par tous).
 - Ressources récoltables (minerais, plantes) : à rapporter pour certains contrats.
 
+> **Note (17/11/2026) — les caisses de loot sont provisoires.** Les caisses de l'étape 3
+> servent seulement à tester le loot et l'inventaire : elles **ne resteront pas dans le jeu final**.
+> Le jeu final passera par un **shop** : le joueur achète des **largages d'armes** avec ses crédits.
+> Il faudra donc garder en état de marche la partie réutilisable (objets au sol, ramassage,
+> inventaire, crédits) et pouvoir retirer `Crate` et `crate_basic.tres` sans rien casser.
+
 ### 5. Contrats
 - 4 contrats proposés au largage, 2 actifs au maximum. On en reprend de nouveaux à chaque fin.
 - Chaque contrat appartient à une faction et rapporte de la Fame + des crédits + des points de réputation.
@@ -134,7 +140,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 0 – Projet de base** — un serveur et un client se connectent en local.
 - [x] **Étape 1 – Joueurs en réseau** — déplacement FPS répliqué, apparition au point de largage. Fini quand : 2 joueurs se voient bouger sans saccade *(à vérifier en jeu)*.
 - [x] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches *(validé par test automatisé ; à vérifier en jeu)*.
-- [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète.)*
+- [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses sont provisoires : remplacées plus tard par un shop de largages d'armes, voir §4.)*
 - [ ] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur.
 - [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.
 - [ ] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».**

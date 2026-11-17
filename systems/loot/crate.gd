@@ -3,6 +3,10 @@ extends StaticBody3D
 ## Caisse de loot. Créée par le serveur (LootManager), répliquée par le LootSpawner.
 ## `opened` est synchronisé par le serveur (CrateSync, autorité 1 par défaut).
 ## Interface d'interaction : get_prompt(player) côté client, server_interact(player) côté serveur.
+##
+## PROVISOIRE : les caisses ne resteront pas dans le jeu final. Elles seront remplacées
+## par un shop où l'on achète des largages d'armes avec ses crédits (voir DESIGN.md §4).
+## Rien d'autre ne doit dépendre de Crate : un largage réutilisera Events.loot_drop_requested.
 
 @export var loot_table: LootTable
 
