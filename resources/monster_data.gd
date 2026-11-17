@@ -21,7 +21,8 @@ extends Resource
 @export var attack_range: float = 1.6
 @export var attack_damage: float = 8.0
 @export var attack_windup: float = 0.35        ## préparation visible avant le coup (s)
-@export var attack_cooldown: float = 1.0       ## pause après le coup (s)
+@export var attack_cooldown: float = 1.0       ## délai avant le coup suivant (s)
+@export var post_hit_pause: float = 0.6        ## après un coup réussi : s'arrête et recule un peu (s)
 
 @export_group("Récompense")
 @export var credits: int = 10                  ## crédits lâchés à la mort

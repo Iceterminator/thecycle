@@ -21,6 +21,7 @@ const CONTACT_RATIO := 0.6      ## sous attack_range × ce ratio, il s'arrête (
 const LUNGE_SPEED_RATIO := 1.0  ## vitesse pendant la préparation (× run_speed) : on ne le distance pas en marchant
 const HIT_RANGE_RATIO := 1.5    ## le coup touche jusqu'à attack_range × ce ratio
 const MISS_RECOVERY := 0.3      ## pause après un coup raté (s)
+const BACK_OFF_SPEED_RATIO := 0.6  ## recul pendant la pause après un coup (× walk_speed)
 
 var data: MonsterData
 
@@ -50,6 +51,7 @@ var _idle_left: float = 0.0
 var _scan_left: float = 0.0
 var _repath_left: float = 0.0
 var _state_left: float = 0.0
+var _pause_left: float = 0.0  ## pause après un coup réussi (recule un peu, ne colle pas)
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 # --- Visuels ---
@@ -158,8 +160,13 @@ func _physics_process(delta: float) -> void:
 		State.WINDUP:
 			_do_windup()
 		State.RECOVER:
-			# Après un coup : continue de suivre la cible, mais ne frappe pas encore.
-			_do_chase(false)
+			if _pause_left > 0.0:
+				# Juste après un coup qui a touché : petite pause en reculant.
+				_pause_left -= delta
+				_back_off()
+			else:
+				# Puis il reprend la poursuite, sans frapper avant la fin de la recharge.
+				_do_chase(false)
 			if state == State.RECOVER and _state_left <= 0.0:
 				state = State.CHASE
 		State.RETURN:
@@ -233,9 +240,26 @@ func _do_windup() -> void:
 	if _target_dist() <= data.attack_range * HIT_RANGE_RATIO:
 		_target.server_receive_hit(data.attack_damage * damage_mult, Config.MONSTER_KILLER_ID)
 		_state_left = data.attack_cooldown
+		_pause_left = data.post_hit_pause
 	else:
 		_state_left = MISS_RECOVERY
 	state = State.RECOVER
+
+
+## Recule doucement face à la cible (pendant la pause après un coup).
+func _back_off() -> void:
+	if not _valid_target():
+		_halt()
+		return
+	var away := global_position - _target.global_position
+	away.y = 0.0
+	if away.length_squared() < 0.0001:
+		_halt()
+		return
+	away = away.normalized() * data.walk_speed * BACK_OFF_SPEED_RATIO
+	velocity.x = away.x
+	velocity.z = away.z
+	_face(_target.global_position)
 
 
 func _do_return() -> void:
