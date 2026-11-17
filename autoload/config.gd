@@ -2,6 +2,22 @@ extends Node
 ## Constantes de partie. Valeurs de départ, à équilibrer (voir docs/DESIGN.md).
 ## Accès depuis n'importe quel script : Config.MATCH_DURATION, etc.
 
+## Touches déclarées en code (touche physique), en plus de celles de project.godot :
+## l'éditeur Godot, s'il est ouvert, peut réécrire project.godot et les effacer.
+const CODE_KEY_ACTIONS := {
+	&"open_shop": KEY_T,
+}
+
+
+func _ready() -> void:
+	for action: StringName in CODE_KEY_ACTIONS:
+		if InputMap.has_action(action):
+			continue
+		InputMap.add_action(action)
+		var key := InputEventKey.new()
+		key.physical_keycode = CODE_KEY_ACTIONS[action]
+		InputMap.action_add_event(action, key)
+
 # --- Réseau ---
 const DEFAULT_PORT := 7777
 const MAX_PLAYERS := 20
