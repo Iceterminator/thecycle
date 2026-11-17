@@ -12,9 +12,13 @@ enum Faction { STARTER, LOURDE, TECHNO, EQUILIBRE }
 enum WeaponType { SMG, ASSAULT_RIFLE, BATTLE_RIFLE, SNIPER_RIFLE, SHOTGUN, LMG, PISTOL, MISSILE_LAUNCHER, HEAVY }
 enum Slot { PRIMARY, SECONDARY }
 ## AUTO : tir continu. SEMI : un tir par clic. BURST : un clic = burst_count tirs.
-## CHARGE, CHARGE_BURST, BEAM : pas encore codés (le tir retombe sur SEMI, BURST, AUTO).
+## CHARGE : maintenir charge_time_s, le tir part dès que la charge est pleine (relâcher avant
+## = pas de tir). CHARGE_BURST : pareil, puis une rafale de burst_count tirs.
+## BEAM : après spin_up_s de montée en régime, un « tick » de dégâts tous les fire_interval_s
+## tant qu'on maintient (1 munition par tick).
 enum FireMode { AUTO, SEMI, BURST, CHARGE, CHARGE_BURST, BEAM }
-## EXPLOSIVE_PROJECTILE : pas encore de dégâts de zone (se comporte comme PROJECTILE).
+## EXPLOSIVE_PROJECTILE : dégâts directs sur la cible touchée + aoe_damage dans aoe_radius_m
+## (moins au bord), y compris pour le tireur.
 enum ProjectileType { HITSCAN, PROJECTILE, EXPLOSIVE_PROJECTILE }
 enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 
@@ -53,12 +57,12 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export var falloff_end_m: float = -1.0
 @export var falloff_min_multiplier: float = 0.6  ## multiplicateur à partir de falloff_end_m
 @export var max_range_m: float = -1.0            ## -1 = DEFAULT_MAX_RANGE
-@export var damage_vs_shield_multiplier: float = 1.0  ## pas encore appliqué
-@export var damage_vs_health_multiplier: float = 1.0  ## pas encore appliqué
+@export var damage_vs_shield_multiplier: float = 1.0  ## part des dégâts qui touche le bouclier
+@export var damage_vs_health_multiplier: float = 1.0  ## part des dégâts qui touche les PV
 
 @export_group("Projectile")
 @export var projectile_speed_mps: float = -1.0
-@export var aoe_damage: float = -1.0             ## pas encore appliqué
+@export var aoe_damage: float = -1.0             ## explosifs : dégâts au centre de la zone
 @export var aoe_radius_m: float = -1.0
 
 @export_group("Chargeur")
@@ -80,6 +84,29 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export_group("Progression")
 @export var spawn_cost_credits: int = -1         ## prix en partie (-1 = inconnu)
 @export var unlock_cost: int = -1                ## prix de déblocage hors partie
+
+@export_group("Ressenti")
+## Réglages visuels, déduits de la fiche « detailed » par le générateur.
+@export var tracer_color: Color = Color(1.0, 0.9, 0.5)
+@export var tracer_width: float = 0.02           ## épaisseur du traçant / du rayon (m)
+@export var tracer_time: float = 0.06            ## durée d'affichage du traçant (s)
+@export var muzzle_flash_scale: float = 1.0
+@export var impact_scale: float = 1.0
+@export var projectile_size: float = 0.04        ## projectile visible (m)
+@export var smoke_trail: bool = false            ## traînée de fumée (roquettes, obus)
+
+@export_group("Fiche (detailed)")
+## Fiche de design de la référence : ce que l'arme doit faire ressentir.
+@export_multiline var role: String = ""
+@export_multiline var shot_feel: String = ""
+@export_multiline var projectile_visual: String = ""
+@export_multiline var impact: String = ""
+@export_multiline var recoil_feel: String = ""
+@export_multiline var sound: String = ""
+@export var best_range_m: Vector2 = Vector2.ZERO  ## portée idéale (min, max)
+@export var strengths: PackedStringArray = []
+@export var weaknesses: PackedStringArray = []
+@export_multiline var counter: String = ""
 
 @export_group("Notes")
 ## Champs absents des sources : valeurs de départ à équilibrer en jouant.
@@ -118,21 +145,32 @@ func get_fire_interval() -> float:
 	return 60.0 / maxf(rpm, 1.0)
 
 
-## Mode de tir réellement joué (les modes pas encore codés retombent sur un mode proche).
+## Mode de tir joué (tous les modes sont codés ; gardé pour les appels existants).
 func get_effective_fire_mode() -> FireMode:
-	match fire_mode:
-		FireMode.CHARGE:
-			return FireMode.SEMI
-		FireMode.CHARGE_BURST:
-			return FireMode.BURST
-		FireMode.BEAM:
-			return FireMode.AUTO
 	return fire_mode
+
+
+func is_burst() -> bool:
+	return fire_mode == FireMode.BURST or fire_mode == FireMode.CHARGE_BURST
+
+
+## Temps à maintenir avant le premier tir (charge ou montée en régime), 0 sinon.
+func get_trigger_delay() -> float:
+	match fire_mode:
+		FireMode.CHARGE, FireMode.CHARGE_BURST:
+			return maxf(charge_time_s, 0.0)
+		FireMode.BEAM:
+			return maxf(spin_up_s, 0.0)
+	return 0.0
 
 
 ## Tirs par cycle de get_fire_interval() (sert au contrôle de cadence du serveur).
 func get_shots_per_cycle() -> int:
-	return maxi(burst_count, 1) if get_effective_fire_mode() == FireMode.BURST else 1
+	return maxi(burst_count, 1) if is_burst() else 1
+
+
+func is_explosive() -> bool:
+	return projectile_type == ProjectileType.EXPLOSIVE_PROJECTILE and aoe_radius_m > 0.0
 
 
 func is_projectile() -> bool:

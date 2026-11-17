@@ -76,7 +76,11 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 > générés depuis `data/reference/the_cycle_legacy_data.json` ; les valeurs sont celles du jeu d'origine
 > (pensées pour des joueurs à 500 PV), donc à équilibrer. En boutique : Guêpe (SMG, 200 cr.),
 > Trident (rafale, 500 cr.), Faucon (sniper à projectile, 500 cr.).
-> Pas encore codés : CHARGE, CHARGE_BURST, BEAM, dégâts de zone, `damage_vs_shield/health`.
+> **Étape 8a (17/11/2026)** : tous les modes sont codés (CHARGE : le tir part quand la charge est pleine,
+> relâcher avant annule ; CHARGE_BURST ; BEAM : montée en régime puis ticks), explosions (dégâts de zone, moins
+> au bord, tireur compris, pas à travers les murs), bonus contre bouclier / PV. Fiche `detailed` de la référence
+> importée dans chaque arme (rôle, ressenti, visuels, son, portée idéale…) et ressenti visuel déduit : couleur des
+> traçants par faction, épaisseur et durée selon le type, flash, impacts, fumée des roquettes. Pas encore de sons.
 
 ### 3. Santé et boucliers
 - 100 PV + bouclier par palier : 25 au départ (palier 0), puis 50, 100, 150 (paliers 1 à 3), achetés en boutique. Le palier acheté est gardé à la mort.
@@ -204,6 +208,8 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».** *(fait le 17/11/2026 : validé par test automatisé à 2 instances, à vérifier en jeu)*
 - [x] **Étape 7 – Tempête et événements** — *(fait le 17/11/2026, validé par test automatisé à 2 instances, à vérifier en jeu)* : tempête en zone qui se referme, niveaux de monstres, cristaux qui montent de niveau à 10:00, Cracheur (monstre à distance). **Pas d'événements à 5 et 10 min pour l'instant, pas de largages de ravitaillement.**
 - [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
+  Découpage (référence : `data/reference/the_cycle_legacy_data.json`, nouvelle version avec capacités et gadgets) :
+  **8a armes (fait le 17/11/2026)** ; 8b kits ; 8c capacités (21, touches Q / F) ; 8d gadgets ; 8e raretés, escouades, « à terre », pactes.
   > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
   > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,
   > Kit nu), générés depuis `data/reference/the_cycle_legacy_data.json`.

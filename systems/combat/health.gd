@@ -51,16 +51,19 @@ func get_peer_id() -> int:
 
 ## Serveur uniquement. Le bouclier absorbe d'abord, le reste passe sur les PV.
 ## Renvoie true si ce coup a tué le joueur.
-func apply_damage(amount: float, attacker_id: int) -> bool:
+func apply_damage(amount: float, attacker_id: int, shield_mult: float = 1.0, health_mult: float = 1.0) -> bool:
 	if not multiplayer.is_server():
 		push_error("[Health] apply_damage appelé hors du serveur")
 		return false
 	if is_dead or amount <= 0.0:
 		return false
 	_since_damage = 0.0
-	var absorbed := minf(shield, amount)
+	# Le bouclier prend d'abord (dégâts x shield_mult), le reste passe sur les PV (x health_mult)
+	# (ex. fusil à pompe plus mortel une fois le bouclier tombé).
+	var absorbed := minf(shield, amount * shield_mult)
 	shield -= absorbed
-	health = maxf(health - (amount - absorbed), 0.0)
+	var rest := amount - absorbed / maxf(shield_mult, 0.001)
+	health = maxf(health - rest * health_mult, 0.0)
 	Events.player_damaged.emit(get_peer_id(), amount, attacker_id)
 	if health <= 0.0:
 		killer_id = attacker_id

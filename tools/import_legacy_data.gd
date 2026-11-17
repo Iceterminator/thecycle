@@ -138,12 +138,56 @@ func _save_weapon(w: Dictionary, falloff_min: float) -> bool:
 	res.set("recoil_deg", handling[2])
 	res.set("estimated_fields", PackedStringArray(w.get("estimated_fields", [])))
 	res.set("behavior", w.get("behavior", ""))
+	_apply_detailed(res, w.get("detailed", {}))
+	_apply_feel(res, w)
 	var notes: PackedStringArray = []
 	for key: String in ["data_fix", "note"]:
 		if w.has(key):
 			notes.append(w[key])
 	res.set("notes", "\n".join(notes))
 	return _save(res, WEAPONS_DIR + id + ".tres")
+
+
+## Fiche « detailed » de la référence (rôle, ressenti, visuels, son, portée idéale…).
+func _apply_detailed(res: Resource, d: Dictionary) -> void:
+	for pair: Array in [["role", "role"], ["shot_feel", "shot_feel"], ["projectile_visual", "projectile_visual"],
+			["impact", "impact"], ["recoil", "recoil_feel"], ["sound", "sound"], ["counter", "counter"]]:
+		res.set(pair[1], d.get(pair[0], ""))
+	var best: Array = d.get("best_range_m", [])
+	if best.size() == 2:
+		res.set("best_range_m", Vector2(best[0], best[1]))
+	res.set("strengths", PackedStringArray(d.get("strengths", [])))
+	res.set("weaknesses", PackedStringArray(d.get("weaknesses", [])))
+
+
+## Ressenti visuel déduit de la fiche et des chiffres : couleur par faction (orange Korolev,
+## vert Osiris, bleu ICA), traçants plus épais et plus longs pour les grosses armes, fumée
+## pour les explosifs. Valeurs de départ, réglables dans chaque .tres.
+const FACTION_TRACER := [Color(1.0, 0.85, 0.45), Color(1.0, 0.55, 0.2), Color(0.45, 1.0, 0.55), Color(0.45, 0.75, 1.0)]
+const TYPE_WIDTH := [0.015, 0.02, 0.025, 0.04, 0.012, 0.025, 0.015, 0.1, 0.08]
+
+
+func _apply_feel(res: Resource, w: Dictionary) -> void:
+	var type: int = res.get("type")
+	var damage: float = res.get("damage")
+	var explosive: bool = w.get("projectile_type") == "explosive_projectile"
+	var beam: bool = w.get("fire_mode") == "beam"
+	res.set("tracer_color", FACTION_TRACER[clampi(res.get("faction"), 0, 3)])
+	res.set("tracer_width", 0.07 if beam else TYPE_WIDTH[type])
+	var time := 0.06
+	if type == 3:
+		time = 0.25  # sniper : traînée qui reste
+	elif type == 2:
+		time = 0.12
+	if beam:
+		time = float(res.get("fire_interval_s")) * 2.5
+	res.set("tracer_time", time)
+	var flash := clampf(damage / 40.0, 0.6, 2.5) * (1.5 if type == 4 else 1.0)
+	res.set("muzzle_flash_scale", flash)
+	var aoe_radius: float = res.get("aoe_radius_m")
+	res.set("impact_scale", aoe_radius if explosive and aoe_radius > 0.0 else clampf(damage / 45.0, 0.7, 2.5))
+	res.set("projectile_size", 0.15 if explosive else 0.05)
+	res.set("smoke_trail", explosive)
 
 
 func _save_kit(k: Dictionary) -> bool:

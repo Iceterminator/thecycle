@@ -195,6 +195,8 @@ func _weapon_tooltip(w: WeaponData) -> String:
 	var shots := ["instantané", "projectile", "projectile explosif"]
 	var text := "%s — %s, %s\n%d dégâts, %d coups/min, chargeur %d" % [
 		w.display_name, modes[w.fire_mode], shots[w.projectile_type], int(w.damage), int(w.rpm), w.magazine]
-	if w.get_effective_fire_mode() != w.fire_mode or w.projectile_type == WeaponData.ProjectileType.EXPLOSIVE_PROJECTILE:
-		text += "\n(mode pas encore codé : tir simplifié)"
+	if w.is_explosive():
+		text += "\nExplosion : %d dégâts sur %.1f m" % [int(w.aoe_damage), w.aoe_radius_m]
+	if w.role != "":
+		text += "\n" + w.role
 	return text

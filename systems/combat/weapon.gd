@@ -3,28 +3,40 @@ extends Node
 ## Système de tir générique du joueur, entièrement piloté par un WeaponData (.tres).
 ## Aucune arme n'a son propre script : fire_mode et projectile_type décident de tout.
 ##
-## Modes de tir : AUTO (maintenir), SEMI (un clic = un tir), BURST (un clic = une rafale
-## de burst_count tirs espacés de burst_interval_s ; fire_interval_s sépare deux débuts
-## de rafale). CHARGE, CHARGE_BURST et BEAM ne sont pas encore codés (voir WeaponData).
-## Types de tir : HITSCAN (raycast immédiat) ou PROJECTILE (balle simulée par le serveur,
-## qui avance de projectile_speed_mps à chaque image physique).
+## Modes de tir :
+## - AUTO (maintenir), SEMI (un clic = un tir) ;
+## - BURST : un clic = burst_count tirs espacés de burst_interval_s ;
+## - CHARGE : maintenir charge_time_s, le tir part dès que la charge est pleine ;
+##   relâcher avant = pas de tir. CHARGE_BURST : pareil, puis une rafale ;
+## - BEAM : après spin_up_s de montée en régime, un « tick » tous les fire_interval_s
+##   tant qu'on maintient (1 munition par tick).
+## Types de tir : HITSCAN (raycast immédiat), PROJECTILE (balle simulée par le serveur),
+## EXPLOSIVE_PROJECTILE (projectile + explosion : aoe_damage dans aoe_radius_m, moins au
+## bord, tireur compris ; pas à travers les murs).
 ##
-## Client propriétaire : lit le clic, gère cadence / rafale / chargeur / recul / visée pour
-## le ressenti, puis DEMANDE au serveur de tirer (request_fire), une demande par balle.
-## Il n'annonce jamais « j'ai touché X ».
-## Serveur : revérifie tout (propriétaire, vivant, cadence, munitions, origine), ajoute
-## lui-même la dispersion, fait le raycast ou simule le projectile, applique les dégâts
-## (baisse avec la distance, point faible).
+## Client propriétaire : lit le clic, gère cadence / charge / rafale / chargeur / recul /
+## visée pour le ressenti, puis DEMANDE au serveur (request_trigger au début d'une charge
+## ou d'un rayon, puis request_fire, une demande par balle). Il n'annonce jamais « j'ai
+## touché X ».
+## Serveur : revérifie tout (propriétaire, vivant, cadence, charge, munitions, origine),
+## ajoute lui-même la dispersion, fait le raycast ou simule le projectile, applique les
+## dégâts (distance, point faible, bouclier / PV, explosions).
+##
+## Ressenti (traçants, flash, impacts, fumée) : réglages « Ressenti » du WeaponData,
+## déduits de la fiche « detailed » de la référence.
 ##
 ## Le nœud a l'autorité du client (héritée du Player) : les RPC venant du serveur
 ## sont donc en "any_peer" et vérifient que l'expéditeur est bien 1.
 
 signal ammo_changed(ammo: int, magazine_size: int, reloading: bool)
 signal hit_confirmed(headshot: bool, killed: bool)
+## Charge ou montée en régime en cours (0 à 1), pour le HUD.
+signal charge_changed(ratio: float)
 
 enum HitKind { NONE, WORLD, TARGET }
 
-const PROJECTILE_VISUAL_LENGTH := 0.6  ## longueur de la traînée d'un projectile (m)
+## Explosions : dégâts au bord de la zone (part des dégâts au centre).
+const EXPLOSION_EDGE_RATIO := 0.25
 
 ## Arme en main : suit l'emplacement actif de l'Inventory (synchronisé par le serveur).
 var data: WeaponData
@@ -43,23 +55,23 @@ var _fire_cooldown: float = 0.0
 var _reload_left: float = 0.0
 var _burst_left: int = 0          # tirs restants dans la rafale en cours
 var _burst_timer: float = 0.0     # s avant le prochain tir de la rafale
+var _holding: bool = false        # charge ou rayon en cours (gâchette maintenue)
+var _hold_time: float = 0.0       # s depuis le début de la charge / du rayon
 
 # --- État serveur (c'est lui qui fait foi ; le chargeur est dans Inventory.slot_ammo) ---
 var _srv_reload_end_ms: int = 0
 var _srv_switch_until_ms: int = 0
 var _srv_tokens: float = 0.0
 var _srv_last_ms: int = 0
+var _srv_trigger_ms: int = 0      # début de la charge / du rayon (0 = gâchette relâchée)
+var _srv_trigger_shots: int = 0   # tirs déjà partis sur cette charge
 ## Projectiles en vol : { id, pos, dir, speed, travelled, max_dist, data }.
 var _srv_projectiles: Array[Dictionary] = []
 var _srv_next_projectile_id: int = 0
 
 # --- Effets visuels (clients) ---
 var _visual_projectiles: Dictionary[int, Node3D] = {}
-var _tracer_mat: StandardMaterial3D
-var _projectile_mesh: BoxMesh
-var _impact_mesh: SphereMesh
-var _impact_mat_world: StandardMaterial3D
-var _impact_mat_player: StandardMaterial3D
+var _materials: Dictionary = {}   # Color -> StandardMaterial3D (une matière par couleur)
 
 
 func _ready() -> void:
@@ -68,9 +80,9 @@ func _ready() -> void:
 	_srv_tokens = _token_capacity()
 	_srv_last_ms = Time.get_ticks_msec()
 	inventory.active_weapon_changed.connect(_on_active_weapon_changed)
+	inventory.changed.connect(_on_inventory_changed)
 	set_process(player.is_multiplayer_authority())
 	set_physics_process(multiplayer.is_server())
-	_build_effect_resources()
 
 
 ## Changement d'arme (sur tous les peers, quand le serveur change l'emplacement actif).
@@ -83,15 +95,25 @@ func _on_active_weapon_changed() -> void:
 	is_reloading = false
 	_reload_left = 0.0
 	_burst_left = 0
+	_stop_holding()
 	_fire_cooldown = _equip_time()
 	if multiplayer.is_server():
 		_srv_reload_end_ms = 0
+		_srv_trigger_ms = 0
 		_srv_switch_until_ms = Time.get_ticks_msec() + int(_equip_time() * 900.0)
 		_srv_tokens = minf(_srv_tokens, _token_capacity())
 		# Le client peut ne pas voir le changement (même modèle d'arme échangé) :
 		# on lui renvoie le bon chargeur.
 		_sync_ammo.rpc_id(player.get_peer_id(), ammo)
 	_emit_ammo()
+
+
+## À l'apparition, le chargeur peut arriver du serveur après la lecture faite dans _ready :
+## si l'arme affiche 0 sans recharger alors que le serveur en a, on reprend sa valeur.
+func _on_inventory_changed() -> void:
+	if ammo == 0 and not is_reloading and _burst_left == 0 and inventory.get_active_ammo() > 0:
+		ammo = inventory.get_active_ammo()
+		_emit_ammo()
 
 
 func _equip_time() -> float:
@@ -121,6 +143,7 @@ func _process(delta: float) -> void:
 		return
 	if not can_act:
 		_burst_left = 0
+		_stop_holding()
 		return
 
 	# Rafale en cours : elle part jusqu'au bout même si on relâche le clic.
@@ -136,27 +159,95 @@ func _process(delta: float) -> void:
 		return
 
 	if Input.is_action_just_pressed("reload") and ammo < data.magazine:
+		_stop_holding()
 		_start_reload()
-	elif _wants_to_fire() and _fire_cooldown <= 0.0:
-		if ammo <= 0:
-			_start_reload()
-		else:
-			_pull_trigger()
+		return
+	match data.fire_mode:
+		WeaponData.FireMode.CHARGE, WeaponData.FireMode.CHARGE_BURST:
+			_process_charge(delta)
+		WeaponData.FireMode.BEAM:
+			_process_beam(delta)
+		WeaponData.FireMode.AUTO:
+			if Input.is_action_pressed("fire") and _fire_cooldown <= 0.0:
+				_try_pull_trigger()
+		_:
+			if Input.is_action_just_pressed("fire") and _fire_cooldown <= 0.0:
+				_try_pull_trigger()
 
 
-func _wants_to_fire() -> bool:
-	if data.get_effective_fire_mode() == WeaponData.FireMode.AUTO:
-		return Input.is_action_pressed("fire")
-	return Input.is_action_just_pressed("fire")
+func _try_pull_trigger() -> void:
+	if ammo <= 0:
+		_start_reload()
+	else:
+		_pull_trigger()
 
 
 ## Un appui de gâchette : un tir, ou le début d'une rafale.
 func _pull_trigger() -> void:
 	_fire_cooldown += data.get_fire_interval()
 	_fire_one()
-	if data.get_effective_fire_mode() == WeaponData.FireMode.BURST:
+	if data.is_burst():
 		_burst_left = data.burst_count - 1
 		_burst_timer = data.burst_interval_s
+
+
+## Charge : appuyer démarre la charge (le serveur est prévenu) ; le tir part tout seul
+## quand elle est pleine ; relâcher avant annule.
+func _process_charge(delta: float) -> void:
+	if not _holding:
+		if Input.is_action_just_pressed("fire") and _fire_cooldown <= 0.0:
+			if ammo <= 0:
+				_start_reload()
+				return
+			_start_holding()
+		return
+	if not Input.is_action_pressed("fire"):
+		_stop_holding()  # relâché trop tôt : pas de tir
+		return
+	_hold_time += delta
+	charge_changed.emit(clampf(_hold_time / maxf(data.get_trigger_delay(), 0.01), 0.0, 1.0))
+	if _hold_time >= data.get_trigger_delay():
+		# Charge pleine : pas de « relâché » envoyé au serveur (il arriverait avant le tir et
+		# l'annulerait) ; le serveur remet lui-même la charge à zéro après le tir / la rafale.
+		_holding = false
+		_hold_time = 0.0
+		charge_changed.emit(0.0)
+		_pull_trigger()
+
+
+## Rayon : maintenir ; après la montée en régime, un tick à chaque intervalle.
+func _process_beam(delta: float) -> void:
+	if not Input.is_action_pressed("fire"):
+		_stop_holding()
+		return
+	if ammo <= 0:
+		_stop_holding()
+		_start_reload()
+		return
+	if not _holding:
+		_start_holding()
+	_hold_time += delta
+	var delay := data.get_trigger_delay()
+	charge_changed.emit(clampf(_hold_time / maxf(delay, 0.01), 0.0, 1.0) if _hold_time < delay else 0.0)
+	if _hold_time >= delay and _fire_cooldown <= 0.0:
+		_fire_cooldown += data.get_fire_interval()
+		_fire_one()
+
+
+func _start_holding() -> void:
+	_holding = true
+	_hold_time = 0.0
+	request_trigger.rpc_id(1, true)
+
+
+func _stop_holding() -> void:
+	if not _holding:
+		return
+	_holding = false
+	_hold_time = 0.0
+	charge_changed.emit(0.0)
+	if is_inside_tree() and multiplayer.has_multiplayer_peer():
+		request_trigger.rpc_id(1, false)
 
 
 func _fire_one() -> void:
@@ -213,12 +304,22 @@ func request_reload() -> void:
 	if health.is_dead or _srv_reload_end_ms > 0 or inventory.get_active_ammo() >= data.magazine:
 		return
 	inventory.cancel_use()
+	_srv_trigger_ms = 0
 	# 10 % de marge : la demande de rechargement et les tirs suivants n'arrivent
 	# pas forcément avec le même délai.
 	_srv_reload_end_ms = Time.get_ticks_msec() + int(data.reload_s * 900.0)
 
 
-## Une demande = une balle (une rafale de 3 envoie 3 demandes).
+## Début (pressed = true) ou fin d'une charge / d'un rayon : le serveur chronomètre lui-même.
+@rpc("any_peer", "call_local", "reliable")
+func request_trigger(pressed: bool) -> void:
+	if not multiplayer.is_server() or not _sender_is_owner():
+		return
+	_srv_trigger_ms = Time.get_ticks_msec() if pressed else 0
+	_srv_trigger_shots = 0
+
+
+## Une demande = une balle (une rafale de 3 envoie 3 demandes, un rayon une par tick).
 @rpc("any_peer", "call_local", "reliable")
 func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if not multiplayer.is_server():
@@ -244,6 +345,9 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if inventory.get_active_ammo() <= 0:
 		_sync_ammo.rpc_id(player.get_peer_id(), 0)
 		return
+	# Charge / montée en régime : la gâchette doit être tenue assez longtemps (10 % de marge).
+	if not _server_trigger_ready(now):
+		return
 
 	# Cadence : seau de jetons. Il se remplit au rythme moyen de l'arme (une rafale
 	# compte pour burst_count tirs par fire_interval_s) ; on tolère quelques tirs d'avance
@@ -259,6 +363,7 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 		push_warning("[Weapon] Tir refusé : origine trop loin du joueur %d" % player.get_peer_id())
 		return
 
+	_server_after_trigger_shot()
 	inventory.set_active_ammo(inventory.get_active_ammo() - 1)
 	inventory.cancel_use()  # tirer interrompt un soin
 	# Le flag « visée » vient du client : au pire un tricheur obtient la précision ADS.
@@ -271,6 +376,25 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 			_server_launch_projectile(origin, dir)
 		else:
 			_server_trace(origin, dir)
+
+
+func _server_trigger_ready(now: int) -> bool:
+	var delay := data.get_trigger_delay()
+	if delay <= 0.0:
+		return true
+	return _srv_trigger_ms > 0 and now - _srv_trigger_ms >= int(delay * 900.0)
+
+
+## Charge simple : une charge = un tir. Charge + rafale : une charge = une rafale.
+## Rayon : la gâchette reste tenue.
+func _server_after_trigger_shot() -> void:
+	match data.fire_mode:
+		WeaponData.FireMode.CHARGE:
+			_srv_trigger_ms = 0
+		WeaponData.FireMode.CHARGE_BURST:
+			_srv_trigger_shots += 1
+			if _srv_trigger_shots >= data.burst_count:
+				_srv_trigger_ms = 0
 
 
 func _server_shot_interval() -> float:
@@ -291,6 +415,8 @@ func _server_trace(origin: Vector3, dir: Vector3) -> void:
 	if not hit.is_empty():
 		end = hit["position"]
 		kind = _server_hit(hit["collider"] as Node, end, origin.distance_to(end), data)
+		if data.is_explosive():
+			_server_explode(end, data, hit["collider"] as Node)
 	_show_shot.rpc(origin, end, kind)
 
 
@@ -322,7 +448,11 @@ func _physics_process(delta: float) -> void:
 		if not hit.is_empty():
 			var point: Vector3 = hit["position"]
 			var distance: float = p["travelled"] + from.distance_to(point)
-			var kind := _server_hit(hit["collider"] as Node, point, distance, p["data"])
+			var wdata: WeaponData = p["data"]
+			var collider := hit["collider"] as Node
+			var kind := _server_hit(collider, point, distance, wdata)
+			if wdata.is_explosive():
+				_server_explode(point, wdata, collider)
 			_show_projectile_end.rpc(p["id"], point, kind)
 			_srv_projectiles.remove_at(i)
 			continue
@@ -339,7 +469,7 @@ func _server_raycast(from: Vector3, to: Vector3) -> Dictionary:
 	return player.get_world_3d().direct_space_state.intersect_ray(query)
 
 
-## Applique un impact. Cible touchable (joueur, monstre) : groupe "damageable" avec
+## Applique un impact direct. Cible touchable (joueur, monstre) : groupe "damageable" avec
 ## can_be_hit(), is_headshot(point) et server_receive_hit(dégâts, attaquant).
 func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponData) -> HitKind:
 	if target == null or not target.is_in_group("damageable") or not target.can_be_hit():
@@ -348,15 +478,50 @@ func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponDat
 	var damage := wdata.get_hit_damage() * wdata.get_falloff_multiplier(distance)
 	if headshot:
 		damage *= wdata.weakspot_multiplier
-	var killed: bool = target.server_receive_hit(damage, player.get_peer_id())
+	var killed := _server_damage(target, damage, wdata)
 	_confirm_hit.rpc_id(player.get_peer_id(), headshot, killed)
 	return HitKind.TARGET
+
+
+## Dégâts sur une cible. Un joueur prend les multiplicateurs bouclier / PV de l'arme.
+func _server_damage(target: Node, amount: float, wdata: WeaponData) -> bool:
+	var victim := target as Player
+	if victim and (wdata.damage_vs_shield_multiplier != 1.0 or wdata.damage_vs_health_multiplier != 1.0):
+		return victim.health.apply_damage(amount, player.get_peer_id(),
+				wdata.damage_vs_shield_multiplier, wdata.damage_vs_health_multiplier)
+	return target.server_receive_hit(amount, player.get_peer_id())
+
+
+## Explosion : aoe_damage au centre, EXPLOSION_EDGE_RATIO au bord, sur tout ce qui est
+## touchable dans le rayon (le tireur compris), sauf derrière un mur. La cible touchée
+## directement a déjà pris ses dégâts directs et ne reprend pas la zone.
+func _server_explode(point: Vector3, wdata: WeaponData, direct: Node) -> void:
+	var radius := wdata.aoe_radius_m
+	var space := player.get_world_3d().direct_space_state
+	for node in get_tree().get_nodes_in_group("damageable"):
+		var target := node as Node3D
+		if target == null or target == direct or not target.can_be_hit():
+			continue
+		var center := target.global_position + Vector3.UP * 0.9
+		var dist := point.distance_to(center)
+		if dist > radius:
+			continue
+		var query := PhysicsRayQueryParameters3D.create(point + (center - point).normalized() * 0.2, center, 1)
+		var wall := space.intersect_ray(query)
+		if not wall.is_empty() and wall["collider"] != target:
+			continue
+		var damage := wdata.aoe_damage * lerpf(1.0, EXPLOSION_EDGE_RATIO, dist / radius)
+		var killed := _server_damage(target, damage, wdata)
+		if target != player:
+			_confirm_hit.rpc_id(player.get_peer_id(), false, killed)
+	_show_explosion.rpc(point, radius)
 
 
 ## Réapparition : à appeler après Inventory.reset_loadout().
 func server_refill() -> void:
 	_srv_reload_end_ms = 0
 	_srv_switch_until_ms = 0
+	_srv_trigger_ms = 0
 	_srv_tokens = _token_capacity()
 	_srv_last_ms = Time.get_ticks_msec()
 	_sync_ammo.rpc_id(player.get_peer_id(), inventory.get_active_ammo())
@@ -376,7 +541,7 @@ static func _apply_spread(dir: Vector3, spread_deg: float) -> Vector3:
 
 
 # =========================================================================
-# Effets visuels (tous les clients)
+# Effets visuels (tous les clients) : réglages « Ressenti » de l'arme en main du tireur
 # =========================================================================
 
 func _effects_parent() -> Node3D:
@@ -390,24 +555,53 @@ func _muzzle(origin: Vector3) -> Vector3:
 	return origin + camera.global_basis * Vector3(0.18, -0.15, -0.4)
 
 
+func _mat(color: Color) -> StandardMaterial3D:
+	if not _materials.has(color):
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat.albedo_color = color
+		if color.a < 1.0:
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_materials[color] = mat
+	return _materials[color]
+
+
+## Petite forme temporaire dans le monde (flash, impact, traçant).
+func _spawn_mesh(world: Node3D, mesh: Mesh, color: Color, pos: Vector3, life: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = _mat(color)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	world.add_child(mi)
+	mi.global_position = pos
+	get_tree().create_timer(life).timeout.connect(mi.queue_free)
+	return mi
+
+
 @rpc("any_peer", "call_local", "unreliable")
 func _show_shot(origin: Vector3, end: Vector3, kind: int) -> void:
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	var world := _effects_parent()
-	if world == null:
+	if world == null or data == null:
 		return
-	var mesh := ImmediateMesh.new()
-	mesh.surface_begin(Mesh.PRIMITIVE_LINES, _tracer_mat)
-	mesh.surface_add_vertex(_muzzle(origin))
-	mesh.surface_add_vertex(end)
-	mesh.surface_end()
-	var tracer := MeshInstance3D.new()
-	tracer.mesh = mesh
-	tracer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	world.add_child(tracer)
-	get_tree().create_timer(0.06).timeout.connect(tracer.queue_free)
+	var from := _muzzle(origin)
+	# Traçant : une barre fine entre le canon et l'impact (épaisseur et durée selon l'arme).
+	var length := from.distance_to(end)
+	if length > 0.05:
+		var bar := BoxMesh.new()
+		bar.size = Vector3(data.tracer_width, data.tracer_width, length)
+		var tracer := _spawn_mesh(world, bar, data.tracer_color, (from + end) / 2.0, data.tracer_time)
+		tracer.look_at(end, Vector3.UP if absf((end - from).normalized().y) < 0.99 else Vector3.RIGHT)
+	_muzzle_flash(world, from)
 	_spawn_impact(world, end, kind)
+
+
+func _muzzle_flash(world: Node3D, pos: Vector3) -> void:
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.05 * data.muzzle_flash_scale
+	sphere.height = sphere.radius * 2.0
+	_spawn_mesh(world, sphere, data.tracer_color.lightened(0.4), pos, 0.05)
 
 
 ## Projectile visible : il avance seul à la vitesse donnée ; le serveur annonce sa fin.
@@ -416,20 +610,47 @@ func _show_projectile(id: int, origin: Vector3, dir: Vector3, speed: float, max_
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	var world := _effects_parent()
-	if world == null:
+	if world == null or data == null:
 		return
 	var start := _muzzle(origin)
 	var target := origin + dir * max_dist
 	var bolt := MeshInstance3D.new()
-	bolt.mesh = _projectile_mesh
+	var box := BoxMesh.new()
+	box.size = Vector3(data.projectile_size, data.projectile_size, maxf(data.projectile_size * 4.0, 0.5))
+	bolt.mesh = box
+	bolt.material_override = _mat(data.tracer_color)
 	bolt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	world.add_child(bolt)
 	bolt.global_position = start
 	bolt.look_at_from_position(start, target, Vector3.UP if absf(dir.y) < 0.99 else Vector3.RIGHT)
+	if data.smoke_trail:
+		bolt.add_child(_make_smoke())
 	_visual_projectiles[id] = bolt
+	_muzzle_flash(world, start)
 	var tween := bolt.create_tween()
 	tween.tween_property(bolt, "global_position", target, start.distance_to(target) / speed)
 	tween.finished.connect(_free_visual_projectile.bind(id))
+
+
+## Traînée de fumée (roquettes, obus) : particules laissées dans le monde.
+func _make_smoke() -> CPUParticles3D:
+	var smoke := CPUParticles3D.new()
+	smoke.local_coords = false
+	smoke.amount = 40
+	smoke.lifetime = 0.8
+	var puff := SphereMesh.new()
+	puff.radius = 0.12
+	puff.height = 0.24
+	smoke.mesh = puff
+	smoke.material_override = _mat(Color(0.55, 0.55, 0.55, 0.5))
+	smoke.direction = Vector3.UP
+	smoke.spread = 30.0
+	smoke.initial_velocity_min = 0.2
+	smoke.initial_velocity_max = 0.6
+	smoke.gravity = Vector3.ZERO
+	smoke.scale_amount_min = 0.6
+	smoke.scale_amount_max = 1.6
+	return smoke
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -438,7 +659,7 @@ func _show_projectile_end(id: int, point: Vector3, kind: int) -> void:
 		return
 	_free_visual_projectile(id)
 	var world := _effects_parent()
-	if world:
+	if world and data and not data.is_explosive():
 		_spawn_impact(world, point, kind)
 
 
@@ -452,28 +673,36 @@ func _free_visual_projectile(id: int) -> void:
 func _spawn_impact(world: Node3D, point: Vector3, kind: int) -> void:
 	if kind == HitKind.NONE:
 		return
-	var impact := MeshInstance3D.new()
-	impact.mesh = _impact_mesh
-	impact.material_override = _impact_mat_player if kind == HitKind.TARGET else _impact_mat_world
-	impact.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	world.add_child(impact)
-	impact.global_position = point
-	get_tree().create_timer(0.15).timeout.connect(impact.queue_free)
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.06 * data.impact_scale
+	sphere.height = sphere.radius * 2.0
+	var color := Color(1.0, 0.15, 0.1) if kind == HitKind.TARGET else data.tracer_color
+	_spawn_mesh(world, sphere, color, point, 0.15)
 
 
-func _build_effect_resources() -> void:
-	_tracer_mat = StandardMaterial3D.new()
-	_tracer_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_tracer_mat.albedo_color = Color(1.0, 0.9, 0.5)
-	_projectile_mesh = BoxMesh.new()
-	_projectile_mesh.size = Vector3(0.04, 0.04, PROJECTILE_VISUAL_LENGTH)
-	_projectile_mesh.material = _tracer_mat
-	_impact_mesh = SphereMesh.new()
-	_impact_mesh.radius = 0.06
-	_impact_mesh.height = 0.12
-	_impact_mat_world = StandardMaterial3D.new()
-	_impact_mat_world.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_impact_mat_world.albedo_color = Color(1.0, 0.85, 0.4)
-	_impact_mat_player = StandardMaterial3D.new()
-	_impact_mat_player.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_impact_mat_player.albedo_color = Color(1.0, 0.15, 0.1)
+## Explosion : boule de feu qui gonfle jusqu'au rayon de la zone puis s'efface.
+@rpc("any_peer", "call_local", "unreliable")
+func _show_explosion(point: Vector3, radius: float) -> void:
+	if multiplayer.get_remote_sender_id() != 1:
+		return
+	var world := _effects_parent()
+	if world == null:
+		return
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.0
+	sphere.height = 2.0
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(1.0, 0.55, 0.15, 0.7)
+	var ball := MeshInstance3D.new()
+	ball.mesh = sphere
+	ball.material_override = mat
+	ball.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	world.add_child(ball)
+	ball.global_position = point
+	ball.scale = Vector3.ONE * 0.2
+	var tween := ball.create_tween().set_parallel()
+	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
+	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)
+	tween.chain().tween_callback(ball.queue_free)

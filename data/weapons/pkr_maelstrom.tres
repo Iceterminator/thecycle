@@ -30,6 +30,21 @@ ads_spread_deg = 0.5
 recoil_deg = 2.5
 spawn_cost_credits = 500
 unlock_cost = 8000
+tracer_color = Color(1, 0.55, 0.2, 1)
+tracer_width = 0.012
+muzzle_flash_scale = 3.75
+impact_scale = 2.5
+projectile_size = 0.05
+role = "Fusil à pompe AUTOMATIQUE prototype : écrase tout à bout portant."
+shot_feel = "Tir lourd et rapide, chaque coup secoue l'écran ; on enchaîne sans pomper."
+projectile_visual = "Hitscan en gerbe de 8 plombs, gros flash de canon."
+impact = "Nuage d'impacts sur une large zone, gros recul de la cible."
+recoil_feel = "Fort coup vers le haut à chaque tir."
+sound = "Détonations lourdes enchaînées."
+best_range_m = Vector2(0, 8)
+strengths = PackedStringArray("Énormes dégâts de près", "Tir automatique", "10 cartouches")
+weaknesses = PackedStringArray("Inutile à distance", "Très instable")
+counter = "Rester à distance, utiliser des barrières."
 estimated_fields = PackedStringArray("pellets", "pellet_damage", "spread_deg", "weakspot_multiplier", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s")
 behavior = "Prototype de fusil à pompe AUTOMATIQUE : cadence élevée pour un fusil à pompe. 'damage' = total si tous les plombs touchent. Dévastateur de près, mauvais choix à distance."
 notes = "La source donnait 1143 coups/min, incompatible avec 381 DPS. rpm recalculé depuis le DPS (381 × 60 / 160 = 143)."

@@ -47,8 +47,8 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
   `map_marker` et a `map_info() -> { text, color, kind, [position], [radius] }`). Nouvelle partie : `Events.match_reset_requested`,
   chaque système de carte se remet à zéro lui-même
 - `resources/` scripts de types de données
-- `data/reference/the_cycle_legacy_data.json` : chiffres des armes et kits du jeu d'origine (référence) ;
-  `tools/import_legacy_data.gd` en génère `data/weapons/` et `data/kits/` (noms affichés = les nôtres)
+- `data/reference/the_cycle_legacy_data.json` : chiffres des armes, kits, capacités et gadgets du jeu d'origine (référence) ;
+  `tools/import_legacy_data.gd` en génère `data/weapons/` (avec la fiche « detailed » et le ressenti visuel) et `data/kits/`
 - `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (pas encore utilisés en jeu), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
 - `assets/` modèles, sons, textures
 

@@ -39,6 +39,7 @@ var _clock_phase: int = MatchManager.Phase.PLAYING
 var _restart_left: float = 0.0
 
 var _hold_ratio: float = 0.0  ## maintien de E en cours (cristal…)
+var _charge_ratio: float = 0.0  ## charge ou montée en régime de l'arme
 var _last_total: float = -1.0
 var _respawn_left: float = 0.0
 var _hit_tween: Tween
@@ -55,6 +56,7 @@ func setup(player: Player) -> void:
 	player.inventory.changed.connect(_on_inventory_changed)
 	player.interactor.prompt_changed.connect(func(text: String) -> void: _prompt_label.text = text)
 	player.interactor.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
+	player.weapon.charge_changed.connect(func(ratio: float) -> void: _charge_ratio = ratio)
 	player.score.changed.connect(_on_score_changed)
 	_on_score_changed()
 	Events.announcement.connect(_on_announcement)
@@ -81,9 +83,10 @@ func _process(delta: float) -> void:
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
 	_crosshair.visible = not _player.weapon.is_aiming and not _player.health.is_dead
 	var inv := _player.inventory
-	_use_bar.visible = inv.using_item != "" or _hold_ratio > 0.0
-	if _hold_ratio > 0.0:
-		_use_bar.value = _hold_ratio
+	var bar_ratio := maxf(_hold_ratio, _charge_ratio)
+	_use_bar.visible = inv.using_item != "" or bar_ratio > 0.0
+	if bar_ratio > 0.0:
+		_use_bar.value = bar_ratio
 	elif _use_bar.visible:
 		var duration := maxf(inv.get_use_duration(), 0.01)
 		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
