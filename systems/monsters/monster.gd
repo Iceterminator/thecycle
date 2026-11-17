@@ -294,9 +294,11 @@ func _flat_dist(point: Vector3) -> float:
 func _die(killer_id: int) -> void:
 	state = State.RETURN
 	set_physics_process(false)
-	# Pour l'instant : seulement des crédits (plus tard, vider un camp donnera des points de quête).
-	if data.credits > 0:
-		Events.loot_drop_requested.emit(&"credits", data.credits, -1, global_position + Vector3.UP * 0.5, true)
+	# Pour l'instant : seulement des crédits, versés directement au tueur (rien au sol).
+	# Plus tard, vider un camp donnera aussi des points de quête.
+	var killer := players_root.get_node_or_null(str(killer_id)) as Player if players_root else null
+	if killer and data.credits > 0:
+		killer.inventory.add_credits(data.credits)
 	Events.monster_killed.emit(data.id, killer_id)
 	if camp:
 		camp.on_monster_died(self, killer_id)

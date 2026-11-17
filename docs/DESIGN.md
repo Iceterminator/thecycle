@@ -108,7 +108,7 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 - Patrouille par zones, IA simple : patrouille → poursuite → attaque → retour.
 - Un palier de difficulté toutes les 5 min (+PV, +dégâts, nouvelles espèces).
 - **Camps (meutes)** : les monstres vivent en camps de 2 niveaux. Niveau 1 = 1 Colosse (tank) + 3 à 5 Rôdeurs (petits rapides). Niveau 2 = 2 à 3 Colosses + 7 à 10 Rôdeurs. Quand un monstre repère ou se fait attaquer par un joueur, toute la meute réagit.
-- **Récompenses** : pour l'instant, un monstre tué lâche seulement des crédits. À terme, **vider un camp rapportera des points de quête** (`Events.camp_cleared` est déjà émis). Il faudra aussi les autres types (à distance, boss).
+- **Récompenses** : pour l'instant, un monstre tué donne seulement des crédits, versés directement au tueur. À terme, **vider un camp rapportera des points de quête** (`Events.camp_cleared` est déjà émis). Il faudra aussi les autres types (à distance, boss).
 - Pour les tests, un camp vidé réapparaît après 60 s (`Config.CAMP_RESPAWN_DELAY`).
 
 ### 8. Tempête

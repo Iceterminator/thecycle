@@ -140,14 +140,21 @@ func _build() -> void:
 	bars.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bars.add_theme_constant_override("separation", 4)
 	add_child(bars)
+	# Ancré en bas à gauche, marge de 24 px, grandit vers le haut avec son contenu.
 	bars.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	bars.position = Vector2(24, -110)
+	bars.grow_horizontal = Control.GROW_DIRECTION_END
 	bars.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bars.offset_left = 24
+	bars.offset_right = 24
+	bars.offset_top = -24
+	bars.offset_bottom = -24
 	_shield_label = _make_label("", 16)
+	_shield_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	bars.add_child(_shield_label)
 	_shield_bar = _make_bar(Color(0.3, 0.7, 1.0), 1.0)
 	bars.add_child(_shield_bar)
 	_health_label = _make_label("", 16)
+	_health_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	bars.add_child(_health_label)
 	_health_bar = _make_bar(Color(0.35, 0.85, 0.35), Config.MAX_HEALTH)
 	bars.add_child(_health_bar)
