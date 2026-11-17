@@ -9,6 +9,9 @@ var _kit: KitController
 var _status_label: Label
 var _window_label: Label
 var _rows: Array[Dictionary] = []  # { kit, button }
+var _ability_ids: Array[String] = []
+var _ability_options: Array[OptionButton] = []
+var _ability_button: Button
 
 
 func setup(player: Player, kit: KitController) -> void:
@@ -40,6 +43,13 @@ func _unhandled_input(event: InputEvent) -> void:
 func open() -> void:
 	visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	# Les listes montrent les capacités actuellement équipées.
+	var abilities := _player.abilities
+	if abilities:
+		for slot in _ability_options.size():
+			var index := _ability_ids.find(abilities.loadout[slot])
+			if index >= 0:
+				_ability_options[slot].select(index)
 	_refresh()
 
 
@@ -66,6 +76,10 @@ func _refresh() -> void:
 		var current := String(data.id) == (_kit.kit_id if _kit.kit_id != "" else String(Config.DEFAULT_KIT))
 		button.text = "Équipé" if current else "Équiper"
 		button.disabled = current or not open_now
+	if _ability_button:
+		var same := _ability_options.size() == 2 and _ability_options[0].selected == _ability_options[1].selected
+		_ability_button.disabled = not open_now or same
+		_ability_button.text = "Deux capacités différentes" if same else "Équiper les capacités"
 
 
 func _on_result(ok: bool, message: String) -> void:
@@ -109,6 +123,8 @@ func _build() -> void:
 	for data in KitController.list_kits():
 		box.add_child(_make_row(data))
 	box.add_child(HSeparator.new())
+	_build_abilities(box)
+	box.add_child(HSeparator.new())
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_status_label)
@@ -117,6 +133,39 @@ func _build() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
 	box.add_child(hint)
+
+
+## Capacités : une liste par touche (Q, F), description au survol.
+func _build_abilities(box: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "Capacités (touches Q et F) — améliorables en boutique pendant la partie"
+	title.add_theme_font_size_override("font_size", 20)
+	box.add_child(title)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	box.add_child(row)
+	var abilities := AbilityController.list_abilities()
+	for a in abilities:
+		_ability_ids.append(String(a.id))
+	for key in ["Q", "F"]:
+		var label := Label.new()
+		label.text = key + " :"
+		row.add_child(label)
+		var option := OptionButton.new()
+		option.custom_minimum_size = Vector2(250, 36)
+		for i in abilities.size():
+			var a := abilities[i]
+			option.add_item("%s (%d s)" % [a.get_display_name(), int(a.cooldown_s)], i)
+			option.set_item_tooltip(i, "%s\n%s" % [a.behavior, a.activation])
+		option.item_selected.connect(func(_i: int) -> void: _refresh())
+		row.add_child(option)
+		_ability_options.append(option)
+	_ability_button = Button.new()
+	_ability_button.custom_minimum_size = Vector2(200, 36)
+	_ability_button.pressed.connect(func() -> void:
+		_player.abilities.request_loadout.rpc_id(1, _ability_ids[_ability_options[0].selected],
+				_ability_ids[_ability_options[1].selected]))
+	row.add_child(_ability_button)
 
 
 func _make_row(data: KitData) -> HBoxContainer:

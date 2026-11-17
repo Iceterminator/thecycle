@@ -174,7 +174,7 @@ func part_interact(i: int, player: Player) -> void:
 	if not _can_send(i):
 		return
 	sent_mask |= 1 << i
-	player.score.add_rank_points(roundi(data.points * drone_hp[i] / data.target_health))
+	player.score.add_contract_fame(roundi(data.points * drone_hp[i] / data.target_health))
 	for k in data.count:
 		if drone_hp[k] > 0.0 and sent_mask & (1 << k) == 0:
 			return

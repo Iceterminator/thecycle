@@ -57,6 +57,7 @@ var _burst_left: int = 0          # tirs restants dans la rafale en cours
 var _burst_timer: float = 0.0     # s avant le prochain tir de la rafale
 var _holding: bool = false        # charge ou rayon en cours (gâchette maintenue)
 var _hold_time: float = 0.0       # s depuis le début de la charge / du rayon
+var _hold_hp: float = 0.0         # PV + bouclier au début de la charge (balise de rappel)
 
 # --- État serveur (c'est lui qui fait foi ; le chargeur est dans Inventory.slot_ammo) ---
 var _srv_reload_end_ms: int = 0
@@ -65,6 +66,7 @@ var _srv_tokens: float = 0.0
 var _srv_last_ms: int = 0
 var _srv_trigger_ms: int = 0      # début de la charge / du rayon (0 = gâchette relâchée)
 var _srv_trigger_shots: int = 0   # tirs déjà partis sur cette charge
+var _srv_self_heal_ready_ms: int = 0  # rayon vital : prochain auto-soin possible
 ## Projectiles en vol : { id, pos, dir, speed, travelled, max_dist, data }.
 var _srv_projectiles: Array[Dictionary] = []
 var _srv_next_projectile_id: int = 0
@@ -128,7 +130,7 @@ func _process(delta: float) -> void:
 	if data == null:
 		return
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
-	var can_act := not health.is_dead and not player.is_evacuated and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	var can_act := not health.is_dead and not health.is_downed and not player.is_evacuated and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	is_aiming = can_act and Input.is_action_pressed("aim")
 	var target_fov: float = data.get_ads_fov(Config.ADS_FOV, Config.DEFAULT_FOV) if is_aiming else Config.DEFAULT_FOV
 	# ads_time_s : temps pour faire l'essentiel du passage en visée.
@@ -158,6 +160,9 @@ func _process(delta: float) -> void:
 				_burst_timer += data.burst_interval_s
 		return
 
+	# Rayon vital : clic droit = se soigner soi-même.
+	if data.gadget == WeaponData.GadgetKind.HEAL_BEAM and Input.is_action_just_pressed("aim"):
+		request_gadget_alt.rpc_id(1)
 	if Input.is_action_just_pressed("reload") and ammo < data.magazine:
 		_stop_holding()
 		_start_reload()
@@ -184,7 +189,7 @@ func _try_pull_trigger() -> void:
 
 ## Un appui de gâchette : un tir, ou le début d'une rafale.
 func _pull_trigger() -> void:
-	_fire_cooldown += data.get_fire_interval()
+	_fire_cooldown += data.get_fire_interval() / _boost("fire_rate")
 	_fire_one()
 	if data.is_burst():
 		_burst_left = data.burst_count - 1
@@ -204,9 +209,13 @@ func _process_charge(delta: float) -> void:
 	if not Input.is_action_pressed("fire"):
 		_stop_holding()  # relâché trop tôt : pas de tir
 		return
+	# Balise de rappel : des dégâts pendant la charge l'interrompent.
+	if data.gadget == WeaponData.GadgetKind.RECALL and health.health + health.shield < _hold_hp - 0.5:
+		_stop_holding()
+		return
 	_hold_time += delta
-	charge_changed.emit(clampf(_hold_time / maxf(data.get_trigger_delay(), 0.01), 0.0, 1.0))
-	if _hold_time >= data.get_trigger_delay():
+	charge_changed.emit(clampf(_hold_time / maxf(_trigger_delay(), 0.01), 0.0, 1.0))
+	if _hold_time >= _trigger_delay():
 		# Charge pleine : pas de « relâché » envoyé au serveur (il arriverait avant le tir et
 		# l'annulerait) ; le serveur remet lui-même la charge à zéro après le tir / la rafale.
 		_holding = false
@@ -227,16 +236,17 @@ func _process_beam(delta: float) -> void:
 	if not _holding:
 		_start_holding()
 	_hold_time += delta
-	var delay := data.get_trigger_delay()
+	var delay := _trigger_delay()
 	charge_changed.emit(clampf(_hold_time / maxf(delay, 0.01), 0.0, 1.0) if _hold_time < delay else 0.0)
 	if _hold_time >= delay and _fire_cooldown <= 0.0:
-		_fire_cooldown += data.get_fire_interval()
+		_fire_cooldown += data.get_fire_interval() / _boost("fire_rate")
 		_fire_one()
 
 
 func _start_holding() -> void:
 	_holding = true
 	_hold_time = 0.0
+	_hold_hp = health.health + health.shield
 	request_trigger.rpc_id(1, true)
 
 
@@ -251,13 +261,17 @@ func _stop_holding() -> void:
 
 
 func _fire_one() -> void:
-	ammo -= 1
+	# Poser la balise de rappel ne consomme rien ; la téléportation, si.
+	if not (data.gadget == WeaponData.GadgetKind.RECALL and not _own_beacon()):
+		ammo -= 1
 	request_fire.rpc_id(1, camera.global_position, -camera.global_basis.z, is_aiming)
 	_apply_recoil()
 	_emit_ammo()
 
 
 func _start_reload() -> void:
+	if data.consumable:
+		return  # gadget à usage limité : pas de rechargement
 	is_reloading = true
 	_burst_left = 0
 	_reload_left = data.reload_s
@@ -267,6 +281,8 @@ func _start_reload() -> void:
 
 func _apply_recoil() -> void:
 	var kick := deg_to_rad(data.recoil_deg * data.recoil_multiplier) * (0.5 if is_aiming else 1.0)
+	if player.buffs:
+		kick *= player.buffs.get_mult("recoil_mult")  # Pied ferme : balancement réduit
 	head.rotation.x = clampf(head.rotation.x + kick, deg_to_rad(-89), deg_to_rad(89))
 	player.rotate_y(randf_range(-0.3, 0.3) * kick)
 
@@ -327,7 +343,7 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if not _sender_is_owner():
 		push_warning("[Weapon] Tir refusé : le peer %d tire avec l'arme du joueur %d" % [multiplayer.get_remote_sender_id(), player.get_peer_id()])
 		return
-	if health.is_dead or player.is_evacuated:
+	if health.is_dead or health.is_downed or player.is_evacuated:
 		return
 	if not origin.is_finite() or not direction.is_finite() or direction.length_squared() < 0.01:
 		return
@@ -364,8 +380,13 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 		return
 
 	_server_after_trigger_shot()
+	if data.gadget != WeaponData.GadgetKind.NONE:
+		_server_gadget(origin, direction.normalized())
+		return
 	inventory.set_active_ammo(inventory.get_active_ammo() - 1)
 	inventory.cancel_use()  # tirer interrompt un soin
+	if player.buffs:
+		player.buffs.server_remove_with("cloak_breaks_on_fire")  # tirer révèle (Camouflage total)
 	# Le flag « visée » vient du client : au pire un tricheur obtient la précision ADS.
 	var aim_spread := data.ads_spread_deg if aiming else data.hip_spread_deg * data.hipfire_spread_multiplier
 	var aim_dir := _apply_spread(direction.normalized(), aim_spread)
@@ -379,7 +400,7 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 
 
 func _server_trigger_ready(now: int) -> bool:
-	var delay := data.get_trigger_delay()
+	var delay := _trigger_delay()
 	if delay <= 0.0:
 		return true
 	return _srv_trigger_ms > 0 and now - _srv_trigger_ms >= int(delay * 900.0)
@@ -398,7 +419,7 @@ func _server_after_trigger_shot() -> void:
 
 
 func _server_shot_interval() -> float:
-	return data.get_fire_interval() / data.get_shots_per_cycle()
+	return data.get_fire_interval() / data.get_shots_per_cycle() / _boost("fire_rate")
 
 
 func _token_capacity() -> float:
@@ -408,15 +429,15 @@ func _token_capacity() -> float:
 
 
 func _server_trace(origin: Vector3, dir: Vector3) -> void:
-	var to := origin + dir * data.get_max_range()
+	var to := origin + dir * data.get_max_range() * _boost("range")
 	var hit := _server_raycast(origin, to)
 	var end := to
 	var kind := HitKind.NONE
 	if not hit.is_empty():
 		end = hit["position"]
-		kind = _server_hit(hit["collider"] as Node, end, origin.distance_to(end), data)
+		kind = _server_hit(hit["collider"] as Node, end, origin.distance_to(end) / _boost("range"), data, _boost("damage"))
 		if data.is_explosive():
-			_server_explode(end, data, hit["collider"] as Node)
+			_server_explode(end, data, hit["collider"] as Node, _boost("damage"))
 	_show_shot.rpc(origin, end, kind)
 
 
@@ -428,10 +449,12 @@ func _server_launch_projectile(origin: Vector3, dir: Vector3) -> void:
 		"dir": dir,
 		"speed": data.projectile_speed_mps,
 		"travelled": 0.0,
-		"max_dist": data.get_max_range(),
+		"max_dist": data.get_max_range() * _boost("range"),
+		"range_mult": _boost("range"),
+		"dmg_mult": _boost("damage"),
 		"data": data,  # l'arme peut changer pendant le vol
 	})
-	_show_projectile.rpc(_srv_next_projectile_id, origin, dir, data.projectile_speed_mps, data.get_max_range())
+	_show_projectile.rpc(_srv_next_projectile_id, origin, dir, data.projectile_speed_mps, data.get_max_range() * _boost("range"))
 
 
 ## Fait avancer les projectiles (serveur uniquement) : un raycast par image sur le
@@ -450,9 +473,9 @@ func _physics_process(delta: float) -> void:
 			var distance: float = p["travelled"] + from.distance_to(point)
 			var wdata: WeaponData = p["data"]
 			var collider := hit["collider"] as Node
-			var kind := _server_hit(collider, point, distance, wdata)
+			var kind := _server_hit(collider, point, distance / float(p.get("range_mult", 1.0)), wdata, float(p.get("dmg_mult", 1.0)))
 			if wdata.is_explosive():
-				_server_explode(point, wdata, collider)
+				_server_explode(point, wdata, collider, float(p.get("dmg_mult", 1.0)))
 			_show_projectile_end.rpc(p["id"], point, kind)
 			_srv_projectiles.remove_at(i)
 			continue
@@ -465,17 +488,22 @@ func _physics_process(delta: float) -> void:
 
 func _server_raycast(from: Vector3, to: Vector3) -> Dictionary:
 	var query := PhysicsRayQueryParameters3D.create(from, to)
-	query.exclude = [player.get_rid()]
+	var exclude: Array[RID] = [player.get_rid()]
+	# Mur cinétique : son propriétaire tire à travers.
+	for wall in get_tree().get_nodes_in_group("owner_shots_pass"):
+		if wall.owner_id == player.get_peer_id():
+			exclude.append(wall.get_rid())
+	query.exclude = exclude
 	return player.get_world_3d().direct_space_state.intersect_ray(query)
 
 
 ## Applique un impact direct. Cible touchable (joueur, monstre) : groupe "damageable" avec
 ## can_be_hit(), is_headshot(point) et server_receive_hit(dégâts, attaquant).
-func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponData) -> HitKind:
+func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponData, dmg_mult: float = 1.0) -> HitKind:
 	if target == null or not target.is_in_group("damageable") or not target.can_be_hit():
 		return HitKind.WORLD
 	var headshot: bool = target.is_headshot(point)
-	var damage := wdata.get_hit_damage() * wdata.get_falloff_multiplier(distance)
+	var damage := wdata.get_hit_damage() * wdata.get_falloff_multiplier(distance) * dmg_mult
 	if headshot:
 		damage *= wdata.weakspot_multiplier
 	var killed := _server_damage(target, damage, wdata)
@@ -498,7 +526,7 @@ func _server_damage(target: Node, amount: float, wdata: WeaponData) -> bool:
 ## Explosion : aoe_damage au centre, EXPLOSION_EDGE_RATIO au bord, sur tout ce qui est
 ## touchable dans le rayon (le tireur compris), sauf derrière un mur. La cible touchée
 ## directement a déjà pris ses dégâts directs et ne reprend pas la zone.
-func _server_explode(point: Vector3, wdata: WeaponData, direct: Node) -> void:
+func _server_explode(point: Vector3, wdata: WeaponData, direct: Node, dmg_mult: float = 1.0) -> void:
 	var radius := wdata.aoe_radius_m
 	var space := player.get_world_3d().direct_space_state
 	for node in get_tree().get_nodes_in_group("damageable"):
@@ -513,7 +541,7 @@ func _server_explode(point: Vector3, wdata: WeaponData, direct: Node) -> void:
 		var wall := space.intersect_ray(query)
 		if not wall.is_empty() and wall["collider"] != target:
 			continue
-		var damage := wdata.aoe_damage * lerpf(1.0, EXPLOSION_EDGE_RATIO, dist / radius)
+		var damage := wdata.aoe_damage * lerpf(1.0, EXPLOSION_EDGE_RATIO, dist / radius) * dmg_mult
 		var killed := _server_damage(target, damage, wdata)
 		if target != player:
 			_confirm_hit.rpc_id(player.get_peer_id(), false, killed)
@@ -709,3 +737,90 @@ func _show_explosion(point: Vector3, radius: float) -> void:
 	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
 	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)
 	tween.chain().tween_callback(ball.queue_free)
+
+
+## Boost de l'arme en main (palier acheté en boutique) : 1.0 = aucun.
+func _boost(key: String) -> float:
+	return data.get_boost(key, inventory.get_active_boost()) if data else 1.0
+
+
+# =========================================================================
+# Gadgets (étape 8d)
+# =========================================================================
+
+## Temps à maintenir : la balise de rappel se pose vite, la téléportation est longue.
+func _trigger_delay() -> float:
+	if data.gadget == WeaponData.GadgetKind.RECALL and not _own_beacon():
+		return maxf(data.place_time_s, 0.1)
+	return data.get_trigger_delay()
+
+
+## Balise de rappel de ce joueur (créée par le serveur, visible chez tous), ou null.
+func _own_beacon() -> Node3D:
+	for node in get_tree().get_nodes_in_group("recall_beacon"):
+		if node.owner_id == player.get_peer_id() and not node.is_queued_for_deletion():
+			return node
+	return null
+
+
+## Serveur : un « tir » de gadget (munitions, effet, gadget épuisé).
+func _server_gadget(origin: Vector3, dir: Vector3) -> void:
+	var peer := player.get_peer_id()
+	match data.gadget:
+		WeaponData.GadgetKind.FRAG_GRENADE:
+			_server_use_ammo(1)
+			Events.ability_object_requested.emit({
+				"kind": "frag", "owner": peer, "origin": origin, "dir": dir,
+				"damage": data.damage, "radius": data.aoe_radius_m,
+				"falloff_start": data.falloff_start_m, "fuse": data.fuse_s,
+			})
+		WeaponData.GadgetKind.HEAL_BEAM:
+			_server_use_ammo(1)
+			var to := origin + dir * data.get_max_range()
+			var hit := _server_raycast(origin, to)
+			var end: Vector3 = hit["position"] if not hit.is_empty() else to
+			var target := hit.get("collider") as Player if not hit.is_empty() else null
+			var kind := HitKind.NONE
+			if target and not target.health.is_dead and PactManager.allied(peer, target.get_peer_id()):
+				target.health.heal(data.heal_per_tick)
+				kind = HitKind.TARGET
+			_show_shot.rpc(origin, end, kind)
+		WeaponData.GadgetKind.RECALL:
+			var beacon := _own_beacon()
+			if beacon == null:
+				Events.ability_object_requested.emit({"kind": "beacon", "owner": peer,
+						"pos": player.global_position, "health": data.beacon_health})
+				_srv_trigger_ms = 0
+				return
+			var dest := beacon.global_position + Vector3.UP * 0.3
+			beacon.queue_free()
+			player.global_position = dest
+			player.teleport.rpc_id(peer, dest)
+			_server_use_ammo(1)
+	_server_check_consumed()
+
+
+func _server_use_ammo(count: int) -> void:
+	inventory.set_active_ammo(maxi(inventory.get_active_ammo() - count, 0))
+
+
+## Gadget à usage limité vide : retiré de l'emplacement.
+func _server_check_consumed() -> void:
+	if data.consumable and inventory.get_active_ammo() <= 0:
+		inventory.server_remove_active()
+
+
+## Rayon vital : clic droit = se soigner (coûte Config.HEAL_BEAM_SELF_COST charges).
+@rpc("any_peer", "call_local", "reliable")
+func request_gadget_alt() -> void:
+	if not multiplayer.is_server() or not _sender_is_owner() or health.is_dead or player.is_evacuated:
+		return
+	if data.gadget != WeaponData.GadgetKind.HEAL_BEAM or inventory.get_active_ammo() < Config.HEAL_BEAM_SELF_COST:
+		return
+	var now := Time.get_ticks_msec()
+	if now < _srv_self_heal_ready_ms:
+		return
+	_srv_self_heal_ready_ms = now + int(Config.HEAL_BEAM_SELF_COOLDOWN * 1000.0)
+	_server_use_ammo(Config.HEAL_BEAM_SELF_COST)
+	health.heal(data.self_heal)
+	_sync_ammo.rpc_id(player.get_peer_id(), inventory.get_active_ammo())

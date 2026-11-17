@@ -30,6 +30,8 @@ func check_purchase(item: ItemData) -> String:
 		return "Indisponible : vous êtes mort"
 	if player.is_evacuated:
 		return "Indisponible : vous êtes à bord"
+	if player.health.is_downed:
+		return "Indisponible : vous êtes à terre"
 	if player.inventory.credits < item.price:
 		return "Pas assez de crédits"
 	return ""
@@ -62,3 +64,34 @@ func _purchase_result(ok: bool, message: String) -> void:
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	purchase_result.emit(ok, message)
+
+
+## Boost de l'arme en main : palier suivant (WeaponData.boosts), prix Config.WEAPON_BOOST_PRICES.
+@rpc("any_peer", "call_local", "reliable")
+func request_boost() -> void:
+	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != player.get_peer_id():
+		return
+	var weapon := player.inventory.get_active_weapon()
+	var level := player.inventory.get_active_boost()
+	if weapon == null or player.health.is_dead or player.is_evacuated:
+		return
+	if level >= mini(weapon.boosts.size(), Config.WEAPON_BOOST_PRICES.size()):
+		_purchase_result.rpc_id(player.get_peer_id(), false, "Arme déjà au palier maximum")
+		return
+	if not player.inventory.spend_credits(Config.WEAPON_BOOST_PRICES[level]):
+		_purchase_result.rpc_id(player.get_peer_id(), false, "Pas assez de crédits")
+		return
+	player.inventory.server_boost_active()
+	_purchase_result.rpc_id(player.get_peer_id(), true, "%s : palier %d (%s)" % [weapon.display_name, level + 1, boost_text(weapon, level)])
+
+
+## Texte d'un palier : « +10 % dégâts ».
+static func boost_text(weapon: WeaponData, level: int) -> String:
+	if weapon == null or level >= weapon.boosts.size():
+		return "maximum"
+	var names := {"damage": "dégâts", "range": "portée", "fire_rate": "cadence"}
+	var parts: PackedStringArray = []
+	var tier: Dictionary = weapon.boosts[level]
+	for key: String in tier:
+		parts.append("+%d %% %s" % [roundi(float(tier[key]) * 100.0), names.get(key, key)])
+	return ", ".join(parts)

@@ -65,6 +65,27 @@ func request_spawn_item(item_id: String, amount: int) -> void:
 	_reply(true, message)
 
 
+## Capacité équipée tout de suite sur Q (slot 0) ou F (slot 1).
+@rpc("any_peer", "call_local", "reliable")
+func request_set_ability(slot: int, ability_id: String) -> void:
+	if not _server_allowed():
+		return
+	if player.abilities.server_set_slot(slot, ability_id):
+		_reply(true, "%s : %s" % ["Q" if slot == 0 else "F", AbilityController.get_ability(ability_id).get_display_name()])
+	else:
+		_reply(false, "Capacité inconnue : %s" % ability_id)
+
+
+## Capacités : recharges remises à zéro et fenêtre d'équipement (K) rouverte.
+@rpc("any_peer", "call_local", "reliable")
+func request_abilities_ready() -> void:
+	if not _server_allowed():
+		return
+	player.abilities.server_reset_cooldowns()
+	player.kit._open_change_window()
+	_reply(true, "Recharges à zéro, équipement (K) modifiable %d s" % int(Config.KIT_CHANGE_WINDOW))
+
+
 ## Équipe directement un kit (sans la limite « au largage / à la réapparition »).
 @rpc("any_peer", "call_local", "reliable")
 func request_set_kit(kit_id: String) -> void:

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_1n8f2"]
+
+[resource]
+script = ExtResource("1_1n8f2")
+id = &"recall_teleporter"
+display_name = "Balise de rappel"
+reference_name = "Recall Teleporter"
+faction = 3
+faction_level = 3
+type = 9
+fire_mode = 3
+damage = 0.0
+fire_interval_s = 1.0
+charge_time_s = 3.3
+spin_up_s = 3.3
+magazine = 1
+gadget = 3
+consumable = true
+place_time_s = 1.0
+beacon_health = 300.0
+spawn_cost_credits = 250
+role = "1) Maintenir le tir quelques secondes pour poser la balise. 2) Plus tard, maintenir le tir 3.3 s pour se téléporter sur la balise."
+strengths = PackedStringArray()
+weaknesses = PackedStringArray()
+estimated_fields = PackedStringArray("place_time_s", "magazine")
+behavior = "Poser un point de retour puis s'y téléporter à la demande : fuir un combat perdu ou revenir vite à l'évac."

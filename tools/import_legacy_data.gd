@@ -14,6 +14,8 @@ const WEAPON_SCRIPT := "res://resources/weapon_data.gd"
 const KIT_SCRIPT := "res://resources/kit_data.gd"
 const WEAPONS_DIR := "res://data/weapons/"
 const KITS_DIR := "res://data/kits/"
+const ABILITIES_DIR := "res://data/abilities/"
+const ABILITY_SCRIPT := "res://resources/ability_data.gd"
 
 const WEAPON_NAMES := {
 	"s76_pdw": "Guêpe",
@@ -124,6 +126,12 @@ func _init() -> void:
 	for k: Dictionary in root["kits"]:
 		if _save_kit(k):
 			count += 1
+	DirAccess.make_dir_recursive_absolute(ABILITIES_DIR)
+	for a: Dictionary in root.get("abilities", []):
+		if _save_ability(a):
+			count += 1
+	for g: Dictionary in root.get("gadgets", []):
+		count += _save_gadget(g)
 	print("[Import] %d fichiers écrits" % count)
 	quit(0)
 
@@ -248,3 +256,160 @@ func _save(res: Resource, path: String) -> bool:
 		push_error("[Import] Échec d'écriture %s (%s)" % [path, error_string(err)])
 		return false
 	return true
+
+
+# =========================================================================
+# Capacités (étape 8c)
+# =========================================================================
+
+const ABILITY_NAMES := {
+	"shock_grenade": "Grenade à choc",
+	"stim_boost": "Stimulant",
+	"heavy_turret": "Tourelle lourde",
+	"kinetic_barrier": "Mur cinétique",
+	"evasion_cloak": "Voile de fuite",
+	"orbital_bombardment": "Pluie orbitale",
+	"stand_your_ground": "Pied ferme",
+	"skirmish_sphere": "Sphère hostile",
+	"warp_bomb": "Bombe de distorsion",
+	"triage_sphere": "Sphère de soin",
+	"adrenaline_shot": "Montée d'adrénaline",
+	"directional_warp": "Saut de phase",
+	"precision_strike": "Frappe ciblée",
+	"protective_shell": "Coque",
+	"surveillance_ward": "Balise d'écoute",
+	"concealment_cloak": "Voile d'ombre",
+	"healing_aura": "Aura de soin",
+	"snare_trap": "Entrave",
+	"safeguard": "Paravent",
+	"orbital_barrage": "Averse orbitale",
+	"cloaking_device": "Camouflage total",
+}
+
+const CATEGORIES := {
+	"grenade": 0, "stim": 1, "deployable": 2, "barrier": 3, "cloak": 4, "strike": 5,
+	"field": 6, "mobility": 7, "shield": 8, "scanner": 9, "trap": 10, "heal": 11,
+}
+
+const ABILITY_NUMBERS := [
+	"faction_level", "cooldown_s", "duration_s", "delay_s", "radius_m", "damage", "damage_per_s",
+	"damage_per_missile", "missiles", "heal_instant", "heal_per_s", "health", "rpm", "range_m",
+	"width_m", "height_m", "distance_m", "slow_percent", "scan_interval_s", "max_active",
+]
+
+## Effets sur soi, chiffrés d'après le texte « effects » de la référence (valeurs de la
+## référence quand elle en donne, sinon estimées). Voir AbilityData.buff.
+const ABILITY_BUFFS := {
+	"stim_boost": {"damage_taken_mult": 0.8, "health_regen_mult": 2.0, "regen_now": 1.0, "speed_mult": 1.1},
+	"evasion_cloak": {"cloak": 0.8, "speed_mult": 1.3, "damage_taken_mult": 1.25},
+	"stand_your_ground": {"max_health_add": 150.0, "recoil_mult": 0.5, "speed_mult": 0.8, "no_health_regen": 1.0},
+	"adrenaline_shot": {"speed_mult": 1.25, "damage_taken_mult": 1.2, "no_health_regen": 1.0},
+	"protective_shell": {"invulnerable": 1.0},
+	"concealment_cloak": {"cloak": 0.9, "cloak_moving": 0.4},
+	"healing_aura": {"heal_per_s": 15.0},
+	"cloaking_device": {"cloak": 0.95, "cloak_breaks_on_fire": 1.0},
+}
+## Effet à la fin : [effet, durée].
+const ABILITY_AFTER_BUFFS := {
+	"evasion_cloak": [{"speed_mult": 0.7}, 3.0],
+}
+
+
+func _save_ability(a: Dictionary) -> bool:
+	var id: String = a["id"]
+	var res: Resource = load(ABILITY_SCRIPT).new()
+	res.set("id", StringName(id))
+	res.set("display_name", ABILITY_NAMES.get(id, id))
+	res.set("reference_name", a.get("name", ""))
+	res.set("faction", FACTIONS.get(a.get("faction"), 0))
+	res.set("category", CATEGORIES.get(a.get("category"), 1))
+	for field: String in ABILITY_NUMBERS:
+		if not a.has(field):
+			continue
+		var value: Variant = a[field]
+		if value == null:
+			value = -1
+		if res.get(field) is int:
+			value = int(value)
+		res.set(field, value)
+	res.set("buff", ABILITY_BUFFS.get(id, {}))
+	if ABILITY_AFTER_BUFFS.has(id):
+		res.set("after_buff", ABILITY_AFTER_BUFFS[id][0])
+		res.set("after_duration_s", ABILITY_AFTER_BUFFS[id][1])
+	for key: String in ["activation", "visual", "counterplay", "behavior"]:
+		res.set(key, a.get(key, ""))
+	res.set("effects", PackedStringArray(a.get("effects", [])))
+	res.set("estimated_fields", PackedStringArray(a.get("estimated_fields", [])))
+	res.set("notes", a.get("note", ""))
+	return _save(res, ABILITIES_DIR + id + ".tres")
+
+
+# =========================================================================
+# Gadgets (étape 8d) : des « armes » spéciales (WeaponData) + leur objet en boutique
+# =========================================================================
+
+const GADGET_NAMES := {
+	"kheper_revitalizer": "Rayon vital",
+	"recall_teleporter": "Balise de rappel",
+	"trench_grenade": "Grenade à fragmentation",
+}
+
+## Réglages qui ne viennent pas de la référence (valeurs de départ, à équilibrer).
+const GADGET_EXTRA := {
+	"kheper_revitalizer": {"gadget": 2, "fire_mode": 5, "spin_up_s": 0.0, "fire_interval_s": 0.1, "rpm": 600.0,
+		"reload_s": 2.0, "damage": 0.0, "tracer_width": 0.06, "tracer_time": 0.25,
+		"tracer_color": Color(0.4, 1.0, 0.55), "estimated_fields": ["reload_s", "coût de l'auto-soin (Config)"]},
+	"recall_teleporter": {"gadget": 3, "fire_mode": 3, "charge_time_s": 3.3, "place_time_s": 1.0, "fire_interval_s": 1.0,
+		"magazine": 1, "consumable": true, "damage": 0.0, "estimated_fields": ["place_time_s", "magazine"]},
+	"trench_grenade": {"gadget": 1, "fire_mode": 1, "projectile_type": 2, "fire_interval_s": 1.0, "magazine": 3,
+		"consumable": true, "aoe_damage": 400.0, "estimated_fields": ["fire_interval_s", "magazine (grenades par achat)"]},
+}
+
+## Champs de la référence -> champs de WeaponData.
+const GADGET_FIELDS := {
+	"range_m": "max_range_m", "heal_per_tick": "heal_per_tick", "tick_interval_s": "fire_interval_s",
+	"magazine": "magazine", "self_heal": "self_heal", "spin_up_s": "spin_up_s",
+	"beacon_health": "beacon_health", "damage": "damage", "radius_m": "aoe_radius_m",
+	"falloff_start_m": "falloff_start_m", "fuse_s": "fuse_s", "spawn_cost_credits": "spawn_cost_credits",
+	"faction_level": "faction_level",
+}
+
+
+## Renvoie le nombre de fichiers écrits (arme + objet), 0 pour un gadget sans objet.
+func _save_gadget(g: Dictionary) -> int:
+	var id: String = g["id"]
+	if not GADGET_EXTRA.has(id):
+		return 0  # Scanner directionnel : fonction toujours disponible, pas un objet
+	var res: Resource = load(WEAPON_SCRIPT).new()
+	res.set("id", StringName(id))
+	res.set("display_name", GADGET_NAMES.get(id, id))
+	res.set("reference_name", g.get("name", ""))
+	res.set("faction", FACTIONS.get(g.get("faction"), 0))
+	res.set("type", 9)  # GADGET
+	res.set("slot", 0)
+	for src: String in GADGET_FIELDS:
+		if g.has(src) and g[src] != null:
+			var value: Variant = g[src]
+			var field: String = GADGET_FIELDS[src]
+			res.set(field, int(value) if res.get(field) is int else float(value))
+	var extra: Dictionary = GADGET_EXTRA[id]
+	for key: String in extra:
+		var value: Variant = extra[key]
+		if key == "estimated_fields":
+			value = PackedStringArray(g.get("estimated_fields", []) + value)
+		res.set(key, value)
+	res.set("boosts", [])  # pas de boost sur les gadgets
+	res.set("behavior", g.get("behavior", ""))
+	res.set("role", g.get("activation", ""))
+	res.set("notes", g.get("note", ""))
+	if not _save(res, WEAPONS_DIR + id + ".tres"):
+		return 0
+	var item: Resource = load("res://resources/item_data.gd").new()
+	item.set("id", StringName(id))
+	item.set("display_name", GADGET_NAMES.get(id, id))
+	item.set("kind", 0)  # WEAPON : prend un emplacement d'arme
+	item.set("weapon", load(WEAPONS_DIR + id + ".tres"))
+	item.set("color", Color(0.4, 1.0, 0.55) if id == "kheper_revitalizer" else Color(0.95, 0.8, 0.4))
+	var price: Variant = g.get("spawn_cost_credits")
+	item.set("price", int(price) if price != null else 0)
+	return 2 if _save(item, "res://data/items/" + id + ".tres") else 1

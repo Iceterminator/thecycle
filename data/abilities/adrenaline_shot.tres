@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_hc33f"]
+
+[resource]
+script = ExtResource("1_hc33f")
+id = &"adrenaline_shot"
+display_name = "Montée d'adrénaline"
+reference_name = "Adrenaline Shot"
+faction = 2
+faction_level = 3
+duration_s = 8.0
+buff = {
+"damage_taken_mult": 1.2,
+"no_health_regen": 1.0,
+"speed_mult": 1.25
+}
+activation = "Appuyer : injection sur soi."
+effects = PackedStringArray("Vitesse +25 %", "Dégâts subis +20 %", "Régénération de santé retardée pendant l\'effet")
+visual = "Injection, effet de flou de vitesse sur les bords."
+counterplay = "Le punir : il prend plus de dégâts."
+behavior = "Boost de vitesse pour fuir ou foncer sur un objectif ; on devient plus fragile."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s")

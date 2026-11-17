@@ -310,7 +310,7 @@ func status_text() -> String:
 
 func _sender_ok() -> bool:
 	return multiplayer.is_server() and multiplayer.get_remote_sender_id() == player.get_peer_id() \
-			and not player.health.is_dead and not player.is_evacuated
+			and not player.health.is_dead and not player.health.is_downed and not player.is_evacuated
 
 
 ## Atterrissage d'une plongée : dégâts de zone autour du point (pas sur soi).

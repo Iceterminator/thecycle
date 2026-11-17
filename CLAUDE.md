@@ -38,6 +38,9 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
   LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (Fame = `rank_points` + points d'objectif à paliers ; FameManager : +50 par joueur tué),
   `kits/` (KitController : kit, niveau, XP ; KitMovement : capacités de mouvement ; menu Équipement K),
+  `pacts/` (PactManager : pactes, alliés ; menu P),
+  `abilities/` (AbilityController : capacités Q / F ; BuffController : bonus / malus ; AbilityManager + AbilityObject :
+  grenades, sphères, tourelle, murs, frappes, portail, balise, créés par le serveur via `Events.ability_object_requested`),
   `inventory/`, `interaction/` (E, y compris « maintenir E »), `monsters/` (monstre, camps, MonsterManager,
   navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`),
   `admin/` (menu de test, touche 0 : armes, crédits, cristaux, avance du temps → `Events.time_skip_requested` ;
@@ -50,7 +53,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `resources/` scripts de types de données
 - `data/reference/the_cycle_legacy_data.json` : chiffres des armes, kits, capacités et gadgets du jeu d'origine (référence) ;
   `tools/import_legacy_data.gd` en génère `data/weapons/` (avec la fiche « detailed » et le ressenti visuel) et `data/kits/`
-- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (bonus de niveau chiffrés dans `level_perk_effects`), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
+- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (bonus de niveau chiffrés dans `level_perk_effects`), `abilities/` (21 capacités, générées), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
 - `assets/` modèles, sons, textures
 
 ## Tester

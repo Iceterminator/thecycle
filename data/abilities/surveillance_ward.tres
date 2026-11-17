@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_3hedc"]
+
+[resource]
+script = ExtResource("1_3hedc")
+id = &"surveillance_ward"
+display_name = "Balise d'écoute"
+reference_name = "Surveillance Ward"
+faction = 2
+faction_level = 8
+category = 9
+cooldown_s = 20.0
+radius_m = 30.0
+scan_interval_s = 5.0
+max_active = 3
+activation = "Poser l'appareil au sol."
+effects = PackedStringArray("Scanne les prospecteurs hostiles autour toutes les 5 s et les révèle (et les objectifs)")
+visual = "Petit pylône avec onde de scan verte toutes les 5 s."
+counterplay = "Détruire le ward."
+behavior = "Appareil fixe de détection ; jusqu'à 3 actifs. Protège un objectif contre les approches."
+estimated_fields = PackedStringArray("cooldown_s", "radius_m")

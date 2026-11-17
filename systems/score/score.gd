@@ -60,7 +60,7 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 	objective_points = d
 	for tier in range(track.tiers_reached(before), track.tiers_reached(after)):
 		var reward := track.reward(tier)
-		add_rank_points(reward)
+		add_contract_fame(reward)
 		notify.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d Fame)" % [track.display_name, tier + 1, reward], track.color)
 
 
@@ -110,3 +110,21 @@ func _kit_xp(amount: float) -> void:
 	var kit := get_parent().get_node_or_null("Kit") as KitController
 	if kit and amount > 0.0:
 		kit.server_add_xp(roundi(amount))
+
+
+## Serveur : Fame gagnée avec un contrat. Avec un partenaire de pacte, elle est partagée
+## moitié / moitié (la moitié arrondie au-dessus pour celui qui l'a gagnée).
+func add_contract_fame(amount: int) -> void:
+	if not multiplayer.is_server() or amount <= 0:
+		return
+	var partner_id := PactManager.partner_of(get_peer_id())
+	var players := get_parent().get_parent()
+	var partner := players.get_node_or_null(str(partner_id)) as Player if partner_id > 0 and players else null
+	if partner == null:
+		add_rank_points(amount)
+		return
+	var mine := ceili(amount / 2.0)
+	add_rank_points(mine)
+	partner.score.add_rank_points(amount - mine)
+	if amount - mine > 0:
+		partner.score.notify.rpc_id(partner_id, "Pacte : +%d Fame (contrat de Joueur %d)" % [amount - mine, get_peer_id()], Color(0.55, 1.0, 0.75))

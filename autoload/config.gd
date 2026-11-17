@@ -10,6 +10,9 @@ const CODE_KEY_ACTIONS := {
 	&"show_map": KEY_TAB,           # maintenir : carte, quêtes, classement
 	&"equipment": KEY_K,           # menu Équipement (choix du kit)
 	&"melee": KEY_V,               # mêlée (coup de poing chargé du Bastion)
+	&"ability_1": KEY_Q,           # capacité 1 (étape 8c)
+	&"ability_2": KEY_F,           # capacité 2
+	&"pact": KEY_P,                # menu Pactes (étape 8e)
 }
 
 
@@ -138,6 +141,39 @@ const KIT_XP_MONSTER_KILL := 10
 const KIT_XP_PER_OBJECTIVE_POINT := 1.0  # XP par point d'objectif gagné
 const KIT_XP_PER_FAME := 1.0             # XP par point de Fame gagné
 const MELEE_RANGE := 2.5                 # portée du coup de poing chargé (m)
+
+# --- Capacités (étape 8c) ---
+const DEFAULT_ABILITIES := ["shock_grenade", "stim_boost"]  # capacités de départ (référence)
+const ABILITY_UPGRADE_PRICE := 100      # crédits par amélioration (référence)
+const ABILITY_MAX_UPGRADES := 2
+const ABILITY_AIM_RANGE := 80.0          # frappes : portée de visée (m)
+const ABILITY_PLACE_RANGE := 40.0        # tourelle : portée de pose (m)
+const GRENADE_THROW_SPEED := 18.0        # grenades et sphères lancées (m/s)
+const WARP_BOMB_DISTANCE := 12.0         # bombe de distorsion : sortie à cette distance (m)
+const SNARE_RANGE := 30.0                # entrave : portée (m)
+const WARD_HEALTH := 150.0               # balise d'écoute : PV (absent de la référence)
+const WARD_LIFETIME := 300.0             # balise : durée de vie (s)
+const SCAN_REVEAL_TIME := 5.0            # balise : un joueur repéré reste sur la carte (s)
+const CLOAK_MONSTER_IGNORE := 0.8        # camouflage à partir duquel les monstres ne voient plus le joueur
+const SHOT_ONLY_LAYER := 16              # couche 5 : arrête les tirs mais pas les corps (Paravent)
+
+# --- Boosts d'arme (étape 8e, remplacent les raretés) ---
+const WEAPON_BOOST_PRICES := [150, 250, 400]  # prix des paliers 1, 2, 3 (valeurs de départ)
+
+# --- Gadgets (étape 8d) ---
+const HEAL_BEAM_SELF_COST := 10         # rayon vital : charges consommées par l'auto-soin (valeur de départ)
+const HEAL_BEAM_SELF_COOLDOWN := 2.0    # rayon vital : délai entre deux auto-soins (s)
+const SCANNER_RANGE := 25.0              # scanner directionnel : alarme de proximité (référence)
+
+# --- Pactes et état « à terre » (étape 8e) ---
+## En attendant les escouades (étape 9), un partenaire de pacte compte comme coéquipier
+## (état « à terre », Rayon vital). false = personne ne tombe à terre avant l'étape 9.
+const PACT_PARTNER_IS_ALLY := true
+const DOWNED_TIME := 30.0                # s à terre avant de mourir
+const DOWNED_HEALTH := 150.0             # PV à terre (un ennemi peut achever)
+const DOWNED_SPEED := 1.0                # vitesse à terre, en rampant (m/s)
+const REVIVE_TIME := 5.0                 # maintenir E pour relever un allié (s)
+const REVIVE_HEALTH_RATIO := 0.5         # relevé avec cette part de ses PV max
 
 # --- Quêtes : cristal + foreuse (valeurs provisoires) ---
 const CRYSTAL_ACTIVATE_TIME := 3.0       # maintenir E pour lancer la foreuse (s)

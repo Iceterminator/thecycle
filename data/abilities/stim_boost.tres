@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_d6par"]
+
+[resource]
+script = ExtResource("1_d6par")
+id = &"stim_boost"
+display_name = "Stimulant"
+reference_name = "Stim Boost"
+duration_s = 5.0
+heal_instant = 100.0
+buff = {
+"damage_taken_mult": 0.8,
+"health_regen_mult": 2.0,
+"regen_now": 1.0,
+"speed_mult": 1.1
+}
+activation = "Appuyer : injection instantanée sur soi."
+effects = PackedStringArray("Soin instantané de 100", "Résistance aux dégâts +20 % pendant 5 s", "Régénération de santé accélérée pendant 5 s", "Légère hausse de vitesse")
+visual = "Animation d'injection au bras, écran légèrement teinté vert."
+counterplay = "Le burst de dégâts reste le meilleur moyen de le battre."
+behavior = "Rend un peu de santé et augmente temporairement la résistance aux dégâts et la régénération. Capacité de survie de base."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "heal_instant", "effects (valeurs)")

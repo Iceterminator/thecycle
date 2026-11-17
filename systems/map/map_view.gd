@@ -29,11 +29,17 @@ var show_labels: bool = true
 var _origin := Vector2.ZERO
 var _scale := 1.0
 var _center := Vector2.ZERO  ## centre de la vue (X, Z monde)
+## Joueurs repérés par une balise d'écoute : [position, fin (ms)].
+var _revealed: Array = []
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
+	Events.scan_revealed.connect(func(positions: Array) -> void:
+		var until := Time.get_ticks_msec() + int(Config.SCAN_REVEAL_TIME * 1000.0)
+		for pos: Vector3 in positions:
+			_revealed.append([pos, until]))
 
 
 func _process(_delta: float) -> void:
@@ -70,6 +76,8 @@ func _draw() -> void:
 	_draw_storm()
 	_draw_markers()
 	_draw_monsters()
+	_draw_revealed()
+	_draw_scanner()
 	_draw_self()
 	draw_rect(Rect2(_origin, Vector2(side, side)), Color(1, 1, 1, 0.4), false, 2.0)
 	_text(_origin + Vector2(side / 2.0, 16), "N", 16 if show_labels else 12, Color(1, 1, 1, 0.8))
@@ -187,3 +195,44 @@ func _text(pos: Vector2, text: String, font_size: int, color: Color) -> void:
 	var at := pos - Vector2(width / 2.0, 0)
 	draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 4, Color(0, 0, 0, 0.85))
 	draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
+
+
+## Joueurs repérés par vos balises d'écoute (quelle que soit la distance), quelques secondes.
+func _draw_revealed() -> void:
+	var now := Time.get_ticks_msec()
+	_revealed = _revealed.filter(func(r: Array) -> bool: return r[1] > now)
+	for r: Array in _revealed:
+		var p := to_map(r[0])
+		var diamond := PackedVector2Array([p + Vector2(0, -7), p + Vector2(7, 0), p + Vector2(0, 7), p + Vector2(-7, 0)])
+		draw_colored_polygon(diamond, Color(1.0, 0.2, 0.6))
+		draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color.BLACK, 1.0)
+
+
+## Partenaire de pacte (toujours) ; Scanner directionnel : joueurs non alliés à moins de
+## Config.SCANNER_RANGE ; crédits et ressources au sol à moins de Config.MAP_REVEAL_RADIUS.
+func _draw_scanner() -> void:
+	var players := world.get_node_or_null("Players")
+	if players:
+		for node in players.get_children():
+			var other := node as Player
+			if other == null or other == player or other.health.is_dead or other.is_evacuated:
+				continue
+			var p := to_map(other.global_position)
+			if PactManager.allied(player.get_peer_id(), other.get_peer_id()):
+				draw_circle(p, 6.0, Color(0.4, 1.0, 0.6))
+				draw_arc(p, 6.0, 0, TAU, 16, Color.BLACK, 1.5)
+			elif other.global_position.distance_to(player.global_position) <= Config.SCANNER_RANGE:
+				var tri := PackedVector2Array([p + Vector2(0, -7), p + Vector2(6, 5), p + Vector2(-6, 5)])
+				draw_colored_polygon(tri, Color(1.0, 0.3, 0.25))
+	var loot := world.get_node_or_null("Loot")
+	if loot == null:
+		return
+	for node in loot.get_children():
+		var pickup := node as Pickup
+		if pickup == null or pickup.item == null:
+			continue
+		if pickup.item.kind != ItemData.Kind.CREDITS and pickup.item.kind != ItemData.Kind.RESOURCE:
+			continue
+		if not in_reveal_range(pickup.global_position, player.global_position):
+			continue
+		draw_circle(to_map(pickup.global_position), 3.0, pickup.item.color)

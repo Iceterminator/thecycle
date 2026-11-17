@@ -57,6 +57,105 @@ func _refresh() -> void:
 		var button: Button = row["button"]
 		button.disabled = refusal != ""
 		(row["info"] as Label).text = refusal
+	_refresh_ability_upgrades()
+	_refresh_weapon_boost()
+
+
+# --- Boost de l'arme en main (étape 8e) ---
+
+var _boost_name: Label
+var _boost_info: Label
+var _boost_button: Button
+
+
+func _build_weapon_boost(box: VBoxContainer) -> void:
+	var section := Label.new()
+	section.text = "Boost de l'arme en main (3 paliers, gardés si elle tombe au sol)"
+	section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	box.add_child(section)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	_boost_name = Label.new()
+	_boost_name.add_theme_font_size_override("font_size", 20)
+	_boost_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(_boost_name)
+	_boost_info = Label.new()
+	_boost_info.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
+	row.add_child(_boost_info)
+	_boost_button = Button.new()
+	_boost_button.custom_minimum_size = Vector2(110, 36)
+	_boost_button.pressed.connect(func() -> void: _shop.request_boost.rpc_id(1))
+	row.add_child(_boost_button)
+	box.add_child(row)
+
+
+func _refresh_weapon_boost() -> void:
+	if _boost_button == null:
+		return
+	var weapon := _player.inventory.get_active_weapon()
+	var level := _player.inventory.get_active_boost()
+	var max_level := mini(weapon.boosts.size(), Config.WEAPON_BOOST_PRICES.size()) if weapon else 0
+	_boost_name.text = "%s (palier %d/%d)" % [weapon.display_name if weapon else "?", level, max_level]
+	if level >= max_level:
+		_boost_info.text = "Au maximum"
+		_boost_button.text = "—"
+		_boost_button.disabled = true
+		return
+	var price: int = Config.WEAPON_BOOST_PRICES[level]
+	_boost_info.text = Shop.boost_text(weapon, level)
+	_boost_button.text = "%d cr." % price
+	_boost_button.disabled = _player.inventory.credits < price
+
+
+# --- Améliorations des capacités (étape 8c) ---
+
+var _upgrade_rows: Array[Dictionary] = []  # { name, info, button }
+
+
+func _build_ability_upgrades(box: VBoxContainer) -> void:
+	var section := Label.new()
+	section.text = "Capacités : chaque amélioration réduit la recharge"
+	section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	box.add_child(section)
+	for slot in AbilityController.SLOTS:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		var name_label := Label.new()
+		name_label.add_theme_font_size_override("font_size", 20)
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(name_label)
+		var info := Label.new()
+		info.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
+		row.add_child(info)
+		var button := Button.new()
+		button.text = "%d cr." % Config.ABILITY_UPGRADE_PRICE
+		button.custom_minimum_size = Vector2(110, 36)
+		button.pressed.connect(func() -> void: _player.abilities.request_upgrade.rpc_id(1, slot))
+		row.add_child(button)
+		box.add_child(row)
+		_upgrade_rows.append({"name": name_label, "info": info, "button": button})
+
+
+func _refresh_ability_upgrades() -> void:
+	var abilities := _player.abilities
+	if abilities == null:
+		return
+	var keys := ["Q", "F"]
+	for slot in _upgrade_rows.size():
+		var row: Dictionary = _upgrade_rows[slot]
+		var a := abilities.get_slot(slot)
+		var level: int = abilities.upgrades[slot]
+		(row["name"] as Label).text = "[%s] %s (%d/%d)" % [keys[slot], a.get_display_name() if a else "?", level, Config.ABILITY_MAX_UPGRADES]
+		var refusal := ""
+		if level >= Config.ABILITY_MAX_UPGRADES:
+			refusal = "Au maximum"
+		elif _player.inventory.credits < Config.ABILITY_UPGRADE_PRICE:
+			refusal = "Pas assez de crédits"
+		elif a:
+			refusal = "-%d s de recharge" % int(a.upgrade_cooldown_s)
+		(row["info"] as Label).text = refusal
+		(row["button"] as Button).disabled = a == null or level >= Config.ABILITY_MAX_UPGRADES \
+				or _player.inventory.credits < Config.ABILITY_UPGRADE_PRICE
 
 
 func _on_purchase_result(ok: bool, message: String) -> void:
@@ -121,6 +220,8 @@ func _build() -> void:
 			section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
 			box.add_child(section)
 		box.add_child(_make_row(item))
+	_build_weapon_boost(box)
+	_build_ability_upgrades(box)
 
 	box.add_child(HSeparator.new())
 	_status_label = Label.new()

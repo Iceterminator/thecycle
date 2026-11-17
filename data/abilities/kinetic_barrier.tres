@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_0mrn8"]
+
+[resource]
+script = ExtResource("1_0mrn8")
+id = &"kinetic_barrier"
+display_name = "Mur cinétique"
+reference_name = "Kinetic Barrier"
+faction = 1
+faction_level = 3
+category = 3
+duration_s = 10.0
+width_m = 4.0
+height_m = 2.5
+activation = "Viser et appuyer : déploie un mur d'énergie devant soi."
+effects = PackedStringArray("Bloque le passage et les tirs ennemis", "Le propriétaire peut tirer à travers")
+visual = "Mur d'énergie orange translucide, hexagonal, qui ondule sous les impacts."
+counterplay = "La contourner ou attendre sa disparition."
+behavior = "Barrière solide qui empêche les ennemis de passer ou de tirer à travers, alors que son propriétaire peut tirer librement depuis l'arrière. Améliorations : recharge -5 s à chaque niveau (2 × 100 crédits)."
+estimated_fields = PackedStringArray("duration_s", "width_m", "height_m")

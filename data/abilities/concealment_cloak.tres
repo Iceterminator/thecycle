@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_ny15g"]
+
+[resource]
+script = ExtResource("1_ny15g")
+id = &"concealment_cloak"
+display_name = "Voile d'ombre"
+reference_name = "Concealment Cloak"
+faction = 2
+faction_level = 9
+category = 4
+cooldown_s = 45.0
+duration_s = 10.0
+buff = {
+"cloak": 0.9,
+"cloak_moving": 0.4
+}
+activation = "Appuyer : camouflage sur soi."
+effects = PackedStringArray("Invisibilité forte en mouvement lent", "Efficacité qui baisse en courant")
+visual = "Distorsion transparente, plus visible en mouvement rapide."
+counterplay = "Repérer la distorsion quand il bouge."
+behavior = "Camouflage d'infiltration, à utiliser en se déplaçant lentement."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s")

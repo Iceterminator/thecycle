@@ -9,7 +9,7 @@ extends Resource
 
 ## Factions inventées (équivalents des factions du jeu d'origine, voir DESIGN §12).
 enum Faction { STARTER, LOURDE, TECHNO, EQUILIBRE }
-enum WeaponType { SMG, ASSAULT_RIFLE, BATTLE_RIFLE, SNIPER_RIFLE, SHOTGUN, LMG, PISTOL, MISSILE_LAUNCHER, HEAVY }
+enum WeaponType { SMG, ASSAULT_RIFLE, BATTLE_RIFLE, SNIPER_RIFLE, SHOTGUN, LMG, PISTOL, MISSILE_LAUNCHER, HEAVY, GADGET }
 enum Slot { PRIMARY, SECONDARY }
 ## AUTO : tir continu. SEMI : un tir par clic. BURST : un clic = burst_count tirs.
 ## CHARGE : maintenir charge_time_s, le tir part dès que la charge est pleine (relâcher avant
@@ -20,9 +20,7 @@ enum FireMode { AUTO, SEMI, BURST, CHARGE, CHARGE_BURST, BEAM }
 ## EXPLOSIVE_PROJECTILE : dégâts directs sur la cible touchée + aoe_damage dans aoe_radius_m
 ## (moins au bord), y compris pour le tireur.
 enum ProjectileType { HITSCAN, PROJECTILE, EXPLOSIVE_PROJECTILE }
-enum Rarity { COMMON, UNCOMMON, RARE, EPIC, LEGENDARY }
 
-const RARITY_DAMAGE_BONUS := 0.10    ## +10 % de dégâts par palier de rareté
 const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 
 @export var id: StringName
@@ -34,7 +32,6 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export var faction_level: int = 0               ## réputation requise (0 = arme de départ)
 @export var type: WeaponType = WeaponType.ASSAULT_RIFLE
 @export var slot: Slot = Slot.PRIMARY
-@export var rarity: Rarity = Rarity.COMMON
 
 @export_group("Tir")
 @export var fire_mode: FireMode = FireMode.AUTO
@@ -81,6 +78,25 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export var ads_spread_deg: float = 0.4          ## dispersion en visée
 @export var recoil_deg: float = 0.8              ## recul par tir
 
+@export_group("Boosts (paliers achetés en boutique)")
+## Un dictionnaire par palier, dans l'ordre ; chaque palier s'ajoute aux précédents.
+## Clés : damage, range, fire_rate (part en plus : 0.1 = +10 %).
+@export var boosts: Array[Dictionary] = [{"damage": 0.1}, {"range": 0.1}, {"fire_rate": 0.1}]
+
+@export_group("Gadget (étape 8d)")
+## Gadget : arme spéciale qui occupe un emplacement d'arme (voir Weapon).
+## FRAG_GRENADE : lancée en arc, explose après fuse_s. HEAL_BEAM : rayon de soin sur un
+## allié (heal_per_tick), clic droit = se soigner (self_heal). RECALL : maintenir pour poser
+## la balise (place_time_s), puis maintenir spin_up_s pour s'y téléporter.
+enum GadgetKind { NONE, FRAG_GRENADE, HEAL_BEAM, RECALL }
+@export var gadget: GadgetKind = GadgetKind.NONE
+@export var consumable: bool = false            ## chargeur vide = gadget retiré (pas de rechargement)
+@export var heal_per_tick: float = -1.0
+@export var self_heal: float = -1.0
+@export var fuse_s: float = -1.0
+@export var place_time_s: float = -1.0
+@export var beacon_health: float = -1.0
+
 @export_group("Progression")
 @export var spawn_cost_credits: int = -1         ## prix en partie (-1 = inconnu)
 @export var unlock_cost: int = -1                ## prix de déblocage hors partie
@@ -115,12 +131,12 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export_multiline var notes: String = ""
 
 
-## Dégâts d'un impact (une balle, ou un plomb pour un fusil à pompe), rareté comprise.
+## Dégâts d'un impact (une balle, ou un plomb pour un fusil à pompe), sans boost.
 func get_hit_damage() -> float:
 	var base := damage
 	if pellets > 1:
 		base = pellet_damage if pellet_damage > 0.0 else damage / pellets
-	return base * (1.0 + RARITY_DAMAGE_BONUS * rarity)
+	return base
 
 
 ## Multiplicateur de distance : 1 jusqu'à falloff_start_m, puis baisse linéaire
@@ -132,6 +148,14 @@ func get_falloff_multiplier(distance: float) -> float:
 		return falloff_min_multiplier
 	var t := (distance - falloff_start_m) / (falloff_end_m - falloff_start_m)
 	return lerpf(1.0, falloff_min_multiplier, t)
+
+
+## Boost cumulé d'une clé (damage, range, fire_rate) au palier `level` : 1.0 = aucun.
+func get_boost(key: String, level: int) -> float:
+	var total := 1.0
+	for i in mini(level, boosts.size()):
+		total += float(boosts[i].get(key, 0.0))
+	return total
 
 
 func get_max_range() -> float:

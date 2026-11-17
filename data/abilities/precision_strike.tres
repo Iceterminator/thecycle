@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_bxgwj"]
+
+[resource]
+script = ExtResource("1_bxgwj")
+id = &"precision_strike"
+display_name = "Frappe ciblée"
+reference_name = "Precision Strike"
+faction = 2
+faction_level = 4
+category = 5
+cooldown_s = 60.0
+delay_s = 2.0
+radius_m = 3.0
+damage = 400.0
+activation = "Viser une petite zone : bombardement lourd après un délai."
+effects = PackedStringArray("Frappe lourde concentrée")
+visual = "Petit marqueur vert, puis rayon/obus orbital unique."
+counterplay = "Bouger dès que le marqueur apparaît."
+behavior = "Bombardement lourd sur une petite zone : finir un ennemi immobile ou détruire une tourelle."
+estimated_fields = PackedStringArray("cooldown_s", "delay_s", "radius_m", "damage")

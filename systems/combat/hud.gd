@@ -111,7 +111,8 @@ func _update_clock(delta: float) -> void:
 			_results_label.text = _results_text + "\nNouvelle partie dans %d s" % ceili(_restart_left)
 		return
 	_clock_elapsed = minf(_clock_elapsed + delta, Config.MATCH_DURATION)
-	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ")
+	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ") + _scanner_text()
+	_update_downed()
 	var total := "%s / %s" % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
 	if _clock_phase == MatchManager.Phase.EVAC:
 		_clock_label.text = "%s — ÉVAC AU SOL : décollage dans %s" % [total, _fmt(Config.MATCH_DURATION - _clock_elapsed)]
@@ -498,4 +499,47 @@ func _kit_text() -> String:
 	var status := _player.movement.status_text() if _player.movement else ""
 	if status != "":
 		text += "\n" + status
+	if _player.abilities:
+		var abilities := _player.abilities.status_text()
+		if abilities != "":
+			text += "\n" + abilities
+	if _player.buffs:
+		var effects := _player.buffs.status_text()
+		if effects != "":
+			text += "\nEffets : " + effects
 	return text
+
+
+# --- Scanner directionnel et état « à terre » (étapes 8d / 8e) ---
+
+var _downed_label: Label
+
+
+## Alarme de proximité : un joueur non allié à moins de Config.SCANNER_RANGE.
+func _scanner_text() -> String:
+	var nearest := INF
+	for node in _player.get_parent().get_children():
+		var other := node as Player
+		if other == null or other == _player or other.health.is_dead or other.is_evacuated:
+			continue
+		if PactManager.allied(_player.get_peer_id(), other.get_peer_id()):
+			continue
+		nearest = minf(nearest, other.global_position.distance_to(_player.global_position))
+	if nearest > Config.SCANNER_RANGE:
+		return ""
+	return "   ⚠ Prospecteur à %d m" % roundi(nearest)
+
+
+func _update_downed() -> void:
+	var h := _player.health
+	if _downed_label == null:
+		_downed_label = _make_label("", 30)
+		_downed_label.add_theme_color_override("font_color", Color(1.0, 0.5, 0.4))
+		add_child(_downed_label)
+		_downed_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		_downed_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+		_downed_label.offset_top = 120
+	_downed_label.visible = h.is_downed
+	if h.is_downed:
+		var left := maxf(Config.DOWNED_TIME - (Time.get_ticks_msec() - h.downed_at_ms) / 1000.0, 0.0)
+		_downed_label.text = "À TERRE — %d s\nVotre partenaire peut vous relever (E maintenu)" % ceili(left)

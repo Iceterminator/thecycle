@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_eyrj0"]
+
+[resource]
+script = ExtResource("1_eyrj0")
+id = &"evasion_cloak"
+display_name = "Voile de fuite"
+reference_name = "Evasion Cloak"
+faction = 1
+faction_level = 4
+category = 4
+cooldown_s = 40.0
+duration_s = 6.0
+buff = {
+"cloak": 0.8,
+"damage_taken_mult": 1.25,
+"speed_mult": 1.3
+}
+after_buff = {
+"speed_mult": 0.7
+}
+after_duration_s = 3.0
+activation = "Appuyer : camouflage immédiat sur soi."
+effects = PackedStringArray("Invisibilité partielle", "Vitesse +30 %", "Dégâts subis +25 % pendant le camouflage", "Ralentissement de 30 % pendant 3 s à la fin")
+visual = "Le joueur devient une silhouette déformant l'arrière-plan."
+counterplay = "Tirer sur la distorsion : il prend plus de dégâts."
+behavior = "Camouflage pour fuir ou se repositionner vite ; on prend plus de dégâts pendant, et on est ralenti quelques secondes après."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "effects (valeurs)")

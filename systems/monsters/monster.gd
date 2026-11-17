@@ -51,6 +51,8 @@ var home: Vector3
 var objective: Node3D          ## monstre de vague : ce qu'il doit détruire
 var damage_mult: float = 1.0   ## vagues difficiles et niveau : coups plus forts
 var credits_mult: float = 1.0  ## niveau : crédits versés au tueur
+var _slow_mult: float = 1.0       ## Entrave : vitesse réduite jusqu'à _slow_until_ms
+var _slow_until_ms: int = 0
 var _projectiles: Array[Dictionary] = []  ## { id, pos, dir, travelled, max_dist }
 var _next_projectile_id: int = 0
 var _had_objective: bool = false
@@ -358,6 +360,10 @@ func _find_player() -> Player:
 		var player := node as Player
 		if player == null or not player.can_be_hit():
 			continue
+		# Joueur camouflé : invisible pour les monstres, sauf tout près.
+		var cloaked := player.buffs != null and player.buffs.get_cloak(0.0) >= Config.CLOAK_MONSTER_IGNORE
+		if cloaked and global_position.distance_to(player.global_position) > 4.0:
+			continue
 		var dist := global_position.distance_to(player.global_position)
 		if dist <= best_dist and _has_line_of_sight(player):
 			best = player
@@ -387,6 +393,8 @@ func _move_toward_with_path(target_pos: Vector3, speed: float) -> void:
 
 
 func _move_to(point: Vector3, speed: float) -> void:
+	if _slow_until_ms > Time.get_ticks_msec():
+		speed *= _slow_mult
 	var dir := point - global_position
 	dir.y = 0.0
 	if dir.length() < 0.05:
@@ -549,7 +557,7 @@ func _step_projectiles(delta: float) -> void:
 		var step := minf(data.projectile_speed * delta, p["max_dist"] - p["travelled"])
 		var from: Vector3 = p["pos"]
 		var to: Vector3 = from + p["dir"] * step
-		var query := PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 1))
+		var query := PhysicsRayQueryParameters3D.create(from, to, 1 | (1 << 1) | Config.SHOT_ONLY_LAYER)
 		query.exclude = [get_rid()]
 		var hit := space.intersect_ray(query)
 		if not hit.is_empty():
@@ -607,3 +615,9 @@ func _exit_tree() -> void:
 	# Le monstre disparaît : ses projectiles visibles aussi.
 	for id: int in _visual_projectiles.keys():
 		_free_projectile_visual(id)
+
+
+## Serveur : ralentissement temporaire (capacité Entrave).
+func apply_slow(mult: float, duration: float) -> void:
+	_slow_mult = clampf(mult, 0.1, 1.0)
+	_slow_until_ms = Time.get_ticks_msec() + int(duration * 1000.0)

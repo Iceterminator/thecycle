@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_mmgv0"]
+
+[resource]
+script = ExtResource("1_mmgv0")
+id = &"shock_grenade"
+display_name = "Grenade à choc"
+reference_name = "Shock Grenade"
+category = 0
+cooldown_s = 20.0
+duration_s = 3.0
+radius_m = 4.0
+damage_per_s = 60.0
+activation = "Appuyer : lance une grenade en arc ; elle rebondit, se pose, puis émet des décharges électriques."
+effects = PackedStringArray("Dégâts électriques continus pendant 3 s dans 4 m après l\'atterrissage")
+visual = "Petite grenade bleue qui grésille, puis sphère d'arcs électriques au sol."
+counterplay = "Sortir de la zone rapidement."
+behavior = "Grenade légère qui inflige des dégâts pendant quelques secondes après avoir atterri. Sert à déloger un ennemi à couvert ou à interdire une zone."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "radius_m", "damage_per_s")

@@ -14,6 +14,9 @@ const ADMIN_SCRIPT := preload("res://systems/admin/admin.gd")
 const MAP_OVERLAY_SCRIPT := preload("res://systems/map/map_overlay.gd")
 const KIT_SCRIPT := preload("res://systems/kits/kit_controller.gd")
 const MOVEMENT_SCRIPT := preload("res://systems/kits/kit_movement.gd")
+const BUFFS_SCRIPT := preload("res://systems/abilities/buff_controller.gd")
+const ABILITIES_SCRIPT := preload("res://systems/abilities/ability_controller.gd")
+const PACT_UI_SCRIPT := preload("res://systems/pacts/pact_ui.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -32,6 +35,9 @@ var admin: Admin
 ## créés en code sur tous les peers (nœuds « Kit » et « Movement »).
 var kit: KitController
 var movement: KitMovement
+## Bonus / malus temporaires et capacités Q / F (étape 8c, autorité serveur).
+var buffs: BuffController
+var abilities: AbilityController
 ## Recul subi (coup de poing chargé), qui s'estompe.
 var _knockback := Vector3.ZERO
 
@@ -82,6 +88,14 @@ func _ready() -> void:
 	movement = MOVEMENT_SCRIPT.new()
 	movement.name = "Movement"
 	add_child(movement)
+	buffs = BUFFS_SCRIPT.new()
+	buffs.name = "Buffs"
+	buffs.set_multiplayer_authority(1)
+	add_child(buffs)
+	abilities = ABILITIES_SCRIPT.new()
+	abilities.name = "Abilities"
+	abilities.set_multiplayer_authority(1)
+	add_child(abilities)
 	if not is_local:
 		_build_beacon()
 	if is_local:
@@ -93,6 +107,11 @@ func _ready() -> void:
 		map_overlay.name = "MapOverlay"
 		add_child(map_overlay)
 		map_overlay.setup(self)
+		var pact_ui: PactUi = PACT_UI_SCRIPT.new()
+		pact_ui.name = "PactUi"
+		add_child(pact_ui)
+		pact_ui.setup(self)
+	health.downed_changed.connect(_on_downed_changed)
 	set_physics_process(is_local)
 	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
 	set_process(not is_local)
@@ -123,6 +142,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	_apply_crouch_shape(delta)
+	# Camouflage vu par les autres : le corps devient transparent.
+	if buffs and body_mesh.visible:
+		var speed := Vector2(velocity.x, velocity.z).length()
+		body_mesh.transparency = buffs.get_cloak(speed)
 
 
 func _physics_process(delta: float) -> void:
@@ -134,6 +157,15 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= gravity * delta
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# À terre : on rampe, rien d'autre (pas de saut ni de capacité).
+	if health.is_downed:
+		is_crouching = true
+		_apply_crouch_shape(delta)
+		var crawl := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized() * Config.DOWNED_SPEED
+		velocity.x = crawl.x
+		velocity.z = crawl.z
+		move_and_slide()
+		return
 	# Saut, glissade et capacités du kit (jetpack, esquive, super saut…).
 	movement.pre_physics(delta, input_dir)
 	is_crouching = Input.is_action_pressed("crouch") or movement.is_sliding()
@@ -170,11 +202,38 @@ func _physics_process(delta: float) -> void:
 
 ## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.SPRINT_MULTIPLIER.
 func _current_speed(input_dir: Vector2) -> float:
+	var buff := buffs.get_mult("speed_mult") if buffs else 1.0
 	if is_crouching:
-		return Config.CROUCH_SPEED
+		return Config.CROUCH_SPEED * buff
 	if Input.is_action_pressed("sprint") and input_dir.y < 0:
-		return kit.move_speed() * Config.SPRINT_MULTIPLIER
-	return kit.move_speed()
+		return kit.move_speed() * Config.SPRINT_MULTIPLIER * buff
+	return kit.move_speed() * buff
+
+
+## À terre : un allié peut nous relever (interaction E maintenue) ; tous les peers.
+func _on_downed_changed(downed: bool) -> void:
+	if downed:
+		add_to_group("downed_players")
+		add_to_group("interactable")
+	else:
+		remove_from_group("downed_players")
+		remove_from_group("interactable")
+
+
+## Interaction (relever) : seulement pour un allié, et seulement si on est à terre.
+func get_prompt(viewer: Player) -> String:
+	if not health.is_downed or viewer == self or not PactManager.allied(viewer.get_peer_id(), get_peer_id()):
+		return ""
+	return "Maintenir E : relever Joueur %d" % get_peer_id()
+
+
+func get_hold_time(_viewer: Player) -> float:
+	return Config.REVIVE_TIME
+
+
+func server_interact(viewer: Player) -> void:
+	if health.is_downed and PactManager.allied(viewer.get_peer_id(), get_peer_id()) and not viewer.health.is_downed:
+		health.server_revive_downed(viewer.get_peer_id())
 
 
 ## Serveur -> joueur touché : recul (coup de poing chargé).

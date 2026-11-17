@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_w0lyi"]
+
+[resource]
+script = ExtResource("1_w0lyi")
+id = &"warp_bomb"
+display_name = "Bombe de distorsion"
+reference_name = "Warp Bomb"
+faction = 1
+faction_level = 9
+category = 10
+cooldown_s = 60.0
+delay_s = 1.5
+radius_m = 5.0
+damage = 300.0
+activation = "Poser l'appareil en visant une direction : il crée une sortie de distorsion plus loin, qui explose."
+effects = PackedStringArray("Explosion à la sortie du portail directionnel")
+visual = "Portail violet qui se déforme puis implose en explosion."
+counterplay = "Éviter la sortie du portail."
+behavior = "Dispositif de distorsion directionnel dont la sortie explose : sert de piège ou de frappe à travers un obstacle."
+estimated_fields = PackedStringArray("cooldown_s", "delay_s", "radius_m", "damage")

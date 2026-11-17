@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_1h353"]
+
+[resource]
+script = ExtResource("1_1h353")
+id = &"skirmish_sphere"
+display_name = "Sphère hostile"
+reference_name = "Skirmish Sphere"
+faction = 1
+faction_level = 8
+category = 6
+cooldown_s = 60.0
+duration_s = 12.0
+radius_m = 8.0
+damage_per_s = 20.0
+heal_per_s = 25.0
+activation = "Lancer l'appareil : crée une grande sphère."
+effects = PackedStringArray("Blesse les ennemis dans la sphère", "Soigne un peu le propriétaire (soins réduits)")
+visual = "Grande sphère rouge translucide au sol."
+counterplay = "Sortir de la sphère."
+behavior = "Grande zone offensive qui blesse les ennemis mais réduit les soins reçus à l'intérieur."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "radius_m", "damage_per_s")
+notes = "heal_per_s déduit des notes de patch 'Heal ward – Offensive : 25 soins/s' (association probable)."

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_hcq28"]
+
+[resource]
+script = ExtResource("1_hcq28")
+id = &"snare_trap"
+display_name = "Entrave"
+reference_name = "Snare Trap"
+faction = 3
+faction_level = 3
+category = 10
+cooldown_s = 25.0
+duration_s = 4.0
+slow_percent = 40.0
+activation = "Lancer sur un adversaire : l'appareil s'accroche à lui."
+effects = PackedStringArray("Ralentit la cible")
+visual = "Appareil bleu accroché à la cible avec arcs électriques."
+counterplay = "Se mettre à couvert en attendant la fin."
+behavior = "Ralentit un adversaire pour l'empêcher de fuir ou de rejoindre un couvert."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "slow_percent")

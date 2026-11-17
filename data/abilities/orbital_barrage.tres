@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_1buna"]
+
+[resource]
+script = ExtResource("1_1buna")
+id = &"orbital_barrage"
+display_name = "Averse orbitale"
+reference_name = "Orbital Barrage"
+faction = 3
+faction_level = 6
+category = 5
+cooldown_s = 60.0
+delay_s = 2.0
+radius_m = 12.0
+damage_per_missile = 40.0
+missiles = 16
+activation = "Viser une zone : plusieurs roquettes tombent sur une grande surface."
+effects = PackedStringArray("Petits dégâts répartis sur une grande zone")
+visual = "Grand cercle bleu puis pluie de petites roquettes."
+counterplay = "Sortir de la zone."
+behavior = "Saturation de zone à faibles dégâts : casser les boucliers d'un groupe, déloger."
+estimated_fields = PackedStringArray("cooldown_s", "delay_s", "radius_m", "missiles", "damage_per_missile")

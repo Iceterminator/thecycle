@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_dyhil"]
+
+[resource]
+script = ExtResource("1_dyhil")
+id = &"safeguard"
+display_name = "Paravent"
+reference_name = "Safeguard"
+faction = 3
+faction_level = 4
+category = 3
+duration_s = 10.0
+width_m = 5.0
+height_m = 2.5
+activation = "Viser et appuyer : déploie une barrière."
+effects = PackedStringArray("Bloque les tirs ennemis ET alliés", "Les ennemis peuvent la traverser")
+visual = "Mur bleu translucide."
+counterplay = "Passer à travers."
+behavior = "Couvert instantané contre les tirs, mais pas contre les déplacements."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s", "width_m", "height_m")

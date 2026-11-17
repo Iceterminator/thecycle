@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_my1ap"]
+
+[resource]
+script = ExtResource("1_my1ap")
+id = &"trench_grenade"
+display_name = "Grenade à fragmentation"
+reference_name = "Trench Grenade"
+type = 9
+fire_mode = 1
+projectile_type = 2
+damage = 400.0
+fire_interval_s = 1.0
+falloff_start_m = 4.5
+aoe_damage = 400.0
+aoe_radius_m = 6.0
+magazine = 3
+gadget = 1
+consumable = true
+fuse_s = 2.5
+spawn_cost_credits = 100
+role = "Lancer en arc ; n'explose pas au contact d'une cible, mais après son délai."
+strengths = PackedStringArray()
+weaknesses = PackedStringArray()
+estimated_fields = PackedStringArray("spawn_cost_credits", "fuse_s", "fire_interval_s", "magazine (grenades par achat)")
+behavior = "Grenade à fragmentation classique ; ses éclats sont très efficaces contre les monstres."
+notes = "Présente dans les alphas ; particulièrement efficace contre les créatures."

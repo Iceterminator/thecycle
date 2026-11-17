@@ -32,7 +32,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var target: Node3D = null
-	if not player.health.is_dead and not player.is_evacuated:
+	if not player.health.is_dead and not player.health.is_downed and not player.is_evacuated:
 		target = _find_target()
 	var text: String = target.get_prompt(player) if target else ""
 	if text != _prompt:
@@ -76,10 +76,26 @@ func _find_target() -> Node3D:
 	var query := PhysicsRayQueryParameters3D.create(from, to, RAY_MASK, [player.get_rid()])
 	query.collide_with_areas = true
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
-		return null
-	var collider := hit["collider"] as Node3D
-	return collider if collider and collider.is_in_group("interactable") else null
+	if not hit.is_empty():
+		var collider := hit["collider"] as Node3D
+		if collider and collider.is_in_group("interactable"):
+			return collider
+	return _find_downed_ally()
+
+
+## Allié à terre tout près et devant soi (le rayon ignore les joueurs : on le cherche à part).
+func _find_downed_ally() -> Node3D:
+	var forward := -player.camera.global_basis.z
+	forward.y = 0.0
+	for node in get_tree().get_nodes_in_group("downed_players"):
+		var other := node as Player
+		if other == null or other == player or not PactManager.allied(player.get_peer_id(), other.get_peer_id()):
+			continue
+		var to := other.global_position - player.global_position
+		to.y = 0.0
+		if to.length() <= Config.INTERACT_RANGE and (to.length() < 0.8 or to.normalized().dot(forward.normalized()) > 0.5):
+			return other
+	return null
 
 
 # =========================================================================
@@ -98,7 +114,7 @@ func request_hold_start(path: NodePath) -> void:
 func request_interact(path: NodePath) -> void:
 	if not multiplayer.is_server():
 		return
-	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.is_evacuated:
+	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.health.is_downed or player.is_evacuated:
 		return
 	var target := get_node_or_null(path) as Node3D
 	if target == null or not target.is_in_group("interactable") or not target.has_method("server_interact"):

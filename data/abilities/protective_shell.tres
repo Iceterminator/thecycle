@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_t0j7t"]
+
+[resource]
+script = ExtResource("1_t0j7t")
+id = &"protective_shell"
+display_name = "Coque"
+reference_name = "Protective Shell"
+faction = 2
+faction_level = 7
+category = 8
+cooldown_s = 45.0
+duration_s = 3.0
+buff = {
+"invulnerable": 1.0
+}
+activation = "Appuyer : bulle autour de soi."
+effects = PackedStringArray("Bloque TOUS les dégâts reçus pendant 3 s")
+visual = "Bulle hexagonale verte autour du joueur."
+counterplay = "Attendre la fin de la bulle (3 s)."
+behavior = "Bouclier personnel qui protège de tous les dégâts pendant 3 s : survivre à un burst ou à une explosion."
+estimated_fields = PackedStringArray("cooldown_s")

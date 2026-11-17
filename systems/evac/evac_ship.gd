@@ -70,7 +70,7 @@ func _physics_process(delta: float) -> void:
 		if player == null:
 			continue
 		var peer := player.get_peer_id()
-		var inside := not player.health.is_dead and not player.is_evacuated and is_in_bay(player.global_position)
+		var inside := not player.health.is_dead and not player.health.is_downed and not player.is_evacuated and is_in_bay(player.global_position)
 		if not inside:
 			if _progress.has(peer):
 				_progress.erase(peer)

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_ia5kd"]
+
+[resource]
+script = ExtResource("1_ia5kd")
+id = &"orbital_bombardment"
+display_name = "Pluie orbitale"
+reference_name = "Orbital Bombardment"
+faction = 1
+faction_level = 4
+category = 5
+cooldown_s = 60.0
+duration_s = 4.0
+delay_s = 2.5
+radius_m = 8.0
+damage_per_missile = 80.0
+missiles = 12
+activation = "Viser une zone et appuyer : marqueur au sol, puis barrage de missiles après un délai."
+effects = PackedStringArray("Barrage de missiles sur la zone marquée")
+visual = "Cercle rouge au sol visible par tous, puis pluie de missiles avec explosions."
+counterplay = "Sortir du cercle pendant le délai."
+behavior = "Marque une zone qui reçoit un barrage de missiles : déloge les ennemis groupés ou campés."
+estimated_fields = PackedStringArray("cooldown_s", "delay_s", "duration_s", "radius_m", "damage_per_missile", "missiles")

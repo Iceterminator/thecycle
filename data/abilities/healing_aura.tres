@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_bqhbv"]
+
+[resource]
+script = ExtResource("1_bqhbv")
+id = &"healing_aura"
+display_name = "Aura de soin"
+reference_name = "Healing Aura"
+faction = 3
+faction_level = 2
+category = 11
+cooldown_s = 40.0
+duration_s = 10.0
+heal_per_s = 15.0
+buff = {
+"heal_per_s": 15.0
+}
+activation = "Appuyer : un appareil se fixe sur soi."
+effects = PackedStringArray("Soin continu sur soi (et alliés proches), moins fort que le soin de base")
+visual = "Petit drone/appareil bleu sur l'épaule avec halo."
+counterplay = "Burst de dégâts."
+behavior = "Soin mobile : moins efficace, mais on peut bouger et combattre en se soignant."
+estimated_fields = PackedStringArray("cooldown_s", "duration_s")
+notes = "heal_per_s déduit des notes de patch 'Heal ward – Attached : 15 soins/s' (association probable)."

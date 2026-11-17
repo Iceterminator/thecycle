@@ -217,7 +217,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 7 – Tempête et événements** — *(fait le 17/11/2026, validé par test automatisé à 2 instances, à vérifier en jeu)* : tempête en zone qui se referme, niveaux de monstres, cristaux qui montent de niveau à 10:00, Cracheur (monstre à distance). **Pas d'événements à 5 et 10 min pour l'instant, pas de largages de ravitaillement.**
 - [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
   Découpage (référence : `data/reference/the_cycle_legacy_data.json`, nouvelle version avec capacités et gadgets) :
-  **8a armes (fait le 17/11/2026)** ; **8b kits (fait le 17/11/2026)** ; 8c capacités (21, touches Q / F) ; 8d gadgets ; 8e raretés, escouades, « à terre », pactes.
+  **8a armes (fait le 17/11/2026)** ; **8b kits (fait le 17/11/2026)** ; **8c capacités (fait le 17/11/2026)** : 21 capacités (Q / F), choix dans le menu K, 2 améliorations à 100 cr. en boutique, bonus / malus synchronisés (BuffController) ; **8d gadgets (fait le 17/11/2026)** : Grenade à fragmentation, Rayon vital, Balise de rappel (boutique), Scanner directionnel (alarme à 25 m + carte) ; **8e (fait le 17/11/2026)** : pas de raretés, à la place 3 paliers de boost par arme achetés en boutique (+10 % dégâts, +10 % portée, +10 % cadence ; `WeaponData.boosts`, prix `Config.WEAPON_BOOST_PRICES`) ; pactes (P) : pas de dégâts entre partenaires, Fame des contrats moitié / moitié, trahison annoncée ; état « à terre » 30 s (relevé E 5 s, achevable, kill pour qui l'a mis à terre) — en attendant les escouades, le partenaire de pacte compte comme coéquipier (`Config.PACT_PARTNER_IS_ALLY`). **Escouades : reportées à l'étape 9.**
   > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
   > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,
   > Kit nu), générés depuis `data/reference/the_cycle_legacy_data.json`.
@@ -237,7 +237,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
   >    armes importées sont réglées), contre 100 PV + 25 de bouclier aujourd'hui. Soit le kit remplace
   >    tout et les améliorations de bouclier quittent la boutique, soit le kit donne la base et la
   >    boutique ajoute du bouclier en plus.
-- [ ] **Étape 9 – Méta et lobby** — factions, réputation, déblocages, mods, sauvegarde, menu, matchmaking simple.
+- [ ] **Étape 9 – Méta et lobby** — factions, réputation, déblocages, mods, sauvegarde, menu, matchmaking simple. **+ escouades (reportées de l'étape 8)** : jusqu'à 4, comment les former (invitation en jeu, code, lobby…) à décider ; coéquipiers visibles sur la carte, pas de tirs entre eux, ils remplacent le partenaire de pacte pour l'état « à terre ».
 - [ ] **Étape 10 – En ligne** — serveur dédié hébergé (VPS), tests à 10-20 joueurs, optimisation réseau.
 
 ## Architecture Godot

@@ -71,5 +71,12 @@ signal match_results_received(results: Array, restart_in: float)
 signal monster_level_changed(level: int)
 ## Serveur : les cristaux pas encore commencés montent d'un niveau (QuestManager).
 signal crystal_upgrade_requested()
+## Serveur : une capacité veut poser un objet (grenade, tourelle, mur, frappe, portail, balise).
+signal ability_object_requested(data: Dictionary)
+## Client : une balise d'écoute a repéré ces joueurs (positions) pour la carte du propriétaire.
+signal scan_revealed(positions: Array)
+## Serveur : un joueur tombe à terre / est relevé (étape 8e).
+signal player_downed(peer_id: int, attacker_id: int)
+signal player_revived(peer_id: int, by_id: int)
 
 @warning_ignore_restore("unused_signal")

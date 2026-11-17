@@ -20,6 +20,12 @@ var slot_ammo: PackedInt32Array = PackedInt32Array([0, 0]):
 	set(value):
 		slot_ammo = value
 		changed.emit()
+## Palier de boost de chaque emplacement (0 à 3, voir WeaponData.boosts). Synchronisé par
+## BoostSync (créé en code). Une arme lâchée garde son palier (quantité au sol = 1 + palier).
+var slot_boosts: PackedInt32Array = PackedInt32Array([0, 0]):
+	set(value):
+		slot_boosts = value
+		changed.emit()
 var active_slot: int = 0:
 	set(value):
 		active_slot = value
@@ -182,6 +188,7 @@ func cancel_use() -> void:
 
 ## Serveur : équipement de base (réapparition). Les crédits sont conservés.
 func reset_loadout() -> void:
+	slot_boosts = PackedInt32Array([0, 0])
 	var base := Items.get_item(Config.BASE_WEAPON)
 	slot_ammo = PackedInt32Array([base.weapon.magazine, 0])
 	active_slot = 0
@@ -203,13 +210,14 @@ func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 	match item.kind:
 		ItemData.Kind.WEAPON:
 			var mag := ammo if ammo >= 0 else item.weapon.magazine
+			var boost := clampi(amount - 1, 0, item.weapon.boosts.size())  # palier porté par l'objet au sol
 			var free := slot_ids.find("")
 			if free >= 0:
-				_set_slot(free, item.id, mag)
+				_set_slot(free, item.id, mag, boost)
 			else:
-				# Emplacements pleins : l'arme en main est lâchée et remplacée.
-				Events.loot_drop_requested.emit(get_active_id(), 1, get_active_ammo(), _drop_position(), false)
-				_set_slot(active_slot, item.id, mag)
+				# Emplacements pleins : l'arme en main est lâchée (avec son boost) et remplacée.
+				Events.loot_drop_requested.emit(get_active_id(), 1 + get_active_boost(), get_active_ammo(), _drop_position(), false)
+				_set_slot(active_slot, item.id, mag, boost)
 		ItemData.Kind.HEAL:
 			if medkits >= Config.MAX_MEDKITS:
 				return false
@@ -261,7 +269,10 @@ func add_credits(amount: int) -> void:
 	Events.credits_changed.emit(player.get_peer_id(), credits)
 
 
-func _set_slot(slot: int, item_id: StringName, ammo: int) -> void:
+func _set_slot(slot: int, item_id: StringName, ammo: int, boost: int = 0) -> void:
+	var b := slot_boosts
+	b[slot] = boost
+	slot_boosts = b
 	var a := slot_ammo
 	a[slot] = ammo
 	slot_ammo = a  # le chargeur d'abord : il est prêt quand l'arme change
@@ -281,7 +292,7 @@ func _on_dead_changed_server(dead: bool) -> void:
 	var pos := player.global_position + Vector3(0, 0.5, 0)
 	for i in slot_ids.size():
 		if slot_ids[i] != "" and StringName(slot_ids[i]) != Config.BASE_WEAPON:
-			Events.loot_drop_requested.emit(StringName(slot_ids[i]), 1, slot_ammo[i], pos, true)
+			Events.loot_drop_requested.emit(StringName(slot_ids[i]), 1 + slot_boosts[i], slot_ammo[i], pos, true)
 	for i in medkits:
 		Events.loot_drop_requested.emit(Config.HEAL_ITEM, 1, -1, pos, true)
 	for i in shield_cells:
@@ -316,3 +327,38 @@ func server_reset() -> void:
 	carried = {}
 	credits = 0
 	Events.credits_changed.emit(player.get_peer_id(), credits)
+
+
+func _init() -> void:
+	# Palier de boost des emplacements : synchronisé à part (player.tscn reste inchangé).
+	var config := SceneReplicationConfig.new()
+	var path := NodePath(".:slot_boosts")
+	config.add_property(path)
+	config.property_set_spawn(path, true)
+	config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE)
+	var sync := MultiplayerSynchronizer.new()
+	sync.name = "BoostSync"
+	sync.replication_config = config
+	add_child(sync)
+
+
+func get_active_boost() -> int:
+	return slot_boosts[active_slot] if active_slot < slot_boosts.size() else 0
+
+
+## Serveur : monte d'un palier le boost de l'arme en main.
+func server_boost_active() -> void:
+	var b := slot_boosts
+	b[active_slot] += 1
+	slot_boosts = b
+
+
+## Serveur : retire l'arme en main (gadget épuisé) et passe sur l'autre emplacement.
+func server_remove_active() -> void:
+	var slot := active_slot
+	var other := 1 - slot
+	if slot_ids[other] != "":
+		active_slot = other
+	_set_slot(slot, &"", 0)
+	if slot_ids[active_slot] == "":
+		reset_loadout()

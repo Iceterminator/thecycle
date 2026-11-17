@@ -32,7 +32,7 @@ func _physics_process(delta: float) -> void:
 		if _time_left <= 0.0:
 			var target := _find(_target_id)
 			if target:
-				target.score.add_rank_points(_amount / 2)
+				target.score.add_contract_fame(_amount / 2)
 			_clear("%s a survécu à sa prime (+%d Fame)" % [ContractSite.player_name(_target_id), _amount / 2])
 		return
 	_cooldown -= delta
@@ -61,7 +61,7 @@ func _on_player_died(victim: int, killer: int) -> void:
 		return
 	var hunter := _find(killer) if killer != victim else null
 	if hunter:
-		hunter.score.add_rank_points(_amount)
+		hunter.score.add_contract_fame(_amount)
 		_clear("%s a touché la prime sur %s (+%d Fame)" % [ContractSite.player_name(killer), ContractSite.player_name(victim), _amount])
 	else:
 		_clear("La prime sur %s est annulée" % ContractSite.player_name(victim))

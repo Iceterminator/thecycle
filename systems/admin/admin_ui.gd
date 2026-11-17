@@ -89,9 +89,14 @@ func _build() -> void:
 	center.add_child(panel)
 
 	var box := VBoxContainer.new()
-	box.custom_minimum_size = Vector2(760, 0)
+	box.custom_minimum_size = Vector2(980, 0)
 	box.add_theme_constant_override("separation", 8)
-	panel.add_child(box)
+	# Le menu est long (armes, kits, capacités…) : il défile, hauteur limitée à l'écran.
+	var outer := ScrollContainer.new()
+	outer.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.custom_minimum_size = Vector2(1000, minf(820.0, get_viewport().get_visible_rect().size.y - 80.0) if get_viewport() else 760.0)
+	panel.add_child(outer)
+	outer.add_child(box)
 
 	var title := Label.new()
 	title.text = "MENU ADMIN — apparaît devant vous"
@@ -102,7 +107,7 @@ func _build() -> void:
 	# --- Armes (toutes celles de data/weapons/) ---
 	box.add_child(_section("Armes"))
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 260)
+	scroll.custom_minimum_size = Vector2(0, 200)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
 	var grid := GridContainer.new()
@@ -127,6 +132,31 @@ func _build() -> void:
 			_admin.request_set_kit.rpc_id(1, String(kit_data.id)))
 		kit_button.custom_minimum_size = Vector2(150, 34)
 		kits_row.add_child(kit_button)
+	var ready_button := _button("Recharges à zéro + K", func() -> void: _admin.request_abilities_ready.rpc_id(1))
+	ready_button.tooltip_text = "Capacités prêtes tout de suite, et menu Équipement (K) modifiable"
+	kits_row.add_child(ready_button)
+
+	# --- Capacités : Q ou F, équipées tout de suite ---
+	box.add_child(_section("Capacités (équipées tout de suite sur Q ou F)"))
+	var ability_grid := GridContainer.new()
+	ability_grid.columns = 3
+	ability_grid.add_theme_constant_override("h_separation", 14)
+	box.add_child(ability_grid)
+	for ability_data in AbilityController.list_abilities():
+		var cell := HBoxContainer.new()
+		var ability_label := Label.new()
+		ability_label.text = ability_data.get_display_name()
+		ability_label.custom_minimum_size = Vector2(170, 0)
+		ability_label.tooltip_text = ability_data.behavior
+		ability_label.mouse_filter = Control.MOUSE_FILTER_PASS
+		cell.add_child(ability_label)
+		for ability_slot in 2:
+			var slot_button := Button.new()
+			slot_button.text = "Q" if ability_slot == 0 else "F"
+			slot_button.custom_minimum_size = Vector2(34, 28)
+			slot_button.pressed.connect(func() -> void: _admin.request_set_ability.rpc_id(1, ability_slot, String(ability_data.id)))
+			cell.add_child(slot_button)
+		ability_grid.add_child(cell)
 
 	# --- Crédits ---
 	box.add_child(_section("Crédits (au sol)"))

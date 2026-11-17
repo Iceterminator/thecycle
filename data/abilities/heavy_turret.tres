@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_304uc"]
+
+[resource]
+script = ExtResource("1_304uc")
+id = &"heavy_turret"
+display_name = "Tourelle lourde"
+reference_name = "Heavy Turret"
+faction = 1
+faction_level = 2
+category = 2
+cooldown_s = 60.0
+duration_s = 90.0
+damage = 25.0
+health = 600.0
+rpm = 300.0
+range_m = 40.0
+activation = "Viser le sol et appuyer : la tourelle tombe depuis l'orbite et s'active à l'atterrissage."
+effects = PackedStringArray("Tire automatiquement sur les ennemis (joueurs et monstres) à portée pendant 90 s")
+visual = "Capsule qui tombe du ciel avec traînée de feu, s'ouvre en tourelle canon lourde aux couleurs Korolev."
+counterplay = "La détruire (600 PV) ou casser la ligne de vue."
+behavior = "Invoque une tourelle lourde qui attaque les ennemis autour pendant 90 s. Parfait pour tenir un uplink ou un extracteur."
+estimated_fields = PackedStringArray("cooldown_s", "health", "damage", "rpm", "range_m")

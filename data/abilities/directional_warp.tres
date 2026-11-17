@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" format=3]
+
+[ext_resource type="Script" path="res://resources/ability_data.gd" id="1_bmulw"]
+
+[resource]
+script = ExtResource("1_bmulw")
+id = &"directional_warp"
+display_name = "Saut de phase"
+reference_name = "Directional Warp"
+faction = 2
+faction_level = 4
+category = 7
+duration_s = 5.0
+distance_m = 15.0
+activation = "Viser et appuyer : ouvre un portail devant soi ; le traverser fait ressortir plus loin dans cette direction."
+effects = PackedStringArray("Téléportation directionnelle via portail")
+visual = "Portail ovale vert d'entrée et de sortie."
+counterplay = "Surveiller la sortie."
+behavior = "Portail de déplacement : franchir un obstacle, fuir, ou surprendre."
+estimated_fields = PackedStringArray("cooldown_s", "distance_m", "duration_s")
