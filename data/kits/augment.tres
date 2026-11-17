@@ -6,6 +6,7 @@
 script = ExtResource("1_8yvco")
 id = &"augment"
 display_name = "Kit nu"
+reference_name = "Augment"
 faction_level = -1
 level_perks = PackedStringArray()
 estimated_fields = PackedStringArray()

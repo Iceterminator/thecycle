@@ -6,6 +6,7 @@
 script = ExtResource("1_uhrn2")
 id = &"dragonfly_flightsuit"
 display_name = "Combinaison Martinet"
+reference_name = "Dragonfly Flightsuit"
 faction = 3
 faction_level = 1
 health = 500.0
@@ -34,6 +35,21 @@ movement = {
 }
 }
 level_perks = PackedStringArray("Défense contre les créatures +20 %", "Santé et bouclier +50", "Dégâts de plongée +50", "Régénération du carburant +25 %", "Santé et bouclier +50", "Dégâts contre les créatures +20 %")
+level_perk_effects = Array[Dictionary]([{
+"creature_defense": 0.2
+}, {
+"max_health_add": 50.0,
+"max_shield_add": 50.0
+}, {
+"dive_damage_add": 50.0
+}, {
+"fuel_regen_mult": 0.25
+}, {
+"max_health_add": 50.0,
+"max_shield_add": 50.0
+}, {
+"creature_damage": 0.2
+}])
 mods = Array[Dictionary]([{
 "effect": "Vol plus long mais poussée plus faible (fuel_consumption -30 %, thrust -25 %)",
 "id": "slow_and_steady"

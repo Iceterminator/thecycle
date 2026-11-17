@@ -117,7 +117,7 @@ func _build() -> void:
 		if item.kind != last_kind:
 			last_kind = item.kind
 			var section := Label.new()
-			section.text = "Armes" if item.kind == ItemData.Kind.WEAPON else "Boucliers"
+			section.text = "Armes" if item.kind == ItemData.Kind.WEAPON else "Objets"
 			section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
 			box.add_child(section)
 		box.add_child(_make_row(item))

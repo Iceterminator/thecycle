@@ -29,6 +29,7 @@ var _clock_label: Label
 var _minimap: MapView
 var _tags_left: float = 0.0  ## prochaine mise à jour des textes flottants des quêtes
 var _storm_label: Label
+var _kit_label: Label
 var _board_box: VBoxContainer
 var _board_bar: ProgressBar
 var _aboard_label: Label
@@ -74,6 +75,7 @@ func setup(player: Player) -> void:
 
 func _process(delta: float) -> void:
 	_update_clock(delta)
+	_kit_label.text = _kit_text()
 	_tags_left -= delta
 	if _tags_left <= 0.0:
 		_tags_left = 0.2
@@ -198,6 +200,7 @@ func _on_inventory_changed() -> void:
 
 func _on_health_changed() -> void:
 	var h := _player.health
+	_health_bar.max_value = maxf(h.get_max_health(), 1.0)
 	_health_bar.value = h.health
 	_shield_bar.max_value = maxf(h.max_shield, 1.0)
 	_shield_bar.value = h.shield
@@ -281,6 +284,11 @@ func _build() -> void:
 	bars.offset_right = 24
 	bars.offset_top = -24
 	bars.offset_bottom = -24
+	# Kit : nom, niveau, XP et capacité de mouvement (au-dessus des barres).
+	_kit_label = _make_label("", 16)
+	_kit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_kit_label.add_theme_color_override("font_color", Color(0.75, 1.0, 0.8))
+	bars.add_child(_kit_label)
 	_shield_label = _make_label("", 16)
 	_shield_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	bars.add_child(_shield_label)
@@ -289,7 +297,7 @@ func _build() -> void:
 	_health_label = _make_label("", 16)
 	_health_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	bars.add_child(_health_label)
-	_health_bar = _make_bar(Color(0.35, 0.85, 0.35), Config.MAX_HEALTH)
+	_health_bar = _make_bar(Color(0.35, 0.85, 0.35), Config.KIT_DEFAULT_HEALTH)
 	bars.add_child(_health_bar)
 
 	# Munitions en bas à droite.
@@ -475,3 +483,19 @@ func _update_quest_tags() -> void:
 	for node in get_tree().get_nodes_in_group("map_marker"):
 		if node.has_method("set_map_tag_visible"):
 			node.set_map_tag_visible(MapView.in_reveal_range((node as Node3D).global_position, _player.global_position))
+
+
+## Ligne du kit : « Furet — niv. 3 (XP 260 / 450)  [K] Équipement », puis sa capacité.
+func _kit_text() -> String:
+	var kit := _player.kit
+	if kit == null:
+		return ""
+	var next := kit.xp_for_next_level()
+	var xp_text := "niveau max" if next < 0 else "XP %d / %d" % [kit.xp, next]
+	var text := "%s — niv. %d (%s)" % [kit.get_display_name(), kit.level, xp_text]
+	if kit.can_change_kit_now():
+		text += "   [K] changer de kit"
+	var status := _player.movement.status_text() if _player.movement else ""
+	if status != "":
+		text += "\n" + status
+	return text

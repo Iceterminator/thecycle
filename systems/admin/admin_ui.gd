@@ -118,6 +118,16 @@ func _build() -> void:
 		button.add_theme_color_override("font_color", item.color)
 		grid.add_child(button)
 
+	# --- Kits (équipés tout de suite) ---
+	box.add_child(_section("Kits"))
+	var kits_row := _row()
+	box.add_child(kits_row)
+	for kit_data in KitController.list_kits():
+		var kit_button := _button(KitController.kit_name(kit_data), func() -> void:
+			_admin.request_set_kit.rpc_id(1, String(kit_data.id)))
+		kit_button.custom_minimum_size = Vector2(150, 34)
+		kits_row.add_child(kit_button)
+
 	# --- Crédits ---
 	box.add_child(_section("Crédits (au sol)"))
 	var credits_row := _row()
@@ -160,7 +170,7 @@ func _build() -> void:
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_status_label)
 	var hint := Label.new()
-	hint.text = "0 ou Échap : fermer — kits : à l'étape 8"
+	hint.text = "0 ou Échap : fermer"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
 	box.add_child(hint)

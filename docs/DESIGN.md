@@ -83,6 +83,14 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 > traçants par faction, épaisseur et durée selon le type, flash, impacts, fumée des roquettes. Pas encore de sons.
 
 ### 3. Santé et boucliers
+> **Kits (étape 8b, 17/11/2026) — remplace les paliers ci-dessous.** PV, bouclier et vitesse viennent du kit
+> (`data/kits/`, choisi avec **K** au largage / à la réapparition, 30 s ; Kit de prospecteur par défaut).
+> Régénération de la référence : bouclier +90/s et PV +25/s après 7 s sans dégâts (Bastion : 40/s après 4 s).
+> Sprint = marche x1,9, glissade (sprint + Accroupi) pour tous, contrôle en l'air 0,25. Capacités : Martinet
+> (jetpack, plongée), Furet (charges, double saut, esquive), Bastion (super saut, coup de poing chargé **V**),
+> Kit de prospecteur (propulseurs). Niveaux 1 à 6 en partie (XP : joueurs et monstres tués, Fame et points
+> d'objectif gagnés ; seuils dans `Config.KIT_LEVEL_XP`), bonus de la référence. Les améliorations de
+> bouclier ont quitté la boutique.
 - 100 PV + bouclier par palier : 25 au départ (palier 0), puis 50, 100, 150 (paliers 1 à 3), achetés en boutique. Le palier acheté est gardé à la mort.
 - Le bouclier absorbe d'abord. Il se recharge seul après 10 s sans dégâts, de 1/20 de son maximum par seconde. La santé remonte seule de 1 PV/s après 20 s sans dégâts, et plus vite avec des soins. *(valeurs du 17/11/2026, provisoires)*
 - Le niveau de bouclier s'améliore **pendant la partie** avec les crédits gagnés.
@@ -209,7 +217,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 7 – Tempête et événements** — *(fait le 17/11/2026, validé par test automatisé à 2 instances, à vérifier en jeu)* : tempête en zone qui se referme, niveaux de monstres, cristaux qui montent de niveau à 10:00, Cracheur (monstre à distance). **Pas d'événements à 5 et 10 min pour l'instant, pas de largages de ravitaillement.**
 - [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
   Découpage (référence : `data/reference/the_cycle_legacy_data.json`, nouvelle version avec capacités et gadgets) :
-  **8a armes (fait le 17/11/2026)** ; 8b kits ; 8c capacités (21, touches Q / F) ; 8d gadgets ; 8e raretés, escouades, « à terre », pactes.
+  **8a armes (fait le 17/11/2026)** ; **8b kits (fait le 17/11/2026)** ; 8c capacités (21, touches Q / F) ; 8d gadgets ; 8e raretés, escouades, « à terre », pactes.
   > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
   > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,
   > Kit nu), générés depuis `data/reference/the_cycle_legacy_data.json`.

@@ -1,6 +1,6 @@
 class_name Shop
 extends Node
-## Boutique du joueur (touche T) : armes et améliorations de bouclier contre des crédits.
+## Boutique du joueur (touche T) : armes contre des crédits (le bouclier vient du kit, étape 8b).
 ## Client propriétaire : affiche l'interface (ShopUi) et DEMANDE un achat.
 ## Serveur : vérifie (propriétaire, vivant, objet en vente, crédits, palier de bouclier),
 ## débite, puis fait tomber une capsule de largage devant le joueur (LootManager).
@@ -30,8 +30,6 @@ func check_purchase(item: ItemData) -> String:
 		return "Indisponible : vous êtes mort"
 	if player.is_evacuated:
 		return "Indisponible : vous êtes à bord"
-	if item.kind == ItemData.Kind.SHIELD_UPGRADE and player.health.shield_tier >= item.shield_tier:
-		return "Déjà acquis"
 	if player.inventory.credits < item.price:
 		return "Pas assez de crédits"
 	return ""

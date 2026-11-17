@@ -8,6 +8,8 @@ const CODE_KEY_ACTIONS := {
 	&"open_shop": KEY_T,
 	&"admin_menu": KEY_0,
 	&"show_map": KEY_TAB,           # maintenir : carte, quêtes, classement
+	&"equipment": KEY_K,           # menu Équipement (choix du kit)
+	&"melee": KEY_V,               # mêlée (coup de poing chargé du Bastion)
 }
 
 
@@ -41,19 +43,27 @@ const EVAC_POSITION := Vector3(0, 0.5, 0)  # posé sur l'EvacPad (centre de la c
 const SPECTATOR_SPEED := 15.0           # vol libre des joueurs embarqués (m/s)
 
 # --- Joueur ---
-const WALK_SPEED := 5.0
-const SPRINT_SPEED := 7.5
+# Vitesse de marche : celle du kit (KitData.move_speed_mps). Sprint = marche x SPRINT_MULTIPLIER.
+const SPRINT_MULTIPLIER := 1.9          # référence : combat_rules.sprint_multiplier
+const AIR_CONTROL := 0.25               # part de contrôle en l'air (référence : combat_rules.air_control)
+const SLIDE_SPEED := 9.0                # glissade (sprint + accroupi) pour tous les kits (m/s)
+const SLIDE_DURATION := 0.7
+const SLIDE_JUMP_BOOST := 2.5           # saut pendant la glissade : élan vers l'avant (m/s)
+const SLIDE_COOLDOWN := 0.8
 const CROUCH_SPEED := 2.5
 const JUMP_VELOCITY := 4.8
 const MOUSE_SENSITIVITY := 0.0025
 
-const MAX_HEALTH := 100.0
-const SHIELD_PER_TIER := [25.0, 50.0, 100.0, 150.0]  # bouclier max par palier (palier 0 = départ)
-const SHIELD_REGEN_DELAY := 10.0         # s sans dégâts avant que le bouclier remonte
-const SHIELD_REGEN_FRACTION := 0.05      # part du bouclier max rendue par seconde (1/20)
-const HEALTH_REGEN_DELAY := 20.0         # s sans dégâts avant que les PV remontent
-const HEALTH_REGEN_RATE := 1.0           # PV par seconde
-const STARTING_SHIELD_TIER := 0          # palier au largage (25 de bouclier) ; améliorable en boutique
+# PV et bouclier max : ceux du kit (KitController). Valeurs par défaut si le kit n'en a pas.
+const KIT_DEFAULT_HEALTH := 500.0
+const KIT_DEFAULT_SHIELD := 500.0
+const KIT_DEFAULT_SPEED := 3.9
+const SHIELD_PER_TIER := [25.0, 50.0, 100.0, 150.0]  # ancien système (boutique), plus utilisé
+const SHIELD_REGEN_DELAY := 7.0          # s sans dégâts avant que le bouclier remonte (référence)
+const SHIELD_REGEN_RATE := 90.0          # bouclier rendu par seconde (référence)
+const HEALTH_REGEN_DELAY := 7.0          # s sans dégâts avant que les PV remontent (référence ; Bastion : son kit)
+const HEALTH_REGEN_RATE := 25.0          # PV par seconde (référence ; Bastion : son kit)
+const STARTING_SHIELD_TIER := 0          # ancien système, plus utilisé
 
 # --- Combat ---
 const DEFAULT_FOV := 90.0
@@ -117,7 +127,17 @@ const MAP_HALF_SIZE := 100.0             # la carte fait 200 x 200 m, centrée s
 const KILL_Y := -15.0                    # en dessous de cette hauteur : mort (plus de chute infinie)
 const FALL_KILLER_ID := -3               # killer_id quand un joueur meurt en tombant hors de la carte
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
-const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
+const KEEP_SHIELD_TIER_ON_DEATH := true  # ancien système, plus utilisé
+
+# --- Kits (étape 8b) ---
+const DEFAULT_KIT := &"basic_prospector_kit"  # kit au premier largage
+const KIT_CHANGE_WINDOW := 30.0          # s après le largage / la réapparition pour changer de kit (K)
+const KIT_LEVEL_XP := [100, 250, 450, 700, 1000]  # XP cumulée pour les niveaux 2 à 6 (valeurs de départ)
+const KIT_XP_PLAYER_KILL := 100
+const KIT_XP_MONSTER_KILL := 10
+const KIT_XP_PER_OBJECTIVE_POINT := 1.0  # XP par point d'objectif gagné
+const KIT_XP_PER_FAME := 1.0             # XP par point de Fame gagné
+const MELEE_RANGE := 2.5                 # portée du coup de poing chargé (m)
 
 # --- Quêtes : cristal + foreuse (valeurs provisoires) ---
 const CRYSTAL_ACTIVATE_TIME := 3.0       # maintenir E pour lancer la foreuse (s)

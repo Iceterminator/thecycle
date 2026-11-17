@@ -6,6 +6,7 @@
 script = ExtResource("1_nso3a")
 id = &"boxer_warsuit"
 display_name = "Armure Bastion"
+reference_name = "Boxer Warsuit"
 faction = 1
 faction_level = 1
 health = 600.0
@@ -34,6 +35,20 @@ movement = {
 }
 }
 level_perks = PackedStringArray("Super saut +10 %", "Résistance aux créatures +20 %", "Dégâts de charge +25 %", "Super saut +10 %", "Dégâts de charge +25 %", "Délai de régénération de santé -25 % et vitesse de charge +25 %")
+level_perk_effects = Array[Dictionary]([{
+"super_jump_mult": 0.1
+}, {
+"creature_defense": 0.2
+}, {
+"punch_damage_mult": 0.25
+}, {
+"super_jump_mult": 0.1
+}, {
+"punch_damage_mult": 0.25
+}, {
+"charge_speed_mult": 0.25,
+"health_regen_delay_mult": -0.25
+}])
 mods = Array[Dictionary]([{
 "effect": "+200 bouclier, vitesse de déplacement -0.66 m/s",
 "id": "more_shields"

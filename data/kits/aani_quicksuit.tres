@@ -6,6 +6,7 @@
 script = ExtResource("1_fxkck")
 id = &"aani_quicksuit"
 display_name = "Combinaison Furet"
+reference_name = "Aani QuickSuit"
 faction = 2
 faction_level = 1
 health = 400.0
@@ -41,6 +42,21 @@ movement = {
 }
 }
 level_perks = PackedStringArray("Défense contre les créatures +20 %", "Santé et bouclier +50", "Énergie +1 charge", "Triple saut", "Santé et bouclier +50", "Dégâts contre les créatures +20 %")
+level_perk_effects = Array[Dictionary]([{
+"creature_defense": 0.2
+}, {
+"max_health_add": 50.0,
+"max_shield_add": 50.0
+}, {
+"energy_charges_add": 1.0
+}, {
+"air_jumps_add": 1.0
+}, {
+"max_health_add": 50.0,
+"max_shield_add": 50.0
+}, {
+"creature_damage": 0.2
+}])
 mods = Array[Dictionary]([{
 "effect": "Dégâts subis réduits pendant l'esquive (damage_reduction_during_dodge = 0.5)",
 "id": "reduced_dodge_damage"

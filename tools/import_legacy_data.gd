@@ -64,6 +64,26 @@ const FIRE_MODES := { "auto": 0, "semi": 1, "burst": 2, "charge": 3, "charge_bur
 const PROJECTILE_TYPES := { "hitscan": 0, "projectile": 1, "explosive_projectile": 2 }
 const MOBILITY := { "none": 0, "jetpack": 1, "dash": 2, "super_jump": 3, "jetboosters": 4 }
 
+## Bonus de niveau des kits : texte de la référence -> effets chiffrés (voir KitData).
+const PERK_EFFECTS := {
+	"Défense contre les créatures +20 %": {"creature_defense": 0.2},
+	"Résistance aux créatures +20 %": {"creature_defense": 0.2},
+	"Santé et bouclier +50": {"max_health_add": 50.0, "max_shield_add": 50.0},
+	"Dégâts de plongée +50": {"dive_damage_add": 50.0},
+	"Régénération du carburant +25 %": {"fuel_regen_mult": 0.25},
+	"Régénération du carburant +15 %": {"fuel_regen_mult": 0.15},
+	"Dégâts contre les créatures +20 %": {"creature_damage": 0.2},
+	"Dégâts contre les monstres +30 %": {"creature_damage": 0.3},
+	"Énergie +1 charge": {"energy_charges_add": 1.0},
+	"Triple saut": {"air_jumps_add": 1.0},
+	"Super saut +10 %": {"super_jump_mult": 0.1},
+	"Dégâts de charge +25 %": {"punch_damage_mult": 0.25},
+	"Délai de régénération de santé -25 % et vitesse de charge +25 %": {"health_regen_delay_mult": -0.25, "charge_speed_mult": 0.25},
+	"Vitesse +10 %": {"move_speed_mult": 0.1},
+	"Recharge des capacités -20 %": {"ability_cooldown_mult": -0.2},
+	"Régénération de santé +20 % et poussée +20 %": {"health_regen_mult": 0.2, "thrust_mult": 0.2},
+}
+
 ## Champs numériques copiés tels quels (null -> -1).
 const WEAPON_NUMBERS := [
 	"faction_level", "damage", "pellets", "pellet_damage", "spread_deg", "rpm", "fire_interval_s",
@@ -195,6 +215,7 @@ func _save_kit(k: Dictionary) -> bool:
 	var res: Resource = load(KIT_SCRIPT).new()
 	res.set("id", StringName(id))
 	res.set("display_name", KIT_NAMES.get(id, id))
+	res.set("reference_name", k.get("name", ""))
 	res.set("faction", FACTIONS.get(k.get("faction"), 0))
 	for field: String in ["faction_level", "health", "shield", "move_speed_mps"]:
 		var value: Variant = k.get(field)
@@ -203,9 +224,14 @@ func _save_kit(k: Dictionary) -> bool:
 	res.set("mobility_type", MOBILITY.get(k.get("mobility_type"), 0))
 	res.set("movement", k.get("movement", {}))
 	var perks: PackedStringArray = []
+	var effects: Array[Dictionary] = []
 	for p: Dictionary in k.get("level_perks", []):
 		perks.append(p["perk"])
+		if not PERK_EFFECTS.has(p["perk"]):
+			push_warning("[Import] Bonus de niveau non traduit : %s" % p["perk"])
+		effects.append(PERK_EFFECTS.get(p["perk"], {}))
 	res.set("level_perks", perks)
+	res.set("level_perk_effects", effects)
 	var mods: Array[Dictionary] = []
 	for m: Dictionary in k.get("mods", []):
 		mods.append(m)

@@ -5,7 +5,7 @@ extends Node
 ## Client propriétaire : affiche l'interface (AdminUi) et DEMANDE.
 ## Serveur : vérifie (menu autorisé dans Config, propriétaire, vivant, données valides),
 ## puis passe par le bus Events (LootManager pour les objets, QuestManager pour les cristaux).
-## Kits : à ajouter avec l'étape 8 (voir DESIGN).
+## Kits : équipés tout de suite (request_set_kit).
 
 signal admin_result(ok: bool, message: String)
 
@@ -63,6 +63,17 @@ func request_spawn_item(item_id: String, amount: int) -> void:
 	Events.loot_drop_requested.emit(item.id, amount, -1, _front(Config.ADMIN_SPAWN_DISTANCE), false)
 	print("[Admin] Joueur %d : %s" % [player.get_peer_id(), message])
 	_reply(true, message)
+
+
+## Équipe directement un kit (sans la limite « au largage / à la réapparition »).
+@rpc("any_peer", "call_local", "reliable")
+func request_set_kit(kit_id: String) -> void:
+	if not _server_allowed():
+		return
+	if player.kit.server_set_kit(kit_id):
+		_reply(true, "Kit équipé : %s" % player.kit.get_display_name())
+	else:
+		_reply(false, "Kit inconnu : %s" % kit_id)
 
 
 @rpc("any_peer", "call_local", "reliable")

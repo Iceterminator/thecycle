@@ -58,9 +58,7 @@ func get_prompt(player: Player) -> String:
 				return "%s : vous en portez déjà le maximum" % item.display_name
 			return "E : Ramasser %d %s" % [amount, item.display_name]
 		ItemData.Kind.SHIELD_UPGRADE:
-			if player.health.shield_tier >= item.shield_tier:
-				return "%s : votre bouclier est déjà au moins aussi bon" % item.display_name
-			return "E : Équiper %s" % item.display_name
+			return "%s : plus utilisé (le bouclier vient du kit)" % item.display_name
 	return "E : Ramasser %s" % item.display_name
 
 

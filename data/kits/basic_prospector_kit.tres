@@ -6,6 +6,7 @@
 script = ExtResource("1_ipx56")
 id = &"basic_prospector_kit"
 display_name = "Kit de prospecteur"
+reference_name = "Basic Prospector Kit"
 health = 500.0
 shield = 500.0
 move_speed_mps = 3.9
@@ -21,5 +22,19 @@ movement = {
 }
 }
 level_perks = PackedStringArray("Vitesse +10 %", "Défense contre les créatures +20 %", "Régénération du carburant +15 %", "Recharge des capacités -20 %", "Régénération de santé +20 % et poussée +20 %", "Dégâts contre les monstres +30 %")
+level_perk_effects = Array[Dictionary]([{
+"move_speed_mult": 0.1
+}, {
+"creature_defense": 0.2
+}, {
+"fuel_regen_mult": 0.15
+}, {
+"ability_cooldown_mult": -0.2
+}, {
+"health_regen_mult": 0.2,
+"thrust_mult": 0.2
+}, {
+"creature_damage": 0.3
+}])
 estimated_fields = PackedStringArray("movement.jetboosters (toutes les valeurs)", "level_perks (répartition exacte par niveau)")
 playstyle = "Kit par défaut, équilibré, sans spécialité."

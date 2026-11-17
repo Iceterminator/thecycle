@@ -148,7 +148,7 @@ func request_use(item_id: String) -> void:
 		return
 	match item.kind:
 		ItemData.Kind.HEAL:
-			if medkits <= 0 or health.health >= Config.MAX_HEALTH:
+			if medkits <= 0 or health.health >= health.get_max_health():
 				return
 		ItemData.Kind.SHIELD_RECHARGE:
 			if shield_cells <= 0 or health.shield >= health.max_shield:
@@ -221,9 +221,7 @@ func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 		ItemData.Kind.CREDITS:
 			add_credits(amount)
 		ItemData.Kind.SHIELD_UPGRADE:
-			if health.shield_tier >= item.shield_tier:
-				return false
-			health.set_shield_tier(item.shield_tier)
+			return false  # ancien système : le bouclier vient du kit (étape 8b)
 		ItemData.Kind.RESOURCE:
 			var have := get_resource(item.id)
 			var room := (item.max_carry - have) if item.max_carry > 0 else amount

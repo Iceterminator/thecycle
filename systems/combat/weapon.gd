@@ -483,8 +483,11 @@ func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponDat
 	return HitKind.TARGET
 
 
-## Dégâts sur une cible. Un joueur prend les multiplicateurs bouclier / PV de l'arme.
+## Dégâts sur une cible. Un joueur prend les multiplicateurs bouclier / PV de l'arme ;
+## un monstre, le bonus « dégâts contre les créatures » du kit du tireur.
 func _server_damage(target: Node, amount: float, wdata: WeaponData) -> bool:
+	if target is Monster and player.kit:
+		amount *= 1.0 + player.kit.get_effect("creature_damage")
 	var victim := target as Player
 	if victim and (wdata.damage_vs_shield_multiplier != 1.0 or wdata.damage_vs_health_multiplier != 1.0):
 		return victim.health.apply_damage(amount, player.get_peer_id(),

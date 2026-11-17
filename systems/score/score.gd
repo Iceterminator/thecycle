@@ -42,6 +42,7 @@ func add_rank_points(amount: int) -> void:
 	if not multiplayer.is_server() or amount == 0:
 		return
 	rank_points += amount
+	_kit_xp(amount * Config.KIT_XP_PER_FAME)
 	Events.rank_points_changed.emit(get_peer_id(), rank_points)
 
 
@@ -52,6 +53,7 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 		return
 	var key := track.resource_path
 	var before: int = objective_points.get(key, 0)
+	_kit_xp(amount * Config.KIT_XP_PER_OBJECTIVE_POINT)
 	var after := before + amount
 	var d := objective_points.duplicate()
 	d[key] = after
@@ -101,3 +103,10 @@ func server_reset() -> void:
 	objective_points = {}
 	rank_points = 0
 	Events.rank_points_changed.emit(get_peer_id(), rank_points)
+
+
+## Serveur : l'XP du kit vient aussi de la Fame et des points d'objectif gagnés.
+func _kit_xp(amount: float) -> void:
+	var kit := get_parent().get_node_or_null("Kit") as KitController
+	if kit and amount > 0.0:
+		kit.server_add_xp(roundi(amount))

@@ -12,6 +12,8 @@ extends CharacterBody3D
 const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 const ADMIN_SCRIPT := preload("res://systems/admin/admin.gd")
 const MAP_OVERLAY_SCRIPT := preload("res://systems/map/map_overlay.gd")
+const KIT_SCRIPT := preload("res://systems/kits/kit_controller.gd")
+const MOVEMENT_SCRIPT := preload("res://systems/kits/kit_movement.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -26,6 +28,12 @@ const MAP_OVERLAY_SCRIPT := preload("res://systems/map/map_overlay.gd")
 
 ## Menu admin (touche 0) : créé en code sur tous les peers, même chemin partout (RPC).
 var admin: Admin
+## Kit (PV, bouclier, vitesse, niveau ; autorité serveur) et capacités de mouvement :
+## créés en code sur tous les peers (nœuds « Kit » et « Movement »).
+var kit: KitController
+var movement: KitMovement
+## Recul subi (coup de poing chargé), qui s'estompe.
+var _knockback := Vector3.ZERO
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 ## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.
@@ -67,6 +75,13 @@ func _ready() -> void:
 	admin = ADMIN_SCRIPT.new()
 	admin.name = "Admin"
 	add_child(admin)
+	kit = KIT_SCRIPT.new()
+	kit.name = "Kit"
+	kit.set_multiplayer_authority(1)  # le serveur décide du kit, du niveau et de l'XP
+	add_child(kit)
+	movement = MOVEMENT_SCRIPT.new()
+	movement.name = "Movement"
+	add_child(movement)
 	if not is_local:
 		_build_beacon()
 	if is_local:
@@ -114,36 +129,60 @@ func _physics_process(delta: float) -> void:
 	if is_evacuated:
 		_spectator_move(delta)
 		return
-	if not is_on_floor():
+	var on_floor := is_on_floor()
+	if not on_floor:
 		velocity.y -= gravity * delta
 
-	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
-		velocity.y = Config.JUMP_VELOCITY
-
-	is_crouching = Input.is_action_pressed("crouch")
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Saut, glissade et capacités du kit (jetpack, esquive, super saut…).
+	movement.pre_physics(delta, input_dir)
+	is_crouching = Input.is_action_pressed("crouch") or movement.is_sliding()
 	_apply_crouch_shape(delta)
 
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-	var speed := _current_speed(input_dir)
-
-	if direction:
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
+	if movement.overrides_horizontal():
+		var forced := movement.forced_horizontal()
+		velocity.x = forced.x
+		velocity.z = forced.z
 	else:
-		velocity.x = move_toward(velocity.x, 0, speed)
-		velocity.z = move_toward(velocity.z, 0, speed)
+		var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+		var target := direction * _current_speed(input_dir)
+		if on_floor:
+			if direction:
+				velocity.x = target.x
+				velocity.z = target.z
+			else:
+				var speed := _current_speed(input_dir)
+				velocity.x = move_toward(velocity.x, 0, speed)
+				velocity.z = move_toward(velocity.z, 0, speed)
+		else:
+			# En l'air : contrôle partiel (Config.AIR_CONTROL), total pendant le jetpack.
+			var weight := clampf(movement.air_control() * 10.0 * delta, 0.0, 1.0)
+			velocity.x = lerpf(velocity.x, target.x, weight)
+			velocity.z = lerpf(velocity.z, target.z, weight)
 
+	# Recul : ajouté au sol (où la vitesse horizontale est réimposée à chaque image).
+	if on_floor:
+		velocity += _knockback
+	_knockback = _knockback.move_toward(Vector3.ZERO, 30.0 * delta)
 	move_and_slide()
+	movement.post_physics()
 
 
+## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.SPRINT_MULTIPLIER.
 func _current_speed(input_dir: Vector2) -> float:
 	if is_crouching:
 		return Config.CROUCH_SPEED
-	# Sprint seulement en avançant.
 	if Input.is_action_pressed("sprint") and input_dir.y < 0:
-		return Config.SPRINT_SPEED
-	return Config.WALK_SPEED
+		return kit.move_speed() * Config.SPRINT_MULTIPLIER
+	return kit.move_speed()
+
+
+## Serveur -> joueur touché : recul (coup de poing chargé).
+@rpc("any_peer", "call_local", "reliable")
+func apply_knockback(impulse: Vector3) -> void:
+	if multiplayer.get_remote_sender_id() != 1 or not impulse.is_finite():
+		return
+	_knockback = impulse.limit_length(20.0)
 
 
 func _apply_crouch_shape(delta: float) -> void:
