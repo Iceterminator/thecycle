@@ -20,6 +20,11 @@ var max_shield: float = 0.0:
 	set(value):
 		max_shield = value
 		changed.emit()
+## Palier de bouclier (Config.SHIELD_PER_TIER), amélioré via la boutique.
+var shield_tier: int = Config.STARTING_SHIELD_TIER:
+	set(value):
+		shield_tier = value
+		changed.emit()
 ## Id du dernier tueur (0 = aucun). Synchronisé AVANT is_dead pour que le HUD l'ait.
 var killer_id: int = 0
 var is_dead: bool = false:
@@ -34,7 +39,7 @@ var _since_damage: float = 0.0
 
 
 func _ready() -> void:
-	max_shield = Config.SHIELD_PER_TIER[Config.STARTING_SHIELD_TIER]
+	max_shield = Config.SHIELD_PER_TIER[shield_tier]
 	shield = max_shield
 	# La régénération n'est calculée que par le serveur.
 	set_physics_process(multiplayer.is_server())
@@ -78,8 +83,18 @@ func restore_shield(amount: float) -> void:
 		shield = minf(shield + amount, max_shield)
 
 
+## Serveur uniquement : nouveau palier de bouclier (amélioration ramassée). Bouclier rempli.
+func set_shield_tier(tier: int) -> void:
+	shield_tier = clampi(tier, 0, Config.SHIELD_PER_TIER.size() - 1)
+	max_shield = Config.SHIELD_PER_TIER[shield_tier]
+	if not is_dead:
+		shield = max_shield
+
+
 ## Serveur uniquement : remet le joueur sur pied (réapparition).
 func revive() -> void:
+	if not Config.KEEP_SHIELD_TIER_ON_DEATH:
+		set_shield_tier(Config.STARTING_SHIELD_TIER)
 	health = Config.MAX_HEALTH
 	shield = max_shield
 	killer_id = 0

@@ -13,6 +13,10 @@ enum State { PATROL, CHASE, WINDUP, RECOVER, RETURN }
 const SCAN_INTERVAL := 0.3      ## recherche de joueurs en patrouille (s)
 const REPATH_INTERVAL := 0.25   ## recalcul du chemin en poursuite (s)
 const DIRECT_CHASE_DIST := 3.0  ## en dessous, on fonce droit sur la cible
+const CONTACT_RATIO := 0.6      ## sous attack_range × ce ratio, il s'arrête (ne pousse pas)
+const LUNGE_SPEED_RATIO := 0.6  ## vitesse pendant la préparation (× run_speed) : esquivable
+const HIT_RANGE_RATIO := 1.3    ## le coup touche jusqu'à attack_range × ce ratio
+const MISS_RECOVERY := 0.3      ## pause après un coup raté (s)
 
 var data: MonsterData
 
@@ -138,9 +142,9 @@ func _physics_process(delta: float) -> void:
 		State.WINDUP:
 			_do_windup()
 		State.RECOVER:
-			_halt()
-			_face(_target.global_position if _valid_target() else global_position)
-			if _state_left <= 0.0:
+			# Après un coup : continue de suivre la cible, mais ne frappe pas encore.
+			_do_chase(false)
+			if state == State.RECOVER and _state_left <= 0.0:
 				state = State.CHASE
 		State.RETURN:
 			_do_return()
@@ -174,7 +178,7 @@ func _do_patrol(delta: float) -> void:
 	_move_to(next, data.walk_speed)
 
 
-func _do_chase() -> void:
+func _do_chase(can_attack: bool = true) -> void:
 	if not _valid_target():
 		_start_return()
 		return
@@ -183,27 +187,37 @@ func _do_chase() -> void:
 	if dist > data.lose_radius or _flat_dist(home) > data.leash_radius:
 		_start_return()
 		return
-	if dist <= data.attack_range:
+	if can_attack and dist <= data.attack_range:
 		state = State.WINDUP
 		_state_left = data.attack_windup
+	if dist <= data.attack_range * CONTACT_RATIO:
+		# Déjà au contact : on ne pousse pas le joueur, on le regarde.
 		_halt()
+		_face(target_pos)
 		return
 	_move_toward_with_path(target_pos, data.run_speed)
 
 
+## Préparation du coup : le monstre continue d'avancer (plus lentement) vers la cible.
+## Le coup part à la fin s'il est encore à portée ; s'il rate, la pause est courte.
 func _do_windup() -> void:
-	_halt()
 	if not _valid_target():
 		_start_return()
 		return
-	_face(_target.global_position)
+	var target_pos := _target.global_position
+	if _flat_dist(target_pos) > data.attack_range * CONTACT_RATIO:
+		_move_to(target_pos, data.run_speed * LUNGE_SPEED_RATIO)
+	else:
+		_halt()
+	_face(target_pos)
 	if _state_left > 0.0:
 		return
-	# Le coup ne part que si la cible est encore à portée : on peut l'esquiver.
-	if _flat_dist(_target.global_position) <= data.attack_range * 1.3:
+	if _flat_dist(target_pos) <= data.attack_range * HIT_RANGE_RATIO:
 		_target.server_receive_hit(data.attack_damage, Config.MONSTER_KILLER_ID)
+		_state_left = data.attack_cooldown
+	else:
+		_state_left = MISS_RECOVERY
 	state = State.RECOVER
-	_state_left = data.attack_cooldown
 
 
 func _do_return() -> void:

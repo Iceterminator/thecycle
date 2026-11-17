@@ -62,7 +62,7 @@ func _on_inventory_changed() -> void:
 		label.text = "[%d] %s" % [i + 1, item.display_name if item else "—"]
 		label.modulate = Color(1, 0.85, 0.3) if i == inv.active_slot else Color(1, 1, 1, 0.55)
 	_items_label.text = "[3] Soins ×%d    [4] Recharges ×%d" % [inv.medkits, inv.shield_cells]
-	_credits_label.text = "%d crédits" % inv.credits
+	_credits_label.text = "%d crédits   [T] Boutique" % inv.credits
 
 
 # --- Réactions aux signaux ---

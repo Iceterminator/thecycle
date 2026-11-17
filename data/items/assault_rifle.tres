@@ -10,3 +10,4 @@ display_name = "Fusil d'assaut"
 kind = 0
 weapon = ExtResource("2_weapon")
 color = Color(0.95, 0.6, 0.2, 1)
+price = 250

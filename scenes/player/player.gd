@@ -19,6 +19,7 @@ const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
 @onready var inventory: Inventory = $Inventory
 @onready var weapon: Weapon = $Weapon
 @onready var interactor: Interactor = $Interactor
+@onready var shop: Shop = $Shop
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 ## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.

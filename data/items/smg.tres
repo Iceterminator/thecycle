@@ -10,3 +10,4 @@ display_name = "SMG"
 kind = 0
 weapon = ExtResource("2_weapon")
 color = Color(0.95, 0.45, 0.2, 1)
+price = 150

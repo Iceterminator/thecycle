@@ -1,10 +1,11 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://systems/combat/health.gd" id="2_health"]
 [ext_resource type="Script" path="res://systems/combat/weapon.gd" id="3_weapon"]
 [ext_resource type="Script" path="res://systems/inventory/inventory.gd" id="4_inventory"]
 [ext_resource type="Script" path="res://systems/interaction/interactor.gd" id="5_interactor"]
+[ext_resource type="Script" path="res://systems/shop/shop.gd" id="6_shop"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 resource_local_to_scene = true
@@ -42,12 +43,15 @@ properties/1/replication_mode = 2
 properties/2/path = NodePath(".:max_shield")
 properties/2/spawn = true
 properties/2/replication_mode = 2
-properties/3/path = NodePath(".:killer_id")
+properties/3/path = NodePath(".:shield_tier")
 properties/3/spawn = true
 properties/3/replication_mode = 2
-properties/4/path = NodePath(".:is_dead")
+properties/4/path = NodePath(".:killer_id")
 properties/4/spawn = true
 properties/4/replication_mode = 2
+properties/5/path = NodePath(".:is_dead")
+properties/5/spawn = true
+properties/5/replication_mode = 2
 
 [sub_resource type="SceneReplicationConfig" id="InventoryReplication"]
 properties/0/path = NodePath(".:slot_ammo")
@@ -113,3 +117,6 @@ script = ExtResource("3_weapon")
 
 [node name="Interactor" type="Node" parent="."]
 script = ExtResource("5_interactor")
+
+[node name="Shop" type="Node" parent="."]
+script = ExtResource("6_shop")

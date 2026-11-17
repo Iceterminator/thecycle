@@ -23,3 +23,16 @@ func _ready() -> void:
 ## Renvoie null si l'id est inconnu (donnée venant du réseau : toujours vérifier).
 func get_item(id: StringName) -> ItemData:
 	return _items.get(id)
+
+
+## Objets en vente en boutique (price > 0) : armes d'abord, puis par prix croissant.
+func get_shop_items() -> Array[ItemData]:
+	var result: Array[ItemData] = []
+	for item: ItemData in _items.values():
+		if item.price > 0:
+			result.append(item)
+	result.sort_custom(func(a: ItemData, b: ItemData) -> bool:
+		if a.kind != b.kind:
+			return a.kind < b.kind
+		return a.price < b.price)
+	return result

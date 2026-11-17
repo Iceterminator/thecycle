@@ -214,6 +214,19 @@ func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 			shield_cells += 1
 		ItemData.Kind.CREDITS:
 			add_credits(amount)
+		ItemData.Kind.SHIELD_UPGRADE:
+			if health.shield_tier >= item.shield_tier:
+				return false
+			health.set_shield_tier(item.shield_tier)
+	return true
+
+
+## Serveur : dépense des crédits (achat). Renvoie false si pas assez.
+func spend_credits(amount: int) -> bool:
+	if amount < 0 or credits < amount:
+		return false
+	credits -= amount
+	Events.credits_changed.emit(player.get_peer_id(), credits)
 	return true
 
 

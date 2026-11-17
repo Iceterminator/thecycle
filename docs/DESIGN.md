@@ -70,7 +70,7 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 | Arme lourde | Contre monstres | Projectile explosif |
 
 ### 3. Santé et boucliers
-- 100 PV + bouclier de 0 à 150 selon le niveau (palier 1 à 3).
+- 100 PV + bouclier par palier : 25 au départ (palier 0), puis 50, 100, 150 (paliers 1 à 3), achetés en boutique. Le palier acheté est gardé à la mort.
 - Le bouclier absorbe d'abord. Il se recharge seul après 10 s sans dégâts, de 1/20 de son maximum par seconde. La santé remonte seule de 1 PV/s après 20 s sans dégâts, et plus vite avec des soins. *(valeurs du 17/11/2026, provisoires)*
 - Le niveau de bouclier s'améliore **pendant la partie** avec les crédits gagnés.
 
@@ -79,11 +79,14 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 - Les crédits gagnés pendant la partie servent aux améliorations sur place : terminaux d'achat ou **largage de ravitaillement** que le joueur appelle (arrive en 30 s, visible par tous).
 - Ressources récoltables (minerais, plantes) : à rapporter pour certains contrats.
 
-> **Note (17/11/2026) — les caisses de loot sont provisoires.** Les caisses de l'étape 3
-> servent seulement à tester le loot et l'inventaire : elles **ne resteront pas dans le jeu final**.
-> Le jeu final passera par un **shop** : le joueur achète des **largages d'armes** avec ses crédits.
-> Il faudra donc garder en état de marche la partie réutilisable (objets au sol, ramassage,
-> inventaire, crédits) et pouvoir retirer `Crate` et `crate_basic.tres` sans rien casser.
+> **Boutique et largages (17/11/2026) — remplace les caisses.** Les caisses de loot sont supprimées.
+> Au largage, le joueur a seulement un **pistolet** et **25 de bouclier**. Avec **T**, il ouvre la
+> **boutique** : armes (SMG 150, fusil d'assaut 250) et améliorations de bouclier (50 → 100 cr.,
+> 100 → 200 cr., 150 → 350 cr.), payées en crédits. L'achat fait tomber une **capsule de largage**
+> à 3 m devant le joueur, qui atterrit au bout de 3 s ; l'objet est dedans, au sol, et **n'importe quel
+> joueur peut le ramasser**. Prix dans `data/items/*.tres` (`price`), délais dans `Config`.
+> Soins et recharges de bouclier ne sont plus vendus ni trouvés pour l'instant (la vie et le bouclier
+> se régénèrent seuls).
 
 ### 5. Contrats
 - 4 contrats proposés au largage, 2 actifs au maximum. On en reprend de nouveaux à chaque fin.
@@ -143,7 +146,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 0 – Projet de base** — un serveur et un client se connectent en local.
 - [x] **Étape 1 – Joueurs en réseau** — déplacement FPS répliqué, apparition au point de largage. Fini quand : 2 joueurs se voient bouger sans saccade *(à vérifier en jeu)*.
 - [x] **Étape 2 – Combat** — une arme hitscan, santé, bouclier, mort et réapparition. Fini quand : on peut s'entretuer, et le serveur valide les touches *(validé par test automatisé ; à vérifier en jeu)*.
-- [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses sont provisoires : remplacées plus tard par un shop de largages d'armes, voir §4.)*
+- [x] **Étape 3 – Loot et inventaire** — caisses, armes au sol, 2 emplacements, soins, crédits. *(validé par test automatisé ; à vérifier en jeu. Mécaniques de base, à revoir avec la boucle complète. Les caisses ont ensuite été remplacées par la boutique et les capsules de largage, voir §4.)*
 - [x] **Étape 4 – Monstres** — un type de monstre (patrouille, poursuite, attaque), géré par le serveur. *(fait : 2 types en camps de niveau 1 et 2 ; validé par test automatisé, à vérifier en jeu)*
 - [ ] **Étape 5 – Contrats et Fame** — livraison, chasse, contrôle de zone, Fame, classement en direct.
 - [ ] **Étape 6 – Partie complète** — minuteur 20 min, évac à 15:00, embarquement, écran de fin. **Jalon « jouable ».**

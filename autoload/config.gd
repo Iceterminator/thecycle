@@ -22,12 +22,12 @@ const JUMP_VELOCITY := 4.8
 const MOUSE_SENSITIVITY := 0.0025
 
 const MAX_HEALTH := 100.0
-const SHIELD_PER_TIER := [0.0, 50.0, 100.0, 150.0]
+const SHIELD_PER_TIER := [25.0, 50.0, 100.0, 150.0]  # bouclier max par palier (palier 0 = départ)
 const SHIELD_REGEN_DELAY := 10.0         # s sans dégâts avant que le bouclier remonte
 const SHIELD_REGEN_FRACTION := 0.05      # part du bouclier max rendue par seconde (1/20)
 const HEALTH_REGEN_DELAY := 20.0         # s sans dégâts avant que les PV remontent
 const HEALTH_REGEN_RATE := 1.0           # PV par seconde
-const STARTING_SHIELD_TIER := 1          # palier de bouclier au largage (0 à 3)
+const STARTING_SHIELD_TIER := 0          # palier au largage (25 de bouclier) ; améliorable en boutique
 
 # --- Combat ---
 const DEFAULT_FOV := 90.0
@@ -38,7 +38,7 @@ const FIRE_BURST_TOLERANCE := 3.0        # tirs d'avance tolérés par le serveu
 const WEAPON_SWITCH_TIME := 0.4          # pas de tir pendant le changement d'arme (s)
 
 # --- Loot et inventaire (valeurs provisoires, à revoir avec la boucle complète) ---
-const BASE_WEAPON := &"assault_rifle"    # équipement de départ (emplacement 1)
+const BASE_WEAPON := &"pistol"           # équipement de départ (emplacement 1)
 const HEAL_ITEM := &"medkit"             # consommable de la touche 3
 const SHIELD_ITEM := &"shield_cell"      # consommable de la touche 4
 const MAX_MEDKITS := 3
@@ -52,6 +52,13 @@ const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (
 # --- Monstres ---
 const MONSTER_KILLER_ID := -1            # killer_id quand un joueur est tué par un monstre
 const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce délai (tests)
+
+# --- Boutique et largages (valeurs provisoires) ---
+const DROP_POD_FALL_TIME := 3.0          # délai entre l'achat et l'atterrissage de la capsule (s)
+const DROP_POD_DISTANCE := 3.0           # la capsule tombe à cette distance devant le joueur (m)
+const DROP_POD_HEIGHT := 60.0            # hauteur de départ de la capsule (m)
+const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
+const KEEP_SHIELD_TIER_ON_DEATH := true  # le palier de bouclier acheté est gardé à la mort
 
 # --- Score ---
 const DEATH_FAME_LOSS := 0.20            # 20 % de la Fame perdue à la mort

@@ -17,7 +17,8 @@ signal player_died(victim_id: int, killer_id: int)
 ## Demande au LootManager de poser un objet au sol (caisse ouverte, arme remplacée, mort).
 ## ammo = -1 : chargeur plein. scatter = éparpiller autour de la position.
 signal loot_drop_requested(item_id: StringName, amount: int, ammo: int, position: Vector3, scatter: bool)
-signal crate_opened(peer_id: int)
+signal drop_pod_requested(item_id: StringName, position: Vector3)
+signal item_purchased(peer_id: int, item_id: StringName, price: int)
 signal item_picked_up(peer_id: int, item_id: StringName, amount: int)
 signal credits_changed(peer_id: int, credits: int)
 
