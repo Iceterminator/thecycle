@@ -127,7 +127,7 @@ func _server_spawn_harvest(phase: StormPhaseData) -> void:
 	for i in phase.shard_count:
 		var pos := Vector3(randf_range(-half, half), 0.0, randf_range(-half, half))
 		Events.loot_drop_requested.emit(phase.collector.resource_item.id, 1, -1, pos, false)
-	Events.announce_requested.emit("Des %ss sont tombés ! Déposez-les au %s" % [phase.collector.resource_item.display_name.to_lower(), phase.collector.display_name.to_lower()], ANNOUNCE_COLOR)
+	Events.announce_requested.emit("%d × %s tombés sur la carte ! Déposez-les au %s" % [phase.shard_count, phase.collector.resource_item.display_name, phase.collector.display_name.to_lower()], ANNOUNCE_COLOR)
 
 
 # =========================================================================

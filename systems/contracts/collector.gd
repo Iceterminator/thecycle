@@ -32,8 +32,8 @@ func _refresh() -> void:
 func get_prompt(player: Player) -> String:
 	var n := player.inventory.get_resource(data.resource_item.id)
 	if n <= 0:
-		return "%s : apportez des %ss" % [data.display_name, data.resource_item.display_name.to_lower()]
-	return "Maintenir E : déposer %d %s (+%d pts d'objectif)" % [n, data.resource_item.display_name.to_lower(), n * data.points]
+		return "%s : rien à déposer (%s)" % [data.display_name, data.resource_item.display_name]
+	return "Maintenir E : déposer %d × %s (+%d pts d'objectif)" % [n, data.resource_item.display_name, n * data.points]
 
 
 func get_hold_time(player: Player) -> float:
