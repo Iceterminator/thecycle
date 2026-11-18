@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/ar55_phase_autorifle/ar55_phase_autorifle.glb" id="1_su5db"]
+
+[node name="ar55_phase_autorifle_held" type="Node3D" unique_id=121685499]
+
+[node name="AR55" type="Node3D" parent="." unique_id=1552167030 instance=ExtResource("1_su5db")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=1961005789]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.834946e-05, -0.05879141, 0.14395802)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=665938130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.834946e-05, 0.052942425, -0.36009052)
+gizmo_extents = 0.05
+
+[node name="MainGauche" type="Marker3D" parent="." unique_id=111534862]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.02497406, -0.02878852, -0.07606317)
+gizmo_extents = 0.05

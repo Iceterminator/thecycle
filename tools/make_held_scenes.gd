@@ -18,13 +18,14 @@ const HELD_DIR := "res://assets/models/weapons/held/"
 ## Hauteur de la bouche du canon (fraction de la boîte orientée), selon le nom du modèle.
 const MUZZLE_HEIGHT := {
 	"Gun_Rifle": 0.65, "Gun_Sniper": 0.65, "Gun_Pistol": 0.85, "Gun_Revolver": 0.8,
-	"k28_autopistol": 0.85, "asp_flechette_gun": 0.63,
+	"k28_autopistol": 0.85, "asp_flechette_gun": 0.63, "ar55_phase_autorifle": 0.68,
 }
 ## Décalage de la main gauche par rapport à la poignée (m, repère orienté : x droite, y haut, -z avant).
 const LEFT_HAND_OFFSET := {
 	"Gun_Rifle": Vector3(-0.025, 0.03, -0.26), "Gun_Sniper": Vector3(-0.025, 0.03, -0.34),
 	"Gun_Pistol": Vector3(-0.045, -0.01, -0.01), "Gun_Revolver": Vector3(-0.045, -0.01, -0.01),
 	"k28_autopistol": Vector3(-0.045, -0.01, -0.01), "asp_flechette_gun": Vector3(-0.045, -0.01, -0.01),
+	"ar55_phase_autorifle": Vector3(-0.025, 0.03, -0.22),
 }
 
 
