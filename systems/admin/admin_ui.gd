@@ -65,6 +65,16 @@ func _on_result(ok: bool, message: String) -> void:
 	_status_tween.tween_property(_status_label, "modulate:a", 0.0, 0.5)
 
 
+## Annonce de la première Grande Marée (data/storm/), pour le raccourci de temps.
+func _storm_warning_time() -> float:
+	var first := INF
+	for file in ResourceLoader.list_directory(StormManager.PHASES_DIR):
+		var phase := load(StormManager.PHASES_DIR + file) as StormPhaseData
+		if phase:
+			first = minf(first, phase.start_time - phase.warning_time)
+	return first if first < INF else Config.match_rules.monster_level_times[1]
+
+
 func _build() -> void:
 	# Fond assombri qui capte les clics (ils ne doivent pas atteindre le jeu).
 	var dim := ColorRect.new()
@@ -189,7 +199,10 @@ func _build() -> void:
 	# niveau 3 + cristaux + Grande Marée (10:00), annonce de l'évac (16:00), arrivée de l'évac (17:00), décollage.
 	var goto_row := _row()
 	box.add_child(goto_row)
-	var targets: Array[float] = [290.0, 530.0, 590.0, Config.match_rules.evac_announce_time - 10.0, Config.match_rules.evac_landing_time - 10.0, Config.match_rules.match_duration - 10.0]
+	var rules := Config.match_rules
+	var targets: Array[float] = [rules.monster_level_times[0] - 10.0, _storm_warning_time() - 10.0,
+		rules.monster_level_times[1] - 10.0, rules.evac_announce_time - 10.0,
+		rules.evac_landing_time - 10.0, rules.match_duration - 10.0]
 	for target in targets:
 		var label := "→ %d:%02d" % [floori(target / 60.0), int(target) % 60]
 		var button := _button(label, func() -> void:

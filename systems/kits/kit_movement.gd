@@ -102,8 +102,8 @@ func pre_physics(delta: float, input_dir: Vector2) -> void:
 func post_physics() -> void:
 	if _diving and player.is_on_floor():
 		_diving = false
-		_dive_cd = kit.move_param("dive_attack", "cooldown_s", 8.0)
-		_fuel_pause = kit.move_param("dive_attack", "pauses_fuel_regen_s", 1.5)
+		_dive_cd = kit.move_param("dive_attack", "cooldown_s")
+		_fuel_pause = kit.move_param("dive_attack", "pauses_fuel_regen_s")
 		request_dive_impact.rpc_id(1, player.global_position)
 
 
@@ -183,9 +183,9 @@ func _process_slide(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 func _fuel_max() -> float:
 	match mobility():
 		KitData.MobilityType.JETPACK:
-			return kit.move_param("jetpack", "fuel_max", 100.0)
+			return kit.move_param("jetpack", "fuel_max")
 		KitData.MobilityType.JETBOOSTERS:
-			return kit.move_param("jetboosters", "fuel_max", 50.0)
+			return kit.move_param("jetboosters", "fuel_max")
 	return 0.0
 
 
@@ -195,16 +195,16 @@ func _process_jet(delta: float, on_floor: bool, block: String, from_ground: bool
 	var can_thrust := from_ground or not on_floor
 	_jet_active = can_thrust and _jump_hold >= DODGE_ACTIVATION_HOLD and fuel > 0.0 and not _diving
 	if _jet_active:
-		var thrust := kit.move_param(block, "thrust_acceleration_mps2", 12.0) * (1.0 + kit.get_effect("thrust_mult"))
-		var max_up := kit.move_param(block, "max_vertical_speed_mps", 3.0)
+		var thrust := kit.move_param(block, "thrust_acceleration_mps2") * (1.0 + kit.get_effect("thrust_mult"))
+		var max_up := kit.move_param(block, "max_vertical_speed_mps")
 		player.velocity.y = minf(player.velocity.y + thrust * delta, max_up)
-		var consumption := kit.move_param(block, "fuel_consumption_per_s", 50.0) * (1.0 + kit.get_effect("fuel_consumption_mult"))
+		var consumption := kit.move_param(block, "fuel_consumption_per_s") * (1.0 + kit.get_effect("fuel_consumption_mult"))
 		fuel = maxf(fuel - consumption * delta, 0.0)
-		_fuel_pause = kit.move_param(block, "fuel_regen_delay_s", 1.0)
+		_fuel_pause = kit.move_param(block, "fuel_regen_delay_s")
 	else:
 		_fuel_pause = maxf(_fuel_pause - delta, 0.0)
 		if _fuel_pause <= 0.0:
-			var regen := kit.move_param(block, "fuel_regen_per_s", 20.0) * (1.0 + kit.get_effect("fuel_regen_mult"))
+			var regen := kit.move_param(block, "fuel_regen_per_s") * (1.0 + kit.get_effect("fuel_regen_mult"))
 			fuel = minf(fuel + regen * delta, _fuel_max())
 
 
@@ -215,7 +215,7 @@ func _process_dive(on_floor: bool) -> void:
 	var dir := -player.camera.global_basis.z
 	dir.y = minf(dir.y, -0.5)
 	_diving = true
-	player.velocity = dir.normalized() * kit.move_param("dive_attack", "dive_speed_mps", 25.0)
+	player.velocity = dir.normalized() * kit.move_param("dive_attack", "dive_speed_mps")
 
 
 # --- Esquive, double saut, charges (Furet) ---
@@ -223,11 +223,11 @@ func _process_dive(on_floor: bool) -> void:
 func _charges_max() -> float:
 	if mobility() != KitData.MobilityType.DASH:
 		return 0.0
-	return kit.move_param("energy_charges", "max", 4.0) + kit.get_effect("energy_charges_add")
+	return kit.move_param("energy_charges", "max") + kit.get_effect("energy_charges_add")
 
 
 func _process_dash(delta: float, on_floor: bool, input_dir: Vector2) -> void:
-	charges = minf(charges + delta / maxf(kit.move_param("energy_charges", "regen_s_per_charge", 3.0), 0.1), _charges_max())
+	charges = minf(charges + delta / maxf(kit.move_param("energy_charges", "regen_s_per_charge"), 0.1), _charges_max())
 	if _jump_used or not Input.is_action_just_pressed("jump"):
 		return
 	if on_floor:
@@ -235,8 +235,8 @@ func _process_dash(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 		if sideways and charges >= 1.0:
 			# Esquive : courte ruée à gauche / droite / en arrière.
 			var dir := (player.global_basis * Vector3(input_dir.x, 0, maxf(input_dir.y, 0.0))).normalized()
-			var duration := kit.move_param("dodge", "duration_s", 0.2)
-			_dash_velocity = dir * kit.move_param("dodge", "distance_m", 4.0) / maxf(duration, 0.01)
+			var duration := kit.move_param("dodge", "duration_s")
+			_dash_velocity = dir * kit.move_param("dodge", "distance_m") / maxf(duration, 0.01)
 			_dash_left = duration
 			charges -= 1.0
 			# Mod « esquive blindée » : le serveur réduit les dégâts pendant l'esquive.
@@ -246,9 +246,9 @@ func _process_dash(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 			_basic_jump(on_floor)
 		_jump_used = true
 		return
-	var max_air := int(kit.move_param("double_jump", "max_air_jumps", 1.0) + kit.get_effect("air_jumps_add"))
+	var max_air := int(kit.move_param("double_jump", "max_air_jumps") + kit.get_effect("air_jumps_add"))
 	if _air_jumps_used < max_air and charges >= 1.0:
-		player.velocity.y = kit.move_param("double_jump", "jump_velocity_mps", 6.0)
+		player.velocity.y = kit.move_param("double_jump", "jump_velocity_mps")
 		_air_jumps_used += 1
 		charges -= 1.0
 		_jump_used = true
@@ -268,11 +268,11 @@ func _process_super_jump(delta: float, on_floor: bool) -> void:
 		if _super_hold < SUPER_JUMP_TAP:
 			player.velocity.y = Config.combat.jump_velocity
 		else:
-			var t := clampf(_super_hold / kit.move_param("super_jump", "charge_time_max_s", 1.0), 0.0, 1.0)
-			var v := lerpf(kit.move_param("super_jump", "jump_velocity_min_mps", 5.0),
-					kit.move_param("super_jump", "jump_velocity_max_mps", 12.0), t)
+			var t := clampf(_super_hold / kit.move_param("super_jump", "charge_time_max_s"), 0.0, 1.0)
+			var v := lerpf(kit.move_param("super_jump", "jump_velocity_min_mps"),
+					kit.move_param("super_jump", "jump_velocity_max_mps"), t)
 			player.velocity.y = v * (1.0 + kit.get_effect("super_jump_mult"))
-			_super_cd = kit.move_param("super_jump", "cooldown_s", 6.0)
+			_super_cd = kit.move_param("super_jump", "cooldown_s")
 		_super_hold = 0.0
 		_jump_used = true
 
@@ -285,10 +285,10 @@ func _process_punch(delta: float) -> void:
 		var dir := -player.global_basis.z
 		dir.y = 0.0
 		dir = dir.normalized()
-		var dist := kit.move_param("charge_punch", "dash_distance_m", 6.0)
+		var dist := kit.move_param("charge_punch", "dash_distance_m")
 		_dash_velocity = dir * dist / PUNCH_DASH_TIME * (1.0 + kit.get_effect("charge_speed_mult"))
 		_dash_left = PUNCH_DASH_TIME
-		_punch_cd = maxf(kit.move_param("charge_punch", "cooldown_s", 8.0) + kit.get_effect("punch_cooldown_add"), 1.0)
+		_punch_cd = maxf(kit.move_param("charge_punch", "cooldown_s") + kit.get_effect("punch_cooldown_add"), 1.0)
 		request_punch.rpc_id(1, dir)
 
 
@@ -328,9 +328,9 @@ func request_dive_impact(pos: Vector3) -> void:
 	if now < _srv_dive_ready_ms or not pos.is_finite() or pos.distance_to(player.global_position) > 6.0:
 		return
 	# 10 % de marge sur la recharge (latence).
-	_srv_dive_ready_ms = now + int(kit.move_param("dive_attack", "cooldown_s", 8.0) * 900.0)
-	var radius := kit.move_param("dive_attack", "radius_m", 3.0)
-	var damage := kit.move_param("dive_attack", "damage", 150.0) + kit.get_effect("dive_damage_add")
+	_srv_dive_ready_ms = now + int(kit.move_param("dive_attack", "cooldown_s") * 900.0)
+	var radius := kit.move_param("dive_attack", "radius_m")
+	var damage := kit.move_param("dive_attack", "damage") + kit.get_effect("dive_damage_add")
 	for node in get_tree().get_nodes_in_group("damageable"):
 		var target := node as Node3D
 		if target == null or target == player or not target.can_be_hit():
@@ -348,7 +348,7 @@ func request_punch(dir: Vector3) -> void:
 	var now := Time.get_ticks_msec()
 	if now < _srv_punch_ready_ms:
 		return
-	_srv_punch_ready_ms = now + int(maxf(kit.move_param("charge_punch", "cooldown_s", 8.0) + kit.get_effect("punch_cooldown_add"), 1.0) * 900.0)
+	_srv_punch_ready_ms = now + int(maxf(kit.move_param("charge_punch", "cooldown_s") + kit.get_effect("punch_cooldown_add"), 1.0) * 900.0)
 	await get_tree().create_timer(PUNCH_HIT_DELAY).timeout
 	if not is_inside_tree() or player.health.is_dead:
 		return
@@ -367,12 +367,12 @@ func request_punch(dir: Vector3) -> void:
 	if best == null:
 		return
 	var mult := 1.0 + kit.get_effect("punch_damage_mult")
-	var knock := dir * kit.move_param("charge_punch", "knockback_mps", 8.0)
+	var knock := dir * kit.move_param("charge_punch", "knockback_mps")
 	if best is Player:
-		best.server_receive_hit(kit.move_param("charge_punch", "damage_vs_players", 160.0) * mult, player.get_peer_id())
+		best.server_receive_hit(kit.move_param("charge_punch", "damage_vs_players") * mult, player.get_peer_id())
 		(best as Player).apply_knockback.rpc_id((best as Player).get_peer_id(), knock)
 	else:
-		best.server_receive_hit(_vs_creature(best, kit.move_param("charge_punch", "damage_vs_monsters", 200.0) * mult), player.get_peer_id())
+		best.server_receive_hit(_vs_creature(best, kit.move_param("charge_punch", "damage_vs_monsters") * mult), player.get_peer_id())
 		if best is CharacterBody3D:
 			best.global_position += knock * 0.15  # petit recul du monstre
 

@@ -53,7 +53,7 @@ func setup(data: Dictionary) -> void:
 	match kind:
 		"beacon":
 			# Balise de rappel (gadget) : chiffres dans les données, pas d'AbilityData.
-			health = float(data.get("health", 300.0))
+			health = float(data["health"])  # WeaponData.beacon_health (Weapon)
 			_add_box_shape(Vector3(0.6, 1.0, 0.6), 1)
 			_build_sync()
 		"turret", "ward":
@@ -61,8 +61,8 @@ func setup(data: Dictionary) -> void:
 			_add_box_shape(Vector3(1.2, 1.6, 1.2) if kind == "turret" else Vector3(0.5, 1.4, 0.5), 1)
 			_build_sync()
 		"barrier":
-			var w := ability.width_m if ability.width_m > 0.0 else 4.0
-			var h := ability.height_m if ability.height_m > 0.0 else 2.5
+			var w := ability.width_m
+			var h := ability.height_m
 			# Paravent : couche à part, que les corps ne touchent pas mais que les tirs touchent.
 			_add_box_shape(Vector3(w, h, 0.3), Config.SHOT_ONLY_LAYER if ability.id == &"safeguard" else 1)
 	_build_visual()
@@ -346,8 +346,8 @@ func _build_visual() -> void:
 			barrel.position = Vector3(0, 1.4, -0.4)
 			_add_bar(2.2)
 		"barrier":
-			var w := ability.width_m if ability.width_m > 0.0 else 4.0
-			var h := ability.height_m if ability.height_m > 0.0 else 2.5
+			var w := ability.width_m
+			var h := ability.height_m
 			var wall := _mesh(_box(Vector3(w, h, 0.3)), Color(color, 0.45), true)
 			wall.position.y = h / 2.0
 		"strike":

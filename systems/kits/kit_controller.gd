@@ -110,13 +110,18 @@ func get_effect(effect: String) -> float:
 	return total
 
 
-## Paramètre d'une capacité de mouvement (KitData.movement), ou `default`.
-func move_param(ability: String, key: String, default: float) -> float:
+## Paramètre d'une capacité de mouvement (KitData.movement). Sans `default`, la valeur
+## doit être dans les données du kit (sinon 0 et un avertissement).
+func move_param(ability: String, key: String, default: float = NAN) -> float:
 	var kit := get_kit()
-	if kit == null or not kit.movement.has(ability):
-		return default
-	var block: Dictionary = kit.movement[ability]
-	return float(block.get(key, default))
+	var block: Dictionary = kit.movement.get(ability, {}) if kit else {}
+	if block.has(key):
+		return float(block[key])
+	if is_nan(default):
+		if not block.is_empty():
+			push_warning("[Kit] %s.%s absent des données du kit" % [ability, key])
+		return 0.0
+	return default
 
 
 func get_display_name() -> String:

@@ -18,6 +18,7 @@ movement = {
 "fuel_max": 50.0,
 "fuel_regen_delay_s": 1.0,
 "fuel_regen_per_s": 20.0,
+"max_vertical_speed_mps": 3.0,
 "thrust_acceleration_mps2": 12.0
 }
 }
