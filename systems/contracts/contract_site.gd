@@ -113,7 +113,7 @@ func spawn_wave(wave: CampData, center: Vector3, objective: Node3D) -> int:
 	var count := 0
 	for monster_data in wave.roll():
 		var angle := randf() * TAU
-		var dist := randf_range(Config.CRYSTAL_WAVE_SPAWN_MIN * 0.75, Config.CRYSTAL_WAVE_SPAWN_MAX * 0.75)
+		var dist := randf_range(Config.match_rules.crystal_wave_spawn_min * 0.75, Config.match_rules.crystal_wave_spawn_max * 0.75)
 		var pos := center + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
 		Events.wave_spawn_requested.emit(objective, monster_data, pos, data.monster_health_mult, data.monster_damage_mult)
 		count += 1

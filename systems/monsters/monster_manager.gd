@@ -3,7 +3,7 @@ extends Node
 ## Crée les monstres via le MonsterSpawner (règle 3 : seul le serveur crée).
 ## - Sur tous les peers : fournit la spawn_function (recrée le monstre reçu).
 ## - Sur le serveur : génère le navmesh de la carte, peuple chaque MonsterCamp, et
-##   repeuple un camp vidé après Config.CAMP_RESPAWN_DELAY (pour les tests).
+##   repeuple un camp vidé après Config.match_rules.camp_respawn_delay (pour les tests).
 
 const MONSTER_SCRIPT := preload("res://systems/monsters/monster.gd")
 
@@ -29,7 +29,7 @@ func _ready() -> void:
 	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
 	Events.match_reset_requested.connect(_on_match_reset)
 	Events.evac_announced.connect(_spawn_evac_pad_camp)
-	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.MONSTER_LEVEL_HEALTH_MULT.size()))
+	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.match_rules.monster_level_health_mult.size()))
 	_setup.call_deferred()
 
 
@@ -80,7 +80,7 @@ func _spawn_camp(camp: MonsterCamp) -> void:
 			"data": monster_data.resource_path,
 			"pos": _ground(pos),
 			"rot": randf() * TAU,
-			"hp": _level_mult(Config.MONSTER_LEVEL_HEALTH_MULT),
+			"hp": _level_mult(Config.match_rules.monster_level_health_mult),
 			"lvl": _level,
 		}) as Monster
 		_apply_level(monster, 1.0)
@@ -100,7 +100,7 @@ func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, posi
 		"data": monster_data.resource_path,
 		"pos": _ground(position),
 		"rot": randf() * TAU,
-		"hp": health_mult * _level_mult(Config.MONSTER_LEVEL_HEALTH_MULT),
+		"hp": health_mult * _level_mult(Config.match_rules.monster_level_health_mult),
 		"lvl": _level,
 	}) as Monster
 	monster.players_root = players_root
@@ -113,7 +113,7 @@ func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, posi
 
 func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
 	var generation := _generation
-	await get_tree().create_timer(Config.CAMP_RESPAWN_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.camp_respawn_delay).timeout
 	if is_instance_valid(camp) and generation == _generation:
 		_spawn_camp(camp)
 
@@ -162,8 +162,8 @@ func _level_mult(table: Array) -> float:
 
 ## Serveur : dégâts et crédits selon le niveau actuel (les PV passent par la spawn_function).
 func _apply_level(monster: Monster, damage_mult: float) -> void:
-	monster.damage_mult = damage_mult * _level_mult(Config.MONSTER_LEVEL_DAMAGE_MULT)
-	monster.credits_mult = _level_mult(Config.MONSTER_LEVEL_CREDITS_MULT)
+	monster.damage_mult = damage_mult * _level_mult(Config.match_rules.monster_level_damage_mult)
+	monster.credits_mult = _level_mult(Config.match_rules.monster_level_credits_mult)
 
 
 ## Annonce de l'évac : des monstres occupent la plateforme. La navette ne se pose qu'une

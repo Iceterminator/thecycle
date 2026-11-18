@@ -14,7 +14,7 @@ const WEAPON_SLOTS := 2  ## emplacements 0 et 1 ; 2 et 3 = gadgets de Q et F
 
 ## Ids d'objet des 2 emplacements ("" = vide). Toujours réassigner le tableau entier
 ## (via _set_slot) pour que le setter et la synchro voient le changement.
-var slot_ids: PackedStringArray = PackedStringArray([String(Config.BASE_WEAPON), "", "", ""]):
+var slot_ids: PackedStringArray = PackedStringArray([String(Config.start_loadout.base_weapon), "", "", ""]):
 	set(value):
 		slot_ids = value
 		_after_change()
@@ -122,9 +122,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("next_weapon") or event.is_action_pressed("prev_weapon"):
 		_ask_switch(1 - active_slot if active_slot < WEAPON_SLOTS else 0)
 	elif event.is_action_pressed("use_heal"):
-		request_use.rpc_id(1, String(Config.HEAL_ITEM))
+		request_use.rpc_id(1, String(Config.start_loadout.heal_item))
 	elif event.is_action_pressed("use_shield"):
-		request_use.rpc_id(1, String(Config.SHIELD_ITEM))
+		request_use.rpc_id(1, String(Config.start_loadout.shield_item))
 
 
 func _ask_switch(slot: int) -> void:
@@ -229,11 +229,11 @@ func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 				Events.loot_drop_requested.emit(StringName(slot_ids[slot]), 1 + slot_boosts[slot], slot_ammo[slot], _drop_position(), false)
 				_set_slot(slot, item.id, mag, boost)
 		ItemData.Kind.HEAL:
-			if medkits >= Config.MAX_MEDKITS:
+			if medkits >= Config.start_loadout.max_medkits:
 				return false
 			medkits += 1
 		ItemData.Kind.SHIELD_RECHARGE:
-			if shield_cells >= Config.MAX_SHIELD_CELLS:
+			if shield_cells >= Config.start_loadout.max_shield_cells:
 				return false
 			shield_cells += 1
 		ItemData.Kind.CREDITS:
@@ -304,14 +304,14 @@ func _on_dead_changed_server(dead: bool) -> void:
 		if slot_ids[i] != "" and StringName(slot_ids[i]) != player.start_weapon_id():
 			Events.loot_drop_requested.emit(StringName(slot_ids[i]), 1 + slot_boosts[i], slot_ammo[i], pos, true)
 	for i in medkits:
-		Events.loot_drop_requested.emit(Config.HEAL_ITEM, 1, -1, pos, true)
+		Events.loot_drop_requested.emit(Config.start_loadout.heal_item, 1, -1, pos, true)
 	for i in shield_cells:
-		Events.loot_drop_requested.emit(Config.SHIELD_ITEM, 1, -1, pos, true)
+		Events.loot_drop_requested.emit(Config.start_loadout.shield_item, 1, -1, pos, true)
 	for res_id: String in carried:
 		Events.loot_drop_requested.emit(StringName(res_id), carried[res_id], -1, pos, true)
 	carried = {}
 
-	var lost := int(credits * Config.DEATH_CREDITS_LOSS)
+	var lost := int(credits * Config.economy.death_credits_loss)
 	if lost > 0:
 		credits -= lost
 		Events.credits_changed.emit(player.get_peer_id(), credits)

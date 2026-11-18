@@ -2,7 +2,7 @@ class_name EquipmentUi
 extends CanvasLayer
 ## Menu Équipement (touche K, joueur local) : choisir son kit.
 ## Le changement n'est accepté par le serveur qu'au largage / à la réapparition
-## (Config.KIT_CHANGE_WINDOW s après) ou quand on est mort. Construit en code.
+## (Config.match_rules.kit_change_window s après) ou quand on est mort. Construit en code.
 
 var _player: Player
 var _kit: KitController
@@ -58,12 +58,12 @@ func _refresh() -> void:
 		return
 	var open_now := _kit.can_change_kit_now()
 	_window_label.text = "Changement possible maintenant" if open_now \
-			else "Changement possible seulement au largage ou à la réapparition (%d s après)" % int(Config.KIT_CHANGE_WINDOW)
+			else "Changement possible seulement au largage ou à la réapparition (%d s après)" % int(Config.match_rules.kit_change_window)
 	_window_label.modulate = Color(0.5, 1.0, 0.5) if open_now else Color(1.0, 0.7, 0.4)
 	for row in _rows:
 		var data: KitData = row["kit"]
 		var button: Button = row["button"]
-		var current := String(data.id) == (_kit.kit_id if _kit.kit_id != "" else String(Config.DEFAULT_KIT))
+		var current := String(data.id) == (_kit.kit_id if _kit.kit_id != "" else String(Config.start_loadout.default_kit))
 		button.text = "Équipé" if current else "Équiper"
 		button.disabled = current or not open_now
 
@@ -134,9 +134,9 @@ func _make_row(data: KitData) -> HBoxContainer:
 	name_label.text = KitController.kit_name(data)
 	name_label.add_theme_font_size_override("font_size", 20)
 	info.add_child(name_label)
-	var hp := data.health if data.health > 0.0 else Config.KIT_DEFAULT_HEALTH
-	var sh := data.shield if data.shield > 0.0 else Config.KIT_DEFAULT_SHIELD
-	var sp := data.move_speed_mps if data.move_speed_mps > 0.0 else Config.KIT_DEFAULT_SPEED
+	var hp := data.health if data.health > 0.0 else Config.combat.kit_default_health
+	var sh := data.shield if data.shield > 0.0 else Config.combat.kit_default_shield
+	var sp := data.move_speed_mps if data.move_speed_mps > 0.0 else Config.combat.kit_default_speed
 	var stats := Label.new()
 	stats.text = "PV %d — Bouclier %d — Vitesse %.1f m/s\n%s" % [hp, sh, sp, data.playstyle]
 	stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

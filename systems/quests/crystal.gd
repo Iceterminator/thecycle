@@ -9,7 +9,7 @@ extends StaticBody3D
 ##              Il faut tuer tous les monstres de toutes les vagues.
 ##              Si la foreuse est détruite -> FAILED, puis retour à IDLE après un délai.
 ##   EXTRACT  : maintenir E 5 s -> points d'objectif « Forage » pour celui qui extrait.
-##   DONE     : épuisé ; réapparaît après Config.CRYSTAL_RESPAWN_DELAY (tests).
+##   DONE     : épuisé ; réapparaît après Config.match_rules.crystal_respawn_delay (tests).
 ##
 ## La foreuse n'est PAS dans le groupe "damageable" : les armes des joueurs ne la
 ## touchent pas, seuls les monstres (cible `objective`) l'abîment.
@@ -88,10 +88,10 @@ func get_prompt(_player: Player) -> String:
 	match state:
 		State.IDLE:
 			return "Maintenir E (%d s) : lancer la foreuse — %s %s (+%d pts de Forage)" % [
-				int(Config.CRYSTAL_ACTIVATE_TIME), data.display_name, data.difficulty_name, data.objective_points]
+				int(Config.match_rules.crystal_activate_time), data.display_name, data.difficulty_name, data.objective_points]
 		State.EXTRACT:
 			return "Maintenir E (%d s) : extraire le cristal (+%d pts de Forage)" % [
-				int(Config.CRYSTAL_EXTRACT_TIME), data.objective_points]
+				int(Config.match_rules.crystal_extract_time), data.objective_points]
 	return ""
 
 
@@ -99,9 +99,9 @@ func get_prompt(_player: Player) -> String:
 func get_hold_time(_player: Player) -> float:
 	match state:
 		State.IDLE:
-			return Config.CRYSTAL_ACTIVATE_TIME
+			return Config.match_rules.crystal_activate_time
 		State.EXTRACT:
-			return Config.CRYSTAL_EXTRACT_TIME
+			return Config.match_rules.crystal_extract_time
 	return 0.0
 
 
@@ -168,8 +168,8 @@ func _start_defense(player: Player) -> void:
 
 
 func _schedule_wave() -> void:
-	_wave_timer = Config.CRYSTAL_WAVE_DELAY
-	next_wave_in = Config.CRYSTAL_WAVE_DELAY
+	_wave_timer = Config.match_rules.crystal_wave_delay
+	next_wave_in = Config.match_rules.crystal_wave_delay
 
 
 func _physics_process(delta: float) -> void:
@@ -188,7 +188,7 @@ func _spawn_wave() -> void:
 	var count := 0
 	for monster_data in wave.roll():
 		var angle := randf() * TAU
-		var dist := randf_range(Config.CRYSTAL_WAVE_SPAWN_MIN, Config.CRYSTAL_WAVE_SPAWN_MAX)
+		var dist := randf_range(Config.match_rules.crystal_wave_spawn_min, Config.match_rules.crystal_wave_spawn_max)
 		var pos := global_position + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
 		Events.wave_spawn_requested.emit(self, monster_data, pos, data.monster_health_mult, data.monster_damage_mult)
 		count += 1
@@ -206,7 +206,7 @@ func _fail() -> void:
 			monster.queue_free()
 	_alive.clear()
 	monsters_left = 0
-	await get_tree().create_timer(Config.CRYSTAL_RESET_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.crystal_reset_delay).timeout
 	if is_inside_tree() and state == State.FAILED:
 		state = State.IDLE
 
@@ -216,7 +216,7 @@ func _complete(player: Player) -> void:
 	player.score.add_objective_points(data.track, data.objective_points)
 	print("[Quête] %s extrait par %d : +%d points" % [name, player.get_peer_id(), data.objective_points])
 	Events.quest_completed.emit(StringName(name), player.get_peer_id(), data.objective_points)
-	await get_tree().create_timer(Config.CRYSTAL_RESPAWN_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.crystal_respawn_delay).timeout
 	if is_inside_tree() and state == State.DONE:
 		state = State.IDLE
 

@@ -1,10 +1,10 @@
 class_name BountyManager
 extends Node
-## Contrat « Prime » (serveur uniquement). Toutes les Config.BOUNTY_INTERVAL s, s'il y a
+## Contrat « Prime » (serveur uniquement). Toutes les Config.match_rules.bounty_interval s, s'il y a
 ## au moins 2 joueurs vivants et pas de prime en cours, une prime est posée sur le joueur
 ## qui a le plus de points de quête : BOUNTY_BASE + BOUNTY_SHARE × ses points.
 ## Sa position devient visible par tous (balise). Le joueur qui le tue gagne la prime.
-## S'il survit Config.BOUNTY_DURATION s, il touche la moitié de la prime.
+## S'il survit Config.match_rules.bounty_duration s, il touche la moitié de la prime.
 
 const COLOR := Color(1, 0.35, 0.3)
 
@@ -13,7 +13,7 @@ const COLOR := Color(1, 0.35, 0.3)
 var _target_id: int = 0
 var _amount: int = 0
 var _time_left: float = 0.0
-var _cooldown: float = Config.BOUNTY_INTERVAL
+var _cooldown: float = Config.match_rules.bounty_interval
 
 
 func _ready() -> void:
@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	_cooldown -= delta
 	if _cooldown > 0.0:
 		return
-	_cooldown = Config.BOUNTY_INTERVAL
+	_cooldown = Config.match_rules.bounty_interval
 	var alive: Array[Player] = []
 	for node in players_root.get_children():
 		var p := node as Player
@@ -50,8 +50,8 @@ func _physics_process(delta: float) -> void:
 	alive.sort_custom(func(a: Player, b: Player) -> bool: return a.score.rank_points > b.score.rank_points)
 	var target := alive[0]
 	_target_id = target.get_peer_id()
-	_amount = Config.BOUNTY_BASE + int(target.score.rank_points * Config.BOUNTY_SHARE)
-	_time_left = Config.BOUNTY_DURATION
+	_amount = Config.economy.bounty_base + int(target.score.rank_points * Config.economy.bounty_share)
+	_time_left = Config.match_rules.bounty_duration
 	target.score.set_beacon(&"bounty", "☠ PRIME %d pts" % _amount)
 	Events.announce_requested.emit("Prime de %d Fame sur %s ! Sa position est visible." % [_amount, ContractSite.player_name(_target_id)], COLOR)
 
@@ -73,7 +73,7 @@ func _clear(message: String) -> void:
 		target.score.set_beacon(&"bounty", "")
 	_target_id = 0
 	_amount = 0
-	_cooldown = Config.BOUNTY_INTERVAL
+	_cooldown = Config.match_rules.bounty_interval
 	if message != "":
 		Events.announce_requested.emit(message, COLOR)
 

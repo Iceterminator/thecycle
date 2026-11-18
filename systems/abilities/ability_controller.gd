@@ -209,7 +209,7 @@ func server_upgrade(slot: int) -> void:
 	if slot < 0 or slot >= SLOTS or get_slot(slot) == null:
 		return
 	var up := upgrades.duplicate()
-	up[slot] = mini(up[slot] + 1, Config.ABILITY_MAX_UPGRADES)
+	up[slot] = mini(up[slot] + 1, Config.economy.ability_max_upgrades)
 	upgrades = up
 
 
@@ -264,21 +264,21 @@ func _server_activate(a: AbilityData, origin: Vector3, dir: Vector3) -> bool:
 			_request(base.merged({"kind": "grenade", "origin": origin, "dir": dir}))
 			return true
 		AbilityData.Category.DEPLOYABLE:
-			_request(base.merged({"kind": "turret", "pos": _aim_ground(origin, dir, Config.ABILITY_PLACE_RANGE)}))
+			_request(base.merged({"kind": "turret", "pos": _aim_ground(origin, dir, Config.combat.ability_place_range)}))
 			return true
 		AbilityData.Category.BARRIER:
 			var flat := Vector3(dir.x, 0, dir.z).normalized()
 			_request(base.merged({"kind": "barrier", "pos": _ground(player.global_position + flat * 2.5), "dir": flat}))
 			return true
 		AbilityData.Category.STRIKE:
-			_request(base.merged({"kind": "strike", "pos": _aim_ground(origin, dir, Config.ABILITY_AIM_RANGE)}))
+			_request(base.merged({"kind": "strike", "pos": _aim_ground(origin, dir, Config.combat.ability_aim_range)}))
 			return true
 		AbilityData.Category.TRAP:
 			if a.id == &"snare_trap":
 				return _server_snare(a, origin, dir)
 			# Bombe de distorsion : la sortie s'ouvre plus loin, même derrière un obstacle.
 			var flat := Vector3(dir.x, 0, dir.z).normalized()
-			_request(base.merged({"kind": "strike", "pos": _ground(player.global_position + flat * Config.WARP_BOMB_DISTANCE)}))
+			_request(base.merged({"kind": "strike", "pos": _ground(player.global_position + flat * Config.combat.warp_bomb_distance)}))
 			return true
 		AbilityData.Category.MOBILITY:
 			var flat := Vector3(dir.x, 0, dir.z).normalized()
@@ -297,7 +297,7 @@ func _request(data: Dictionary) -> void:
 
 ## Entrave : la première cible visée (joueur ou monstre, à portée) est ralentie.
 func _server_snare(a: AbilityData, origin: Vector3, dir: Vector3) -> bool:
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + dir * Config.SNARE_RANGE)
+	var query := PhysicsRayQueryParameters3D.create(origin, origin + dir * Config.combat.snare_range)
 	query.exclude = [player.get_rid()]
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():

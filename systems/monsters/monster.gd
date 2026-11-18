@@ -16,7 +16,7 @@ extends CharacterBody3D
 ## de vue, recule si on l'approche à moins de data.min_range, et crache un projectile
 ## lent (simulé par le serveur, visible chez tous) qu'on peut esquiver.
 ## Niveau (1 à 3, donné à l'apparition) : PV, dégâts et crédits multipliés (Config).
-## Dans la tempête : détection et vitesse de course × Config.STORM_MONSTER_MULT.
+## Dans la tempête : détection et vitesse de course × Config.match_rules.storm_monster_mult.
 
 enum State { PATROL, CHASE, WINDUP, RECOVER, RETURN }
 
@@ -206,7 +206,7 @@ func _physics_process(delta: float) -> void:
 
 ## Monstres plus agressifs dans la tempête.
 func _aggro_mult() -> float:
-	return Config.STORM_MONSTER_MULT if StormManager.is_in_storm(global_position) else 1.0
+	return Config.match_rules.storm_monster_mult if StormManager.is_in_storm(global_position) else 1.0
 
 
 func _do_patrol(delta: float) -> void:
@@ -368,7 +368,7 @@ func _find_player() -> Player:
 		if player == null or not player.can_be_hit():
 			continue
 		# Joueur camouflé : invisible pour les monstres, sauf tout près.
-		var cloaked := player.buffs != null and player.buffs.get_cloak(0.0) >= Config.CLOAK_MONSTER_IGNORE
+		var cloaked := player.buffs != null and player.buffs.get_cloak(0.0) >= Config.combat.cloak_monster_ignore
 		if cloaked and global_position.distance_to(player.global_position) > 4.0:
 			continue
 		var dist := global_position.distance_to(player.global_position)

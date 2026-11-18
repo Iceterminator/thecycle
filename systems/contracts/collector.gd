@@ -1,7 +1,7 @@
 class_name Collector
 extends ContractSite
 ## Contrat « collecteur » : on y dépose une ressource portée (biomasse lâchée par les
-## monstres, Lumicèpes ramassés sur la carte). Maintenir E (Config.COLLECT_HOLD_TIME)
+## monstres, Lumicèpes ramassés sur la carte). Maintenir E (Config.match_rules.collect_hold_time)
 ## dépose tout -> data.points par unité.
 ## Champs utilisés : resource_item, points, color.
 
@@ -37,7 +37,7 @@ func get_prompt(player: Player) -> String:
 
 
 func get_hold_time(player: Player) -> float:
-	return Config.COLLECT_HOLD_TIME if player.inventory.get_resource(data.resource_item.id) > 0 else 0.0
+	return Config.match_rules.collect_hold_time if player.inventory.get_resource(data.resource_item.id) > 0 else 0.0
 
 
 func server_interact(player: Player) -> void:

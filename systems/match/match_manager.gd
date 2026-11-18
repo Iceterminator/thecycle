@@ -2,7 +2,7 @@ class_name MatchManager
 extends Node
 ## Déroulé d'une partie (étape 6), décidé par le SERVEUR :
 ##   0:00 -> 19:10 : prospection (annonce de l'évac à 16:10) ; 19:10 : l'évac se pose ; 20:00 : décollage, fin de partie ;
-##   écran de fin pendant Config.MATCH_RESTART_DELAY, puis nouvelle partie sur place.
+##   écran de fin pendant Config.match_rules.match_restart_delay, puis nouvelle partie sur place.
 ## Créé en code par World sur tous les peers (même chemin partout, pour les RPC).
 ## Les clients reçoivent l'horloge (temps écoulé + phase) au début, à chaque changement
 ## et toutes les Config.MATCH_CLOCK_RESYNC s ; le HUD l'avance seul entre deux envois.
@@ -69,15 +69,15 @@ func _physics_process(delta: float) -> void:
 ## Clients : copie locale de l'horloge, avancée entre deux envois du serveur.
 func _process(delta: float) -> void:
 	if phase != Phase.ENDED and phase != Phase.LOBBY:
-		elapsed = minf(elapsed + delta, Config.MATCH_DURATION)
+		elapsed = minf(elapsed + delta, Config.match_rules.match_duration)
 
 
 ## Annonces : [temps (s), texte, couleur]. Déclenchées quand l'horloge franchit le temps.
 func _announces() -> Array:
-	var land := Config.EVAC_LANDING_TIME
-	var end := Config.MATCH_DURATION
+	var land := Config.match_rules.evac_landing_time
+	var end := Config.match_rules.match_duration
 	return [
-		[Config.EVAC_ANNOUNCE_TIME, "La navette d'évacuation arrivera dans %d secondes, au centre de la carte !" % roundi(land - Config.EVAC_ANNOUNCE_TIME), EVAC_COLOR],
+		[Config.match_rules.evac_announce_time, "La navette d'évacuation arrivera dans %d secondes, au centre de la carte !" % roundi(land - Config.match_rules.evac_announce_time), EVAC_COLOR],
 		[end - 30.0, "Décollage de l'évac dans 30 secondes !", EVAC_COLOR],
 		[end - 10.0, "Décollage dans 10 secondes !", EVAC_COLOR],
 	]
@@ -86,31 +86,31 @@ func _announces() -> Array:
 ## Fait avancer l'horloge jusqu'à `to` en déclenchant tout ce qui est franchi.
 func _advance(to: float) -> void:
 	var before := elapsed
-	elapsed = minf(to, Config.MATCH_DURATION)
+	elapsed = minf(to, Config.match_rules.match_duration)
 	for entry: Array in _announces():
 		if before < entry[0] and elapsed >= entry[0]:
 			Events.announce_requested.emit(entry[1], entry[2])
-	if before < Config.EVAC_ANNOUNCE_TIME and elapsed >= Config.EVAC_ANNOUNCE_TIME:
+	if before < Config.match_rules.evac_announce_time and elapsed >= Config.match_rules.evac_announce_time:
 		_set_pad_blocked(true)
 		Events.evac_announced.emit()  # MonsterManager occupe la plateforme (ou la déclare libre)
 		if pad_blocked:
 			Events.announce_requested.emit("Des monstres occupent la plateforme d'évac : tuez-les pour que la navette puisse se poser !", EVAC_COLOR)
-	if phase == Phase.PLAYING and pad_blocked and before < Config.EVAC_LANDING_TIME and elapsed >= Config.EVAC_LANDING_TIME:
+	if phase == Phase.PLAYING and pad_blocked and before < Config.match_rules.evac_landing_time and elapsed >= Config.match_rules.evac_landing_time:
 		Events.announce_requested.emit("NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME", EVAC_COLOR)
-	if phase == Phase.PLAYING and not pad_blocked and elapsed >= Config.EVAC_LANDING_TIME:
+	if phase == Phase.PLAYING and not pad_blocked and elapsed >= Config.match_rules.evac_landing_time:
 		phase = Phase.EVAC
 		Events.evac_landed.emit()
 		Events.announce_requested.emit("L'évac se pose au centre ! Montez à bord par la rampe.", ANNOUNCE_COLOR)
 		_broadcast_clock()
 	# Niveau des monstres (1 au départ, puis 2 et 3 aux temps de Config).
-	for i in Config.MONSTER_LEVEL_TIMES.size():
-		var t: float = Config.MONSTER_LEVEL_TIMES[i]
+	for i in Config.match_rules.monster_level_times.size():
+		var t: float = Config.match_rules.monster_level_times[i]
 		if before < t and elapsed >= t:
 			Events.monster_level_changed.emit(i + 2)
 			Events.announce_requested.emit("Les monstres passent au niveau %d : plus résistants, plus de crédits !" % (i + 2), MONSTER_COLOR)
-	if before < Config.CRYSTAL_UPGRADE_TIME and elapsed >= Config.CRYSTAL_UPGRADE_TIME:
+	if before < Config.match_rules.crystal_upgrade_time and elapsed >= Config.match_rules.crystal_upgrade_time:
 		Events.crystal_upgrade_requested.emit()
-	if elapsed >= Config.MATCH_DURATION:
+	if elapsed >= Config.match_rules.match_duration:
 		_end_match()
 
 
@@ -130,7 +130,7 @@ func _on_player_evacuated(peer_id: int) -> void:
 	if player == null:
 		return
 	evacuated.append(peer_id)
-	var bonus := Config.EVAC_FIRST_BONUS if evacuated.size() == 1 else Config.EVAC_OTHER_BONUS
+	var bonus := Config.economy.evac_first_bonus if evacuated.size() == 1 else Config.economy.evac_other_bonus
 	player.score.add_rank_points(bonus)
 	player.set_evacuated.rpc(true)
 	var text := "%s a embarqué dans l'évac !" % ProfileManager.name_of(peer_id)
@@ -146,15 +146,15 @@ func _set_pad_blocked(blocked: bool) -> void:
 
 
 ## Contrat « Nettoyer la plateforme » rempli : Fame au tueur, la navette peut se poser
-## (tout de suite si elle est déjà là, sinon à Config.EVAC_LANDING_TIME).
+## (tout de suite si elle est déjà là, sinon à Config.match_rules.evac_landing_time).
 func _on_evac_pad_cleared(killer_id: int) -> void:
 	if not pad_blocked or phase != Phase.PLAYING:
 		return
 	_set_pad_blocked(false)
 	var killer := world.get_player(killer_id)
 	if killer:
-		killer.score.add_contract_fame(Config.EVAC_PAD_CLEAR_FAME)
-		Events.announce_requested.emit("%s a nettoyé la plateforme d'évac ! (+%d)" % [ProfileManager.name_of(killer_id), Config.EVAC_PAD_CLEAR_FAME], EVAC_COLOR)
+		killer.score.add_contract_fame(Config.economy.evac_pad_clear_fame)
+		Events.announce_requested.emit("%s a nettoyé la plateforme d'évac ! (+%d)" % [ProfileManager.name_of(killer_id), Config.economy.evac_pad_clear_fame], EVAC_COLOR)
 	else:
 		Events.announce_requested.emit("La plateforme d'évac est dégagée !", EVAC_COLOR)
 	_advance(elapsed)  # se pose tout de suite si l'heure est passée
@@ -162,7 +162,7 @@ func _on_evac_pad_cleared(killer_id: int) -> void:
 
 func _end_match() -> void:
 	phase = Phase.ENDED
-	elapsed = Config.MATCH_DURATION
+	elapsed = Config.match_rules.match_duration
 	Events.evac_departed.emit()
 	_results = []
 	for node in world.players.get_children():
@@ -172,10 +172,10 @@ func _end_match() -> void:
 		var peer := player.get_peer_id()
 		var aboard := peer in evacuated
 		if not aboard:
-			player.score.add_rank_points(-Config.EVAC_MISSED_PENALTY)
+			player.score.add_rank_points(-Config.economy.evac_missed_penalty)
 		_results.append({"peer": peer, "points": player.score.rank_points, "evacuated": aboard})
 	_results.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["points"] > b["points"])
-	_restart_left = Config.MATCH_RESTART_DELAY
+	_restart_left = Config.match_rules.match_restart_delay
 	Events.match_ended.emit()
 	Events.announce_requested.emit("L'évac a décollé ! Fin de la partie.", ANNOUNCE_COLOR)
 	print("[Partie] Fin : %s" % [_results])

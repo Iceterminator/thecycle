@@ -186,7 +186,7 @@ func _physics_process(delta: float) -> void:
 	if health.is_downed:
 		is_crouching = true
 		_apply_crouch_shape(delta)
-		var crawl := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized() * Config.DOWNED_SPEED
+		var crawl := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized() * Config.combat.downed_speed
 		velocity.x = crawl.x
 		velocity.z = crawl.z
 		move_and_slide()
@@ -212,7 +212,7 @@ func _physics_process(delta: float) -> void:
 				velocity.x = move_toward(velocity.x, 0, speed)
 				velocity.z = move_toward(velocity.z, 0, speed)
 		else:
-			# En l'air : contrôle partiel (Config.AIR_CONTROL), total pendant le jetpack.
+			# En l'air : contrôle partiel (Config.combat.air_control), total pendant le jetpack.
 			var weight := clampf(movement.air_control() * 10.0 * delta, 0.0, 1.0)
 			velocity.x = lerpf(velocity.x, target.x, weight)
 			velocity.z = lerpf(velocity.z, target.z, weight)
@@ -225,13 +225,13 @@ func _physics_process(delta: float) -> void:
 	movement.post_physics()
 
 
-## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.SPRINT_MULTIPLIER.
+## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.combat.sprint_multiplier.
 func _current_speed(input_dir: Vector2) -> float:
 	var buff := buffs.get_mult("speed_mult") if buffs else 1.0
 	if is_crouching:
-		return Config.CROUCH_SPEED * buff
+		return Config.combat.crouch_speed * buff
 	if Input.is_action_pressed("sprint") and input_dir.y < 0:
-		return kit.move_speed() * Config.SPRINT_MULTIPLIER * buff
+		return kit.move_speed() * Config.combat.sprint_multiplier * buff
 	return kit.move_speed() * buff
 
 
@@ -242,7 +242,7 @@ func weapon_mod(wdata: WeaponData) -> WeaponModData:
 	return WeaponModData.get_mod(String(ProfileManager.weapon_mods(get_peer_id()).get(String(wdata.id), "")))
 
 
-## Arme de départ (profil, choisie dans le lobby) ; Config.BASE_WEAPON sinon.
+## Arme de départ (profil, choisie dans le lobby) ; Config.start_loadout.base_weapon sinon.
 func start_weapon_id() -> StringName:
 	return ProfileManager.start_weapon(get_peer_id())
 
@@ -273,7 +273,7 @@ func get_prompt(viewer: Player) -> String:
 
 
 func get_hold_time(_viewer: Player) -> float:
-	return Config.REVIVE_TIME
+	return Config.combat.revive_time
 
 
 func server_interact(viewer: Player) -> void:

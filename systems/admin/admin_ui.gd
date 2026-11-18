@@ -189,7 +189,7 @@ func _build() -> void:
 	# niveau 3 + cristaux + Grande Marée (10:00), annonce de l'évac (16:00), arrivée de l'évac (17:00), décollage.
 	var goto_row := _row()
 	box.add_child(goto_row)
-	var targets: Array[float] = [290.0, 530.0, 590.0, Config.EVAC_ANNOUNCE_TIME - 10.0, Config.EVAC_LANDING_TIME - 10.0, Config.MATCH_DURATION - 10.0]
+	var targets: Array[float] = [290.0, 530.0, 590.0, Config.match_rules.evac_announce_time - 10.0, Config.match_rules.evac_landing_time - 10.0, Config.match_rules.match_duration - 10.0]
 	for target in targets:
 		var label := "→ %d:%02d" % [floori(target / 60.0), int(target) % 60]
 		var button := _button(label, func() -> void:

@@ -4,7 +4,7 @@ extends Node
 ## 4 cases d'armes et 4 cases de gadgets / capacités (ProfileManager.shop_of), plus les
 ## consommables (soins, cellules de bouclier), toujours en vente.
 ## - Arme pas encore possédée : capsule de largage devant le joueur (objet au sol normal).
-## - Arme déjà dans l'inventaire : palier de boost suivant (WeaponData.boosts, Config.WEAPON_BOOST_PRICES).
+## - Arme déjà dans l'inventaire : palier de boost suivant (WeaponData.boosts, Config.economy.weapon_boost_prices).
 ## - Gadget / capacité pas encore sur Q ou F : il attend d'être assigné (touche Q ou F).
 ## - Déjà sur Q ou F : capacité améliorée (-recharge), gadget rechargé.
 ## Client propriétaire : affiche l'interface (ShopUi) et DEMANDE un achat ; le serveur vérifie tout.
@@ -59,7 +59,7 @@ static func entry_price(id: String) -> int:
 	var item := Items.get_item(StringName(id))
 	if item:
 		return item.price
-	return Config.ABILITY_PRICE if AbilityController.get_ability(id) else 0
+	return Config.economy.ability_price if AbilityController.get_ability(id) else 0
 
 
 ## [faction, niveau] requis.
@@ -130,21 +130,21 @@ func offer(id: String) -> Dictionary:
 				var weapon := Items.get_item(StringName(id)).weapon
 				var level: int = player.inventory.slot_boosts[slot]
 				result["action"] = "boost"
-				if level >= mini(weapon.boosts.size(), Config.WEAPON_BOOST_PRICES.size()):
+				if level >= mini(weapon.boosts.size(), Config.economy.weapon_boost_prices.size()):
 					result["refusal"] = "Palier maximum"
 					result["price"] = 0
 				else:
-					result["price"] = Config.WEAPON_BOOST_PRICES[level]
+					result["price"] = Config.economy.weapon_boost_prices[level]
 					result["text"] = "Palier %d : %s" % [level + 1, boost_text(weapon, level)]
 		Entry.GADGET, Entry.ABILITY:
 			var key_slot := Array(player.abilities.loadout).find(id)
 			if key_slot >= 0:
 				if kind == Entry.ABILITY:
 					result["action"] = "upgrade"
-					result["price"] = Config.ABILITY_UPGRADE_PRICE
+					result["price"] = Config.economy.ability_upgrade_price
 					var level: int = player.abilities.upgrades[key_slot]
-					result["text"] = "Amélioration %d/%d : -%d s de recharge" % [level + 1, Config.ABILITY_MAX_UPGRADES, roundi(AbilityController.get_ability(id).upgrade_cooldown_s)]
-					if level >= Config.ABILITY_MAX_UPGRADES:
+					result["text"] = "Amélioration %d/%d : -%d s de recharge" % [level + 1, Config.economy.ability_max_upgrades, roundi(AbilityController.get_ability(id).upgrade_cooldown_s)]
+					if level >= Config.economy.ability_max_upgrades:
 						result["refusal"] = "Amélioration maximum"
 				else:
 					result["action"] = "refill"

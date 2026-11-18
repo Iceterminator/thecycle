@@ -3,9 +3,9 @@ extends ContractSite
 ## Contrat « Sauvetage de drones ». data.count drones en panne autour d'une balise.
 ## Maintenir E (hold_time) sur la balise lance la protection : pendant data.duration s,
 ## des vagues de monstres attaquent les drones (data.target_health PV chacun).
-## Ensuite, maintenir E (Config.COLLECT_HOLD_TIME) sur chaque drone survivant l'envoie
+## Ensuite, maintenir E (Config.match_rules.collect_hold_time) sur chaque drone survivant l'envoie
 ## -> data.points × (PV restants / PV max). Tous détruits = échec.
-## Le site redevient utilisable après Config.CONTRACT_RESET_DELAY.
+## Le site redevient utilisable après Config.match_rules.contract_reset_delay.
 ## Champs utilisés : count, radius, hold_time, duration, target_health, points, waves,
 ## monster_*_mult, color.
 
@@ -149,7 +149,7 @@ func _spawn_wave_on_drones(wave: CampData) -> void:
 
 func _finish() -> void:
 	state = State.DONE
-	await get_tree().create_timer(Config.CONTRACT_RESET_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.contract_reset_delay).timeout
 	if is_inside_tree():
 		state = State.IDLE
 
@@ -167,7 +167,7 @@ func part_prompt(i: int, _player: Player) -> String:
 
 
 func part_hold_time(i: int, _player: Player) -> float:
-	return Config.COLLECT_HOLD_TIME if _can_send(i) else 0.0
+	return Config.match_rules.collect_hold_time if _can_send(i) else 0.0
 
 
 func part_interact(i: int, player: Player) -> void:

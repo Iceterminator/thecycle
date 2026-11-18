@@ -50,10 +50,10 @@ func get_prompt(player: Player) -> String:
 				return "E : Ramasser %s" % item.display_name
 			return "E : Échanger contre %s" % item.display_name
 		ItemData.Kind.HEAL:
-			if inv.medkits >= Config.MAX_MEDKITS:
+			if inv.medkits >= Config.start_loadout.max_medkits:
 				return "Kits de soin pleins"
 		ItemData.Kind.SHIELD_RECHARGE:
-			if inv.shield_cells >= Config.MAX_SHIELD_CELLS:
+			if inv.shield_cells >= Config.start_loadout.max_shield_cells:
 				return "Cellules de bouclier pleines"
 		ItemData.Kind.CREDITS:
 			return "E : Ramasser %d crédits" % amount

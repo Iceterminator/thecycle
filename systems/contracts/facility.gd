@@ -4,7 +4,7 @@ extends ContractSite
 ## recouverts de biomasse. Maintenir E (hold_time) sur un nœud le nettoie et l'active,
 ## mais fait apparaître une vague (waves[0]) qui attaque celui qui l'a activé :
 ## mieux vaut les activer un par un. Une fois tous actifs, maintenir E sur l'ordinateur
-## central -> data.points. Le site redevient utilisable après Config.CONTRACT_RESET_DELAY.
+## central -> data.points. Le site redevient utilisable après Config.match_rules.contract_reset_delay.
 ## Champs utilisés : count, radius, hold_time, points, waves, monster_*_mult, color.
 
 const PART_SCRIPT := preload("res://systems/contracts/contract_part.gd")
@@ -104,7 +104,7 @@ func server_interact(player: Player) -> void:
 	done = true
 	player.score.add_contract_fame(data.points, data.faction)
 	announce("%s a réactivé la %s (+%d Fame)" % [player_name(player.get_peer_id()), data.display_name.to_lower(), data.points])
-	await get_tree().create_timer(Config.CONTRACT_RESET_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.contract_reset_delay).timeout
 	if is_inside_tree():
 		active_mask = 0
 		done = false

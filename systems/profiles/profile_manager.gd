@@ -8,7 +8,7 @@ extends Node
 ## - « public » (envoyé à tous, PublicSync) : pseudo, réputation, faction de prédilection,
 ##   mods d'arme — de quoi afficher les noms et vérifier les déblocages partout.
 ## Déblocages (niveau seulement) : un objet de faction est disponible dès que la réputation
-## avec cette faction atteint son niveau requis (Config.REP_LEVELS) ; les objets de départ
+## avec cette faction atteint son niveau requis (Config.economy.rep_levels) ; les objets de départ
 ## (faction 0 ou niveau 0) le sont toujours.
 
 const PROFILES_DIR := "user://profiles/"
@@ -74,10 +74,10 @@ static func rep_points(peer: int, faction: int) -> int:
 	return int(rep.get(faction, 0))
 
 
-## Niveau de réputation (0 à 10) : nombre de seuils de Config.REP_LEVELS atteints.
+## Niveau de réputation (0 à 10) : nombre de seuils de Config.economy.rep_levels atteints.
 static func rep_level_of_points(points: int) -> int:
 	var level := 0
-	for threshold: int in Config.REP_LEVELS:
+	for threshold: int in Config.economy.rep_levels:
 		if points >= threshold:
 			level += 1
 	return level
@@ -107,13 +107,13 @@ static func weapon_mods(peer: int) -> Dictionary:
 	return {}
 
 
-## Arme de départ du joueur (une arme secondaire débloquée), Config.BASE_WEAPON par défaut.
+## Arme de départ du joueur (une arme secondaire débloquée), Config.start_loadout.base_weapon par défaut.
 static func start_weapon(peer: int) -> StringName:
 	if _current and _current.public.has(peer):
 		var id := String(_current.public[peer].get("start_weapon", ""))
 		if id != "" and Items.get_item(StringName(id)) != null:
 			return StringName(id)
-	return Config.BASE_WEAPON
+	return Config.start_loadout.base_weapon
 
 
 ## Boutique configurée : { weapons: [4 ids], gadgets: [4 ids] } ("" = case vide).
@@ -124,7 +124,7 @@ static func shop_of(peer: int) -> Dictionary:
 
 
 static func default_shop() -> Dictionary:
-	return {"weapons": Config.DEFAULT_SHOP_WEAPONS.duplicate(), "gadgets": Config.DEFAULT_SHOP_GADGETS.duplicate()}
+	return {"weapons": Config.start_loadout.default_shop_weapons.duplicate(), "gadgets": Config.start_loadout.default_shop_gadgets.duplicate()}
 
 
 ## Profil complet du joueur local tel que le serveur l'a renvoyé (équipement), ou {}.
@@ -149,10 +149,10 @@ func _default_profile(name: String) -> Dictionary:
 		"rep": {"1": 0, "2": 0, "3": 0},
 		"preferred": 0,
 		"loadout": {
-			"kit": String(Config.DEFAULT_KIT),
+			"kit": String(Config.start_loadout.default_kit),
 			"kit_mods": {},
 			"weapon_mods": {},
-			"start_weapon": String(Config.BASE_WEAPON),
+			"start_weapon": String(Config.start_loadout.base_weapon),
 			"shop": default_shop(),
 		},
 		"stats": {"matches": 0, "evacs": 0, "kills": 0, "best_fame": 0},
@@ -202,7 +202,7 @@ func _publish(peer: int) -> void:
 		"rep": rep,
 		"preferred": int(profile["preferred"]),
 		"weapon_mods": profile["loadout"].get("weapon_mods", {}),
-		"start_weapon": String(profile["loadout"].get("start_weapon", Config.BASE_WEAPON)),
+		"start_weapon": String(profile["loadout"].get("start_weapon", Config.start_loadout.base_weapon)),
 		"shop": profile["loadout"].get("shop", default_shop()),
 	}
 	public = d
@@ -218,7 +218,7 @@ func server_add_rep(peer: int, faction: int, amount: int) -> void:
 		return
 	var profile: Dictionary = _profiles[peer]
 	if int(profile["preferred"]) == faction:
-		amount = roundi(amount * (1.0 + Config.PREFERRED_FACTION_BONUS))
+		amount = roundi(amount * (1.0 + Config.economy.preferred_faction_bonus))
 	var key := str(faction)
 	var before := int(profile["rep"].get(key, 0))
 	profile["rep"][key] = before + amount
@@ -328,7 +328,7 @@ func server_apply_loadout(peer: int) -> void:
 	if p == null or not _profiles.has(peer):
 		return
 	var loadout: Dictionary = _profiles[peer]["loadout"]
-	var kit_id := String(loadout.get("kit", Config.DEFAULT_KIT))
+	var kit_id := String(loadout.get("kit", Config.start_loadout.default_kit))
 	var kit := _kit_data(kit_id)
 	if kit and is_unlocked(peer, kit.faction, kit.faction_level):
 		if p.kit.kit_id != kit_id:
@@ -393,7 +393,7 @@ func request_set_loadout(loadout: Dictionary, preferred: int) -> void:
 	if kit_mod != "" and not KitController.mod_unlocked(peer, kit, kit_mod):
 		_reply(peer, "Mod de kit verrouillé")
 		return
-	var start := String(loadout.get("start_weapon", Config.BASE_WEAPON))
+	var start := String(loadout.get("start_weapon", Config.start_loadout.base_weapon))
 	if not start_weapon_ok(peer, start):
 		_reply(peer, "Arme de départ verrouillée (ou pas une arme secondaire)")
 		return

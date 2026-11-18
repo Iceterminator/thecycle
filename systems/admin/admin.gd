@@ -96,7 +96,7 @@ func request_abilities_ready() -> void:
 		return
 	player.abilities.server_reset_cooldowns()
 	player.kit._open_change_window()
-	_reply(true, "Recharges à zéro, équipement (K) modifiable %d s" % int(Config.KIT_CHANGE_WINDOW))
+	_reply(true, "Recharges à zéro, équipement (K) modifiable %d s" % int(Config.match_rules.kit_change_window))
 
 
 ## Équipe directement un kit (sans la limite « au largage / à la réapparition »).
@@ -147,7 +147,7 @@ func request_time_skip(seconds: float) -> void:
 func request_time_set(seconds: float) -> void:
 	if not _server_allowed():
 		return
-	if not is_finite(seconds) or seconds <= 0.0 or seconds > Config.MATCH_DURATION:
+	if not is_finite(seconds) or seconds <= 0.0 or seconds > Config.match_rules.match_duration:
 		return
 	Events.match_time_set_requested.emit(seconds)
 	var text := "Admin : partie avancée à %d:%02d" % [floori(seconds / 60.0), int(seconds) % 60]

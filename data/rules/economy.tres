@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="EconomyRules" format=3]
+
+[ext_resource type="Script" path="res://resources/economy_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+evac_pad_clear_fame = 20
+evac_first_bonus = 50
+evac_other_bonus = 0
+evac_missed_penalty = 100
+player_kill_fame = 50
+bounty_base = 20
+bounty_share = 0.1
+death_credits_loss = 0.5
+weapon_boost_prices = Array[int]([150, 250, 400])
+ability_price = 150
+ability_upgrade_price = 100
+ability_max_upgrades = 2
+weapon_fallback_price = 150
+kit_level_xp = Array[int]([100, 250, 450, 700, 1000])
+kit_xp_player_kill = 100
+kit_xp_monster_kill = 10
+kit_xp_per_objective_point = 1.0
+kit_xp_per_fame = 1.0
+rep_levels = Array[int]([100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500])
+preferred_faction_bonus = 0.5

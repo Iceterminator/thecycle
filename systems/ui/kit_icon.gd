@@ -47,7 +47,7 @@ func _draw() -> void:
 	_light = Color(minf(tint.r * 1.25 + 0.15, 1.0), minf(tint.g * 1.25 + 0.15, 1.0), minf(tint.b * 1.25 + 0.15, 1.0), tint.a)
 	_line = Color(0, 0, 0, 0.6 * tint.a)
 	_glow = accent if accent.a > 0.0 else Color(0.45, 0.95, 0.75, tint.a)
-	var health := kit.health if kit.health > 0.0 else Config.KIT_DEFAULT_HEALTH
+	var health := kit.health if kit.health > 0.0 else Config.combat.kit_default_health
 	var bulk := clampf(health / 500.0, 0.8, 1.3)  # 400 PV = fin, 600 PV = massif
 	var mobility := kit.mobility_type
 

@@ -1,7 +1,7 @@
 class_name FameManager
 extends Node
 ## Règles de Fame qui ne dépendent d'aucun contrat (serveur) :
-## - tuer un joueur rapporte Config.PLAYER_KILL_FAME au tueur ;
+## - tuer un joueur rapporte Config.economy.player_kill_fame au tueur ;
 ## - mourir ne fait rien perdre ; les monstres ne donnent pas de Fame.
 ## Créé en code par World.
 
@@ -19,5 +19,5 @@ func _on_player_died(victim_id: int, killer_id: int) -> void:
 	var killer := world.get_player(killer_id)
 	if killer == null:
 		return
-	killer.score.add_rank_points(Config.PLAYER_KILL_FAME)
-	killer.score.notify.rpc_id(killer_id, "%s éliminé : +%d Fame" % [ProfileManager.name_of(victim_id), Config.PLAYER_KILL_FAME], Color(1.0, 0.85, 0.3))
+	killer.score.add_rank_points(Config.economy.player_kill_fame)
+	killer.score.notify.rpc_id(killer_id, "%s éliminé : +%d Fame" % [ProfileManager.name_of(victim_id), Config.economy.player_kill_fame], Color(1.0, 0.85, 0.3))

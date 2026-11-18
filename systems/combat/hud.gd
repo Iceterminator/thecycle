@@ -164,21 +164,21 @@ func _update_clock(delta: float) -> void:
 		_storm_label.text = ""
 		_status_label.text = ""
 		return
-	_clock_elapsed = minf(_clock_elapsed + delta, Config.MATCH_DURATION)
+	_clock_elapsed = minf(_clock_elapsed + delta, Config.match_rules.match_duration)
 	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ") + _scanner_text()
 	_update_downed()
 	if _clock_phase == MatchManager.Phase.EVAC:
-		_clock_label.text = _fmt(Config.MATCH_DURATION - _clock_elapsed)
+		_clock_label.text = _fmt(Config.match_rules.match_duration - _clock_elapsed)
 		_clock_label.add_theme_color_override("font_color", ACCENT)
 		_clock_sub.text = "DÉCOLLAGE DE L'ÉVAC"
 		_status_label.text = "ÉVAC AU SOL — EMBARQUEZ !"
 	else:
-		_clock_label.text = _fmt(maxf(Config.EVAC_LANDING_TIME - _clock_elapsed, 0.0))
-		_clock_sub.text = "ÉVAC DANS   ·   partie %s / %s" % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
+		_clock_label.text = _fmt(maxf(Config.match_rules.evac_landing_time - _clock_elapsed, 0.0))
+		_clock_sub.text = "ÉVAC DANS   ·   partie %s / %s" % [_fmt(_clock_elapsed), _fmt(Config.match_rules.match_duration)]
 		_status_label.text = ""
 		if MatchManager.is_pad_blocked():
-			var late := _clock_elapsed >= Config.EVAC_LANDING_TIME
-			_clock_sub.text = ("NAVETTE BLOQUÉE   ·   partie %s / %s" if late else "ÉVAC DANS   ·   partie %s / %s") % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
+			var late := _clock_elapsed >= Config.match_rules.evac_landing_time
+			_clock_sub.text = ("NAVETTE BLOQUÉE   ·   partie %s / %s" if late else "ÉVAC DANS   ·   partie %s / %s") % [_fmt(_clock_elapsed), _fmt(Config.match_rules.match_duration)]
 			_status_label.text = "CONTRAT : tuez les monstres pour nettoyer la plateforme d'évac"
 
 
@@ -394,7 +394,7 @@ func _on_health_changed() -> void:
 func _on_dead_changed(dead: bool) -> void:
 	_death_panel.visible = dead
 	if dead:
-		_respawn_left = Config.RESPAWN_DELAY
+		_respawn_left = Config.match_rules.respawn_delay
 
 
 func _on_ammo_changed(ammo: int, magazine_size: int, reloading: bool) -> void:
@@ -445,7 +445,7 @@ func _on_results(results: Array, restart_in: float) -> void:
 	for entry: Dictionary in results:
 		var peer: int = entry["peer"]
 		var who := "Vous" if peer == _player.get_peer_id() else ProfileManager.name_of(peer)
-		var status := "évacué" if entry["evacuated"] else "resté au sol (-%d)" % Config.EVAC_MISSED_PENALTY
+		var status := "évacué" if entry["evacuated"] else "resté au sol (-%d)" % Config.economy.evac_missed_penalty
 		lines.append("%d. %s — %d Fame — %s" % [rank, who, entry["points"], status])
 		rank += 1
 	_results_text = "\n".join(lines) + "\n"
@@ -862,7 +862,7 @@ func _update_quest_tags() -> void:
 			node.set_map_tag_visible(MapView.in_reveal_range((node as Node3D).global_position, _player.global_position))
 
 
-## Alarme de proximité : un joueur non allié à moins de Config.SCANNER_RANGE.
+## Alarme de proximité : un joueur non allié à moins de Config.combat.scanner_range.
 func _scanner_text() -> String:
 	var nearest := INF
 	for node in _player.get_parent().get_children():
@@ -872,7 +872,7 @@ func _scanner_text() -> String:
 		if Allies.allied(_player.get_peer_id(), other.get_peer_id()):
 			continue
 		nearest = minf(nearest, other.global_position.distance_to(_player.global_position))
-	if nearest > Config.SCANNER_RANGE:
+	if nearest > Config.combat.scanner_range:
 		return ""
 	return "   ⚠ Prospecteur à %d m" % roundi(nearest)
 
@@ -888,5 +888,5 @@ func _update_downed() -> void:
 		_downed_label.offset_top = 120
 	_downed_label.visible = h.is_downed
 	if h.is_downed:
-		var left := maxf(Config.DOWNED_TIME - (Time.get_ticks_msec() - h.downed_at_ms) / 1000.0, 0.0)
+		var left := maxf(Config.combat.downed_time - (Time.get_ticks_msec() - h.downed_at_ms) / 1000.0, 0.0)
 		_downed_label.text = "À TERRE — %d s\nUn coéquipier peut vous relever (E maintenu)" % ceili(left)

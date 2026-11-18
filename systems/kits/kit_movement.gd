@@ -119,8 +119,8 @@ func is_sliding() -> bool:
 ## Part de contrôle en l'air (le jetpack donne un contrôle total pendant la poussée).
 func air_control() -> float:
 	if _jet_active:
-		return kit.move_param("jetpack", "air_control", Config.AIR_CONTROL)
-	return Config.AIR_CONTROL
+		return kit.move_param("jetpack", "air_control", Config.combat.air_control)
+	return Config.combat.air_control
 
 
 ## Vitesse horizontale imposée quand overrides_horizontal() est vrai.
@@ -144,14 +144,14 @@ func _reset_for_kit() -> void:
 
 func _basic_jump(on_floor: bool) -> void:
 	if not _jump_used and Input.is_action_just_pressed("jump") and on_floor and not player.is_crouching:
-		player.velocity.y = Config.JUMP_VELOCITY
+		player.velocity.y = Config.combat.jump_velocity
 		_jump_used = true
 
 
 # --- Glissade (tous les kits ; celle du Furet est plus longue) ---
 
 func _slide_duration() -> float:
-	var base := kit.move_param("slide", "slide_duration_s", Config.SLIDE_DURATION) * (1.0 + kit.get_effect("slide_duration_mult"))
+	var base := kit.move_param("slide", "slide_duration_s", Config.combat.slide_duration) * (1.0 + kit.get_effect("slide_duration_mult"))
 	return base
 
 
@@ -160,8 +160,8 @@ func _process_slide(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 		_slide_left = maxf(_slide_left - delta, 0.0)
 		if Input.is_action_just_pressed("jump") and on_floor:
 			# Saut glissé : élan vers l'avant.
-			var boost := kit.move_param("slide", "slide_jump_boost_mps", Config.SLIDE_JUMP_BOOST)
-			player.velocity.y = Config.JUMP_VELOCITY
+			var boost := kit.move_param("slide", "slide_jump_boost_mps", Config.combat.slide_jump_boost)
+			player.velocity.y = Config.combat.jump_velocity
 			_dash_velocity = forced_horizontal() + _slide_dir * boost
 			_slide_left = 0.0
 			player.velocity.x = _dash_velocity.x
@@ -173,9 +173,9 @@ func _process_slide(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 	var sprinting := Input.is_action_pressed("sprint") and input_dir.y < 0.0
 	if on_floor and sprinting and Input.is_action_just_pressed("crouch") and _slide_cd <= 0.0:
 		_slide_dir = (player.global_basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-		_slide_speed = kit.move_param("slide", "slide_speed_mps", Config.SLIDE_SPEED)
+		_slide_speed = kit.move_param("slide", "slide_speed_mps", Config.combat.slide_speed)
 		_slide_left = _slide_duration()
-		_slide_cd = Config.SLIDE_COOLDOWN
+		_slide_cd = Config.combat.slide_cooldown
 
 
 # --- Jetpack (Martinet) et propulseurs (Kit de prospecteur) ---
@@ -266,7 +266,7 @@ func _process_super_jump(delta: float, on_floor: bool) -> void:
 		_super_hold += delta * speed
 	elif Input.is_action_just_released("jump") and not _jump_used:
 		if _super_hold < SUPER_JUMP_TAP:
-			player.velocity.y = Config.JUMP_VELOCITY
+			player.velocity.y = Config.combat.jump_velocity
 		else:
 			var t := clampf(_super_hold / kit.move_param("super_jump", "charge_time_max_s", 1.0), 0.0, 1.0)
 			var v := lerpf(kit.move_param("super_jump", "jump_velocity_min_mps", 5.0),
@@ -354,7 +354,7 @@ func request_punch(dir: Vector3) -> void:
 		return
 	dir = Vector3(dir.x, 0, dir.z).normalized()
 	var best: Node3D = null
-	var best_dist := Config.MELEE_RANGE
+	var best_dist := Config.combat.melee_range
 	for node in get_tree().get_nodes_in_group("damageable"):
 		var target := node as Node3D
 		if target == null or target == player or not target.can_be_hit():

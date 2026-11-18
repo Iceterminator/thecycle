@@ -37,7 +37,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	clip_contents = true
 	Events.scan_revealed.connect(func(positions: Array) -> void:
-		var until := Time.get_ticks_msec() + int(Config.SCAN_REVEAL_TIME * 1000.0)
+		var until := Time.get_ticks_msec() + int(Config.combat.scan_reveal_time * 1000.0)
 		for pos: Vector3 in positions:
 			_revealed.append([pos, until]))
 
@@ -197,7 +197,7 @@ func _draw_revealed() -> void:
 
 
 ## Partenaire de pacte (toujours) ; Scanner directionnel : joueurs non alliés à moins de
-## Config.SCANNER_RANGE ; crédits et ressources au sol à moins de Config.MAP_REVEAL_RADIUS.
+## Config.combat.scanner_range ; crédits et ressources au sol à moins de Config.MAP_REVEAL_RADIUS.
 func _draw_scanner() -> void:
 	var players := world.get_node_or_null("Players")
 	if players:
@@ -209,7 +209,7 @@ func _draw_scanner() -> void:
 			if Allies.allied(player.get_peer_id(), other.get_peer_id()):
 				draw_circle(p, 6.0, Color(0.4, 1.0, 0.6))
 				draw_arc(p, 6.0, 0, TAU, 16, Color.BLACK, 1.5)
-			elif other.global_position.distance_to(player.global_position) <= Config.SCANNER_RANGE:
+			elif other.global_position.distance_to(player.global_position) <= Config.combat.scanner_range:
 				var tri := PackedVector2Array([p + Vector2(0, -7), p + Vector2(6, 5), p + Vector2(-6, 5)])
 				draw_colored_polygon(tri, Color(1.0, 0.3, 0.25))
 	var loot := world.get_node_or_null("Loot")

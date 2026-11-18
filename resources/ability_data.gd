@@ -49,7 +49,7 @@ enum Category { GRENADE, STIM, DEPLOYABLE, BARRIER, CLOAK, STRIKE, FIELD, MOBILI
 @export var after_duration_s: float = 0.0
 
 @export_group("Améliorations")
-## Chaque amélioration (2 max, Config.ABILITY_UPGRADE_PRICE crédits) retire ces secondes
+## Chaque amélioration (2 max, Config.economy.ability_upgrade_price crédits) retire ces secondes
 ## à la recharge (référence : Kinetic Barrier -5 s).
 @export var upgrade_cooldown_s: float = 5.0
 

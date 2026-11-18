@@ -57,7 +57,7 @@ func setup(data: Dictionary) -> void:
 			_add_box_shape(Vector3(0.6, 1.0, 0.6), 1)
 			_build_sync()
 		"turret", "ward":
-			health = ability.health if ability.health > 0.0 else Config.WARD_HEALTH
+			health = ability.health if ability.health > 0.0 else Config.combat.ward_health
 			_add_box_shape(Vector3(1.2, 1.6, 1.2) if kind == "turret" else Vector3(0.5, 1.4, 0.5), 1)
 			_build_sync()
 		"barrier":
@@ -89,7 +89,7 @@ func life() -> float:
 		"strike":
 			return maxf(ability.delay_s, 0.0) + maxf(ability.duration_s, 0.0) + 1.0
 		"ward", "beacon":
-			return Config.WARD_LIFETIME
+			return Config.combat.ward_lifetime
 		"frag":
 			return float(spawn_data["fuse"]) + 0.2
 	return 5.0

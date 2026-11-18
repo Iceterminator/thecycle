@@ -30,10 +30,10 @@ var _world: Node
 
 # --- État de l'équipement (envoyé au serveur) ---
 var _preferred: int = 0
-var _kit_id: String = String(Config.DEFAULT_KIT)
+var _kit_id: String = String(Config.start_loadout.default_kit)
 var _kit_mods: Dictionary = {}       # id de kit -> id de mod
 var _weapon_mods: Dictionary = {}    # id d'arme -> id de mod
-var _start_weapon: String = String(Config.BASE_WEAPON)
+var _start_weapon: String = String(Config.start_loadout.base_weapon)
 var _shop_weapons: Array = []
 var _shop_gadgets: Array = []
 var _send_left: float = -1.0
@@ -176,10 +176,10 @@ func _set_ready(on: bool, send: bool) -> void:
 ## Équipement sauvegardé (envoyé par le serveur à l'arrivée).
 func _apply_saved(loadout: Dictionary) -> void:
 	_preferred = int(loadout.get("preferred", 0))
-	_kit_id = String(loadout.get("kit", Config.DEFAULT_KIT))
+	_kit_id = String(loadout.get("kit", Config.start_loadout.default_kit))
 	_kit_mods = loadout.get("kit_mods", {}).duplicate()
 	_weapon_mods = loadout.get("weapon_mods", {}).duplicate()
-	_start_weapon = String(loadout.get("start_weapon", Config.BASE_WEAPON))
+	_start_weapon = String(loadout.get("start_weapon", Config.start_loadout.base_weapon))
 	var shop: Dictionary = loadout.get("shop", ProfileManager.default_shop())
 	_shop_weapons = _padded(shop.get("weapons", []), Config.SHOP_WEAPON_SLOTS)
 	_shop_gadgets = _padded(shop.get("gadgets", []), Config.SHOP_GADGET_SLOTS)
@@ -255,7 +255,7 @@ func _build_catalog() -> void:
 				"level": w.faction_level, "price": item.price, "weapon": w, "kit": null})
 	for a in AbilityController.list_abilities():
 		_catalog.append({"id": String(a.id), "cat": Cat.ABILITY, "name": a.get_display_name(), "faction": int(a.faction),
-				"level": a.faction_level, "price": Config.ABILITY_PRICE, "weapon": null, "kit": null})
+				"level": a.faction_level, "price": Config.economy.ability_price, "weapon": null, "kit": null})
 	for k in KitController.list_kits():
 		_catalog.append({"id": String(k.id), "cat": Cat.KIT, "name": KitController.kit_name(k), "faction": int(k.faction),
 				"level": k.faction_level, "price": 0, "weapon": null, "kit": k})
@@ -322,7 +322,7 @@ func _grid_section(title: String, entries: Array[Dictionary]) -> void:
 				sub = "Capacité — %d s" % roundi(AbilityController.get_ability(e["id"]).cooldown_s)
 			Cat.KIT:
 				var k: KitData = e["kit"]
-				sub = "PV %d · Bouclier %d" % [k.health if k.health > 0 else Config.KIT_DEFAULT_HEALTH, k.shield if k.shield > 0 else Config.KIT_DEFAULT_SHIELD]
+				sub = "PV %d · Bouclier %d" % [k.health if k.health > 0 else Config.combat.kit_default_health, k.shield if k.shield > 0 else Config.combat.kit_default_shield]
 			Cat.GADGET:
 				sub = ""
 		card.set_content(e["name"], sub, "", FactionData.color_of(e["faction"]))
@@ -421,9 +421,9 @@ func _rebuild_detail() -> void:
 		Cat.KIT:
 			var k: KitData = e["kit"]
 			_detail_text(k.playstyle)
-			_detail_numbers([["PV", str(roundi(k.health if k.health > 0 else Config.KIT_DEFAULT_HEALTH))],
-					["Bouclier", str(roundi(k.shield if k.shield > 0 else Config.KIT_DEFAULT_SHIELD))],
-					["Vitesse", "%.1f m/s" % (k.move_speed_mps if k.move_speed_mps > 0 else Config.KIT_DEFAULT_SPEED)]])
+			_detail_numbers([["PV", str(roundi(k.health if k.health > 0 else Config.combat.kit_default_health))],
+					["Bouclier", str(roundi(k.shield if k.shield > 0 else Config.combat.kit_default_shield))],
+					["Vitesse", "%.1f m/s" % (k.move_speed_mps if k.move_speed_mps > 0 else Config.combat.kit_default_speed)]])
 	_detail_box.add_child(HSeparator.new())
 	_detail_actions(e, lock == "")
 
@@ -645,9 +645,9 @@ func _refresh_factions() -> void:
 		var faction: int = col["faction"]
 		var points := ProfileManager.rep_points(_me(), faction)
 		var level := ProfileManager.rep_level_of_points(points)
-		var maxed := level >= Config.REP_LEVELS.size()
-		var previous: int = Config.REP_LEVELS[level - 1] if level > 0 else 0
-		var next: int = previous if maxed else Config.REP_LEVELS[level]
+		var maxed := level >= Config.economy.rep_levels.size()
+		var previous: int = Config.economy.rep_levels[level - 1] if level > 0 else 0
+		var next: int = previous if maxed else Config.economy.rep_levels[level]
 		(col["level"] as Label).text = "NIVEAU %d" % level
 		var bar: ProgressBar = col["bar"]
 		bar.max_value = maxf(next - previous, 1)
@@ -967,7 +967,7 @@ func _build_factions() -> Control:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 10)
 	scroll.add_child(box)
-	box.add_child(_label("FACTION DE PRÉDILECTION — +%d %% de réputation avec elle" % roundi(Config.PREFERRED_FACTION_BONUS * 100.0), 16, DIM))
+	box.add_child(_label("FACTION DE PRÉDILECTION — +%d %% de réputation avec elle" % roundi(Config.economy.preferred_faction_bonus * 100.0), 16, DIM))
 	var factions := HBoxContainer.new()
 	factions.add_theme_constant_override("separation", 10)
 	box.add_child(factions)
@@ -1026,14 +1026,14 @@ func _build_factions() -> Control:
 		col.add_child(HSeparator.new())
 		var rows: Array[Dictionary] = []
 		var faction_unlocks: Dictionary = unlocks.get(f.id, {})
-		for level in range(1, Config.REP_LEVELS.size() + 1):
+		for level in range(1, Config.economy.rep_levels.size() + 1):
 			var line := HBoxContainer.new()
 			line.add_theme_constant_override("separation", 8)
 			var mark := _label("·", 16)
 			mark.custom_minimum_size = Vector2(20, 0)
 			line.add_child(mark)
 			var names: Array = faction_unlocks.get(level, [])
-			var text := _label("Niv. %d (%d pts) : %s" % [level, Config.REP_LEVELS[level - 1], ", ".join(names) if not names.is_empty() else "—"], 14)
+			var text := _label("Niv. %d (%d pts) : %s" % [level, Config.economy.rep_levels[level - 1], ", ".join(names) if not names.is_empty() else "—"], 14)
 			text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			text.custom_minimum_size = Vector2(200, 0)
 			text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

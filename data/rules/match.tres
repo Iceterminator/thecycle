@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="MatchRules" format=3]
+
+[ext_resource type="Script" path="res://resources/match_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+match_duration = 1200.0
+evac_announce_time = 960.0
+evac_landing_time = 1020.0
+evac_board_time = 5.0
+respawn_delay = 5.0
+match_restart_delay = 20.0
+kit_change_window = 30.0
+camp_respawn_delay = 60.0
+monster_level_times = Array[float]([300.0, 600.0])
+monster_level_health_mult = Array[float]([1.0, 1.25, 1.5])
+monster_level_damage_mult = Array[float]([1.0, 1.15, 1.3])
+monster_level_credits_mult = Array[float]([1.0, 1.5, 2.0])
+storm_monster_mult = 1.3
+crystal_upgrade_time = 600.0
+crystal_activate_time = 3.0
+crystal_extract_time = 5.0
+crystal_wave_delay = 4.0
+crystal_wave_spawn_min = 16.0
+crystal_wave_spawn_max = 22.0
+crystal_reset_delay = 15.0
+crystal_respawn_delay = 120.0
+contract_reset_delay = 90.0
+collect_hold_time = 1.5
+lumicep_respawn_time = 60.0
+tick_interval = 24.0
+tick_min_interval = 4.0
+bounty_interval = 90.0
+bounty_duration = 120.0
+max_active_contracts = 2
+contracts_offered = 4

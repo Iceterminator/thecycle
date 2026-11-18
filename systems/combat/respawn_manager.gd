@@ -1,5 +1,5 @@
 extends Node
-## Serveur uniquement : fait réapparaître les joueurs morts après Config.RESPAWN_DELAY.
+## Serveur uniquement : fait réapparaître les joueurs morts après Config.match_rules.respawn_delay.
 ## On garde le même nœud joueur : on le téléporte puis on le remet sur pied.
 
 ## Délai entre la téléportation et la remise sur pied : laisse à la nouvelle
@@ -17,7 +17,7 @@ func _ready() -> void:
 
 
 func _on_player_died(victim_id: int, _killer_id: int) -> void:
-	await get_tree().create_timer(Config.RESPAWN_DELAY).timeout
+	await get_tree().create_timer(Config.match_rules.respawn_delay).timeout
 	var player := world.get_player(victim_id)
 	if player == null or not player.health.is_dead:
 		return

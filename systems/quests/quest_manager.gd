@@ -103,7 +103,7 @@ func _announce(text: String, color: Color) -> void:
 func _physics_process(delta: float) -> void:
 	_lumicep_timer -= delta
 	if _lumicep_timer <= 0.0:
-		_lumicep_timer = Config.LUMICEP_RESPAWN_TIME
+		_lumicep_timer = Config.match_rules.lumicep_respawn_time
 		_regrow_lumiceps()
 	for node in players_root.get_children():
 		var player := node as Player
@@ -115,7 +115,7 @@ func _physics_process(delta: float) -> void:
 			_tick_timers.erase(peer)
 			continue
 		# Plus on porte de Lumicèpes, plus les Tiques arrivent vite.
-		var interval := maxf(Config.TICK_INTERVAL / carried, Config.TICK_MIN_INTERVAL)
+		var interval := maxf(Config.match_rules.tick_interval / carried, Config.match_rules.tick_min_interval)
 		var left: float = _tick_timers.get(peer, interval) - delta
 		if left <= 0.0:
 			left = interval

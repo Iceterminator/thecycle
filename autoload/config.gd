@@ -1,6 +1,6 @@
 extends Node
-## Constantes de partie. Valeurs de départ, à équilibrer (voir docs/DESIGN.md).
-## Accès depuis n'importe quel script : Config.MATCH_DURATION, etc.
+## Réglages techniques globaux. Les règles de jeu (prix, Fame, timings, stats) sont dans data/rules/.
+## Accès depuis n'importe quel script : Config.match_rules.match_duration, etc.
 
 ## Touches déclarées en code (touche physique), en plus de celles de project.godot :
 ## l'éditeur Godot, s'il est ouvert, peut réécrire project.godot et les effacer.
@@ -25,24 +25,19 @@ func _ready() -> void:
 		key.physical_keycode = CODE_KEY_ACTIONS[action]
 		InputMap.action_add_event(action, key)
 
+## Règles de jeu (équilibrage) : dans data/rules/, chargées ici.
+var economy: EconomyRules = preload("res://data/rules/economy.tres")
+var match_rules: MatchRules = preload("res://data/rules/match.tres")
+var combat: CombatRules = preload("res://data/rules/combat.tres")
+var start_loadout: StartLoadout = preload("res://data/rules/start_loadout.tres")
+
 # --- Réseau ---
 const DEFAULT_PORT := 7777
 const MAX_PLAYERS := 20
 
 # --- Partie (en secondes) ---
-const MATCH_DURATION := 20.0 * 60.0     # décollage de l'évac
-const EVAC_ANNOUNCE_TIME := 16.0 * 60.0  # annonce de l'évac (bandeau rouge) ; des monstres occupent la plateforme
-const EVAC_LANDING_TIME := 17.0 * 60.0   # l'évac arrive (3 min avant la fin) ; elle ne se pose qu'une fois la plateforme nettoyée
 const EVAC_PAD_CAMP := "res://data/camps/evac_pad.tres"  # monstres qui bloquent la plateforme ("" = aucun)
-const EVAC_PAD_CLEAR_FAME := 20         # Fame du joueur qui tue le dernier monstre de la plateforme
-const EVENT_TIMES := [5.0 * 60.0, 10.0 * 60.0]
-const RESPAWN_DELAY := 5.0
-const EVAC_BOARD_TIME := 5.0            # temps à rester dans la soute pour embarquer
-const MATCH_RESTART_DELAY := 20.0       # écran de fin, puis nouvelle partie (s)
 const MATCH_CLOCK_RESYNC := 5.0         # le serveur renvoie l'horloge aux clients toutes les N s
-const EVAC_FIRST_BONUS := 50            # Fame : premier joueur embarqué
-const EVAC_OTHER_BONUS := 0             # Fame : joueurs embarqués suivants
-const EVAC_MISSED_PENALTY := 100        # Fame perdue si pas à bord au décollage
 const EVAC_SKY_HEIGHT := 150.0          # altitude du vaisseau hors de la carte (m)
 const EVAC_FLIGHT_TIME := 8.0           # durée de la descente / de la montée (s)
 const EVAC_POSITION := Vector3(0, 0.5, 0)  # posé sur l'EvacPad (centre de la carte)
@@ -50,25 +45,10 @@ const SPECTATOR_SPEED := 15.0           # vol libre des joueurs embarqués (m/s)
 
 # --- Joueur ---
 # Vitesse de marche : celle du kit (KitData.move_speed_mps). Sprint = marche x SPRINT_MULTIPLIER.
-const SPRINT_MULTIPLIER := 1.9          # référence : combat_rules.sprint_multiplier
-const AIR_CONTROL := 0.25               # part de contrôle en l'air (référence : combat_rules.air_control)
-const SLIDE_SPEED := 9.0                # glissade (sprint + accroupi) pour tous les kits (m/s)
-const SLIDE_DURATION := 0.7
-const SLIDE_JUMP_BOOST := 2.5           # saut pendant la glissade : élan vers l'avant (m/s)
-const SLIDE_COOLDOWN := 0.8
-const CROUCH_SPEED := 2.5
-const JUMP_VELOCITY := 4.8
 const MOUSE_SENSITIVITY := 0.0025
 
 # PV et bouclier max : ceux du kit (KitController). Valeurs par défaut si le kit n'en a pas.
-const KIT_DEFAULT_HEALTH := 500.0
-const KIT_DEFAULT_SHIELD := 500.0
-const KIT_DEFAULT_SPEED := 3.9
 const SHIELD_PER_TIER := [25.0, 50.0, 100.0, 150.0]  # ancien système (boutique), plus utilisé
-const SHIELD_REGEN_DELAY := 7.0          # s sans dégâts avant que le bouclier remonte (référence)
-const SHIELD_REGEN_RATE := 90.0          # bouclier rendu par seconde (référence)
-const HEALTH_REGEN_DELAY := 7.0          # s sans dégâts avant que les PV remontent (référence ; Bastion : son kit)
-const HEALTH_REGEN_RATE := 25.0          # PV par seconde (référence ; Bastion : son kit)
 const STARTING_SHIELD_TIER := 0          # ancien système, plus utilisé
 
 # --- Combat ---
@@ -80,31 +60,18 @@ const FIRE_BURST_TOLERANCE := 3.0        # tirs d'avance tolérés par le serveu
 const WEAPON_SWITCH_TIME := 0.4          # pas de tir pendant le changement d'arme (s)
 
 # --- Loot et inventaire (valeurs provisoires, à revoir avec la boucle complète) ---
-const BASE_WEAPON := &"k28_autopistol"   # équipement de départ (emplacement 1), jamais perdu
-const HEAL_ITEM := &"medkit"             # consommable de la touche 3
-const SHIELD_ITEM := &"shield_cell"      # consommable de la touche 4
-const MAX_MEDKITS := 3
-const MAX_SHIELD_CELLS := 3
 const INTERACT_RANGE := 2.5              # portée de l'interaction (E), en m
 const INTERACT_SERVER_MARGIN := 1.0      # tolérance côté serveur (latence, centre de l'objet)
 const PICKUP_LIFETIME := 180.0           # un objet au sol disparaît après ce délai (s)
 const LOOT_SCATTER_RADIUS := 1.2         # éparpillement du loot autour d'une caisse / d'un mort
-const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (va au tueur)
 
 # --- Monstres ---
 const MONSTER_KILLER_ID := -1            # killer_id quand un joueur est tué par un monstre
-const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce délai (tests)
 ## Niveau des monstres (1 au début) : il monte à ces temps de partie. Appliqué aux monstres qui
 ## apparaissent ensuite (camps repeuplés, vagues), pas à ceux déjà en vie. Index 0 = niveau 1.
-const MONSTER_LEVEL_TIMES := [5.0 * 60.0, 10.0 * 60.0]
-const MONSTER_LEVEL_HEALTH_MULT := [1.0, 1.25, 1.5]
-const MONSTER_LEVEL_DAMAGE_MULT := [1.0, 1.15, 1.3]
-const MONSTER_LEVEL_CREDITS_MULT := [1.0, 1.5, 2.0]
 ## À ce temps de partie, les cristaux pas encore commencés montent d'un niveau (le max reste max).
-const CRYSTAL_UPGRADE_TIME := 10.0 * 60.0
 
 # --- Grande Marée (tempête globale ; data/storm/) ---
-const STORM_MONSTER_MULT := 1.3          # monstres pendant la tempête : détection et vitesse de course
 
 # --- Boutique et largages (valeurs provisoires) ---
 const DROP_POD_FALL_TIME := 3.0          # délai entre l'achat et l'atterrissage de la capsule (s)
@@ -130,89 +97,34 @@ const MAP_HALF_SIZE := 100.0             # la carte fait 200 x 200 m, centrée s
 const KILL_Y := -15.0                    # en dessous de cette hauteur : mort (plus de chute infinie)
 const FALL_KILLER_ID := -3               # killer_id quand un joueur meurt en tombant hors de la carte
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
-const KEEP_SHIELD_TIER_ON_DEATH := true  # ancien système, plus utilisé
 
 # --- Kits (étape 8b) ---
-const DEFAULT_KIT := &"basic_prospector_kit"  # kit au premier largage
-const KIT_CHANGE_WINDOW := 30.0          # s après le largage / la réapparition pour changer de kit (K)
-const KIT_LEVEL_XP := [100, 250, 450, 700, 1000]  # XP cumulée pour les niveaux 2 à 6 (valeurs de départ)
-const KIT_XP_PLAYER_KILL := 100
-const KIT_XP_MONSTER_KILL := 10
-const KIT_XP_PER_OBJECTIVE_POINT := 1.0  # XP par point d'objectif gagné
-const KIT_XP_PER_FAME := 1.0             # XP par point de Fame gagné
-const MELEE_RANGE := 2.5                 # portée du coup de poing chargé (m)
 
 # --- Capacités (étape 8c) ---
-const DEFAULT_ABILITIES := ["shock_grenade", "stim_boost"]  # menu admin seulement (Q / F vides au départ)
-const ABILITY_UPGRADE_PRICE := 100      # crédits par amélioration (référence)
-const ABILITY_MAX_UPGRADES := 2
-const ABILITY_PRICE := 150               # achat d'une capacité en boutique (valeur de départ)
-const WEAPON_FALLBACK_PRICE := 150       # arme sans prix dans les données (secondaires de départ)
 
 # --- Boutique configurable (lobby) : 4 cases d'armes + 4 cases gadgets / capacités ---
 const SHOP_WEAPON_SLOTS := 4
 const SHOP_GADGET_SLOTS := 4
-const DEFAULT_SHOP_WEAPONS := ["s76_pdw", "c32_bolt_action", "ar55_phase_autorifle", "ff4_detonator"]
-const DEFAULT_SHOP_GADGETS := ["trench_grenade", "shock_grenade", "stim_boost", ""]
-const ABILITY_AIM_RANGE := 80.0          # frappes : portée de visée (m)
-const ABILITY_PLACE_RANGE := 40.0        # tourelle : portée de pose (m)
-const GRENADE_THROW_SPEED := 18.0        # grenades et sphères lancées (m/s)
-const WARP_BOMB_DISTANCE := 12.0         # bombe de distorsion : sortie à cette distance (m)
-const SNARE_RANGE := 30.0                # entrave : portée (m)
-const WARD_HEALTH := 150.0               # balise d'écoute : PV (absent de la référence)
-const WARD_LIFETIME := 300.0             # balise : durée de vie (s)
-const SCAN_REVEAL_TIME := 5.0            # balise : un joueur repéré reste sur la carte (s)
-const CLOAK_MONSTER_IGNORE := 0.8        # camouflage à partir duquel les monstres ne voient plus le joueur
 const SHOT_ONLY_LAYER := 16              # couche 5 : arrête les tirs mais pas les corps (Paravent)
 
 # --- Boosts d'arme (étape 8e, remplacent les raretés) ---
-const WEAPON_BOOST_PRICES := [150, 250, 400]  # prix des paliers 1, 2, 3 (valeurs de départ)
 
 # --- Gadgets (étape 8d) ---
-const HEAL_BEAM_SELF_COST := 10         # rayon vital : charges consommées par l'auto-soin (valeur de départ)
-const HEAL_BEAM_SELF_COOLDOWN := 2.0    # rayon vital : délai entre deux auto-soins (s)
-const SCANNER_RANGE := 25.0              # scanner directionnel : alarme de proximité (référence)
 
 # --- Pactes et état « à terre » (étape 8e) ---
 ## En attendant les escouades (étape 9), un partenaire de pacte compte comme coéquipier
 ## (état « à terre », Rayon vital). false = personne ne tombe à terre avant l'étape 9.
 const PACT_PARTNER_IS_ALLY := true
-const DOWNED_TIME := 30.0                # s à terre avant de mourir
-const DOWNED_HEALTH := 150.0             # PV à terre (un ennemi peut achever)
-const DOWNED_SPEED := 1.0                # vitesse à terre, en rampant (m/s)
-const REVIVE_TIME := 5.0                 # maintenir E pour relever un allié (s)
-const REVIVE_HEALTH_RATIO := 0.5         # relevé avec cette part de ses PV max
 
 # --- Profils, factions, lobby, escouades (étape 9) ---
 ## Points de réputation cumulés pour les niveaux 1 à 10 d'une faction (valeurs de départ).
-const REP_LEVELS := [100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
-const PREFERRED_FACTION_BONUS := 0.5     # +50 % de réputation avec la faction de prédilection
 const BOUNTY_FACTION := 3                 # la prime est un contrat de l'ICA
 const SQUAD_MAX := 4
 const QUICK_PLAY_ADDRESSES := ["127.0.0.1"]  # « Partie rapide » : essayés après le dernier serveur
 
 # --- Quêtes : cristal + foreuse (valeurs provisoires) ---
-const CRYSTAL_ACTIVATE_TIME := 3.0       # maintenir E pour lancer la foreuse (s)
-const CRYSTAL_EXTRACT_TIME := 5.0        # maintenir E pour extraire une fois les vagues finies (s)
-const CRYSTAL_WAVE_DELAY := 4.0          # pause avant chaque vague (s)
-const CRYSTAL_WAVE_SPAWN_MIN := 16.0     # les monstres apparaissent entre ces distances (m)
-const CRYSTAL_WAVE_SPAWN_MAX := 22.0
-const CRYSTAL_RESET_DELAY := 15.0        # foreuse détruite : le cristal redevient utilisable après (s)
-const CRYSTAL_RESPAWN_DELAY := 120.0     # cristal extrait : il réapparaît après (tests)
 const HOLD_SERVER_TOLERANCE := 0.85      # le serveur accepte un maintien de E à 85 % de la durée (latence)
 
 # --- Contrats (valeurs provisoires) ---
-const CONTRACT_RESET_DELAY := 90.0       # station / drones : réutilisables après (s)
-const COLLECT_HOLD_TIME := 1.5           # maintenir E pour récolter / déposer / envoyer (s)
-const LUMICEP_RESPAWN_TIME := 60.0       # les Lumicèpes repoussent sur leurs spots (s)
-const TICK_INTERVAL := 24.0              # Tiques : une toutes les (TICK_INTERVAL / Lumicèpes portés) s
-const TICK_MIN_INTERVAL := 4.0
-const BOUNTY_INTERVAL := 90.0            # une prime est posée toutes les… (s)
-const BOUNTY_DURATION := 120.0           # survivre ce temps = la cible touche la moitié de la prime
-const BOUNTY_BASE := 20                  # prime de base (Fame)
-const BOUNTY_SHARE := 0.10               # + cette part des Fame de la cible
 
 # --- Score ---
-const PLAYER_KILL_FAME := 50            # Fame gagnée pour chaque joueur tué (on ne perd rien en mourant)
-const MAX_ACTIVE_CONTRACTS := 2
-const CONTRACTS_OFFERED := 4

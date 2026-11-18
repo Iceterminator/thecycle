@@ -865,17 +865,17 @@ func _server_check_consumed() -> void:
 		inventory.server_remove_active()
 
 
-## Rayon vital : clic droit = se soigner (coûte Config.HEAL_BEAM_SELF_COST charges).
+## Rayon vital : clic droit = se soigner (coûte Config.combat.heal_beam_self_cost charges).
 @rpc("any_peer", "call_local", "reliable")
 func request_gadget_alt() -> void:
 	if not multiplayer.is_server() or not _sender_is_owner() or health.is_dead or player.is_evacuated:
 		return
-	if data.gadget != WeaponData.GadgetKind.HEAL_BEAM or inventory.get_active_ammo() < Config.HEAL_BEAM_SELF_COST:
+	if data.gadget != WeaponData.GadgetKind.HEAL_BEAM or inventory.get_active_ammo() < Config.combat.heal_beam_self_cost:
 		return
 	var now := Time.get_ticks_msec()
 	if now < _srv_self_heal_ready_ms:
 		return
-	_srv_self_heal_ready_ms = now + int(Config.HEAL_BEAM_SELF_COOLDOWN * 1000.0)
-	_server_use_ammo(Config.HEAL_BEAM_SELF_COST)
+	_srv_self_heal_ready_ms = now + int(Config.combat.heal_beam_self_cooldown * 1000.0)
+	_server_use_ammo(Config.combat.heal_beam_self_cost)
 	health.heal(data.self_heal)
 	_sync_ammo.rpc_id(player.get_peer_id(), inventory.get_active_ammo())

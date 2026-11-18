@@ -7,7 +7,7 @@ extends Node3D
 ##
 ## Serveur : descend sur Events.evac_landed, repart sur Events.evac_departed, revient
 ## au ciel sur Events.match_reset_requested. Une fois posé, un joueur vivant qui reste
-## Config.EVAC_BOARD_TIME s dans la soute embarque (Events.player_evacuated).
+## Config.match_rules.evac_board_time s dans la soute embarque (Events.player_evacuated).
 ## Le compteur repart de zéro s'il sort de la soute ou meurt.
 
 enum State { SKY, LANDING, LANDED, DEPARTING }
@@ -77,14 +77,14 @@ func _physics_process(delta: float) -> void:
 				_board_progress.rpc_id(peer, 0.0)
 			continue
 		var t: float = _progress.get(peer, 0.0) + delta
-		if t >= Config.EVAC_BOARD_TIME:
+		if t >= Config.match_rules.evac_board_time:
 			_progress.erase(peer)
 			_board_progress.rpc_id(peer, 0.0)
 			Events.player_evacuated.emit(peer)
 			continue
 		_progress[peer] = t
 		if send:
-			_board_progress.rpc_id(peer, t / Config.EVAC_BOARD_TIME)
+			_board_progress.rpc_id(peer, t / Config.match_rules.evac_board_time)
 
 
 func is_in_bay(world_pos: Vector3) -> bool:
@@ -222,7 +222,7 @@ func map_info() -> Dictionary:
 	var status := ""
 	match state:
 		State.SKY:
-			status = "atterrit à %d:%02d" % [floori(Config.EVAC_LANDING_TIME / 60.0), int(Config.EVAC_LANDING_TIME) % 60]
+			status = "atterrit à %d:%02d" % [floori(Config.match_rules.evac_landing_time / 60.0), int(Config.match_rules.evac_landing_time) % 60]
 		State.LANDING:
 			status = "en approche"
 		State.LANDED:

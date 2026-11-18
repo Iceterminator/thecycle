@@ -86,7 +86,7 @@ func get_cloak(horizontal_speed: float) -> float:
 	if cloak <= 0.0:
 		return 0.0
 	var moving := get_max("cloak_moving")
-	if moving > 0.0 and horizontal_speed > Config.KIT_DEFAULT_SPEED * 1.2:
+	if moving > 0.0 and horizontal_speed > Config.combat.kit_default_speed * 1.2:
 		return minf(cloak, moving)
 	return cloak
 

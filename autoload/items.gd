@@ -61,7 +61,7 @@ func _add_missing_weapons() -> void:
 		item.color = FACTION_COLORS[clampi(weapon.faction, 0, FACTION_COLORS.size() - 1)]
 		# Vendue en partie au prix de la référence (si elle en a un) ; débloquée selon la réputation.
 		# Sans prix dans les données (armes de départ, secondaires) : prix par défaut.
-		item.price = weapon.spawn_cost_credits if weapon.spawn_cost_credits > 0 else Config.WEAPON_FALLBACK_PRICE
+		item.price = weapon.spawn_cost_credits if weapon.spawn_cost_credits > 0 else Config.economy.weapon_fallback_price
 		_items[item.id] = item
 
 

@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="CombatRules" format=3]
+
+[ext_resource type="Script" path="res://resources/combat_rules.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+sprint_multiplier = 1.9
+air_control = 0.25
+slide_speed = 9.0
+slide_duration = 0.7
+slide_jump_boost = 2.5
+slide_cooldown = 0.8
+crouch_speed = 2.5
+jump_velocity = 4.8
+kit_default_health = 500.0
+kit_default_shield = 500.0
+kit_default_speed = 3.9
+shield_regen_delay = 7.0
+shield_regen_rate = 90.0
+health_regen_delay = 7.0
+health_regen_rate = 25.0
+melee_range = 2.5
+ability_aim_range = 80.0
+ability_place_range = 40.0
+grenade_throw_speed = 18.0
+warp_bomb_distance = 12.0
+snare_range = 30.0
+ward_health = 150.0
+ward_lifetime = 300.0
+scan_reveal_time = 5.0
+cloak_monster_ignore = 0.8
+heal_beam_self_cost = 10
+heal_beam_self_cooldown = 2.0
+scanner_range = 25.0
+downed_time = 30.0
+downed_health = 150.0
+downed_speed = 1.0
+revive_time = 5.0
+revive_health_ratio = 0.5

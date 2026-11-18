@@ -464,13 +464,13 @@ func _stats(e: Dictionary) -> Control:
 			_number(numbers, "Prix", "%d ¢" % e["price"])
 		LobbyUi.Cat.KIT:
 			var k: KitData = e["kit"]
-			_number(numbers, "PV", str(roundi(k.health if k.health > 0 else Config.KIT_DEFAULT_HEALTH)))
+			_number(numbers, "PV", str(roundi(k.health if k.health > 0 else Config.combat.kit_default_health)))
 			var more := VBoxContainer.new()
 			row.add_child(more)
-			_number(more, "Bouclier", str(roundi(k.shield if k.shield > 0 else Config.KIT_DEFAULT_SHIELD)))
+			_number(more, "Bouclier", str(roundi(k.shield if k.shield > 0 else Config.combat.kit_default_shield)))
 			var speed := VBoxContainer.new()
 			row.add_child(speed)
-			_number(speed, "Vitesse", "%.1f m/s" % (k.move_speed_mps if k.move_speed_mps > 0 else Config.KIT_DEFAULT_SPEED))
+			_number(speed, "Vitesse", "%.1f m/s" % (k.move_speed_mps if k.move_speed_mps > 0 else Config.combat.kit_default_speed))
 	return row
 
 

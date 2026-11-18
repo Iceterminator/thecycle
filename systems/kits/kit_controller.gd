@@ -5,7 +5,7 @@ extends Node
 ##
 ## Serveur : choisit le kit (au largage, à la réapparition, ou par le menu admin), donne
 ## l'XP (joueurs tués, monstres tués, points d'objectif et Fame gagnés), fait monter le
-## niveau (1 à 6, Config.KIT_LEVEL_XP) et applique PV / bouclier à la Health.
+## niveau (1 à 6, Config.economy.kit_level_xp) et applique PV / bouclier à la Health.
 ## kit_id, level et xp sont envoyés à tous (KitSync) : chaque peer calcule les mêmes bonus.
 ## Bonus de niveau : KitData.level_perk_effects[0 .. level-1] (index 0 = niveau 1, actif
 ## dès le départ). Tout est remis à zéro à chaque partie.
@@ -67,7 +67,7 @@ func _ready() -> void:
 		Events.match_reset_requested.connect(_server_on_match_reset)
 		Events.monster_killed.connect(_on_monster_killed)
 		Events.player_died.connect(_on_player_died)
-		kit_id = String(Config.DEFAULT_KIT)
+		kit_id = String(Config.start_loadout.default_kit)
 		_server_apply_stats(true)
 		# Le client n'a pas encore ce joueur à cet instant : un RPC tout de suite serait perdu (erreur « Node not found »).
 		get_tree().create_timer(1.0).timeout.connect(_open_change_window)
@@ -80,7 +80,7 @@ func _ready() -> void:
 ## Kit actuel (celui par défaut tant que rien n'est reçu).
 func get_kit() -> KitData:
 	if _kit == null:
-		var id := kit_id if kit_id != "" else String(Config.DEFAULT_KIT)
+		var id := kit_id if kit_id != "" else String(Config.start_loadout.default_kit)
 		_kit = load(KITS_DIR + id + ".tres") as KitData
 	return _kit
 
@@ -134,40 +134,40 @@ static func kit_name(kit: KitData) -> String:
 
 func max_health() -> float:
 	var kit := get_kit()
-	var base := kit.health if kit and kit.health > 0.0 else Config.KIT_DEFAULT_HEALTH
+	var base := kit.health if kit and kit.health > 0.0 else Config.combat.kit_default_health
 	return base + get_effect("max_health_add")
 
 
 func max_shield() -> float:
 	var kit := get_kit()
-	var base := kit.shield if kit and kit.shield > 0.0 else Config.KIT_DEFAULT_SHIELD
+	var base := kit.shield if kit and kit.shield > 0.0 else Config.combat.kit_default_shield
 	return base + get_effect("max_shield_add")
 
 
-## Vitesse de marche (m/s) ; le sprint la multiplie par Config.SPRINT_MULTIPLIER.
+## Vitesse de marche (m/s) ; le sprint la multiplie par Config.combat.sprint_multiplier.
 func move_speed() -> float:
 	var kit := get_kit()
-	var base := kit.move_speed_mps if kit and kit.move_speed_mps > 0.0 else Config.KIT_DEFAULT_SPEED
+	var base := kit.move_speed_mps if kit and kit.move_speed_mps > 0.0 else Config.combat.kit_default_speed
 	base += get_effect("move_speed_add")
 	return base * (1.0 + get_effect("move_speed_mult"))
 
 
 ## Régénération des PV : délai et vitesse (le Bastion a la sienne, plus rapide).
 func health_regen_delay() -> float:
-	var delay := move_param("fast_health_regen", "health_regen_delay_s", Config.HEALTH_REGEN_DELAY)
+	var delay := move_param("fast_health_regen", "health_regen_delay_s", Config.combat.health_regen_delay)
 	return delay * (1.0 + get_effect("health_regen_delay_mult"))
 
 
 func health_regen_rate() -> float:
-	var rate := move_param("fast_health_regen", "health_regen_per_s", Config.HEALTH_REGEN_RATE)
+	var rate := move_param("fast_health_regen", "health_regen_per_s", Config.combat.health_regen_rate)
 	return rate * (1.0 + get_effect("health_regen_mult"))
 
 
 ## XP manquante pour le niveau suivant (-1 au niveau max).
 func xp_for_next_level() -> int:
-	if level - 1 >= Config.KIT_LEVEL_XP.size():
+	if level - 1 >= Config.economy.kit_level_xp.size():
 		return -1
-	return Config.KIT_LEVEL_XP[level - 1]
+	return Config.economy.kit_level_xp[level - 1]
 
 
 ## Secondes restantes pour changer de kit (0 = fermé). Approximation côté client.
@@ -180,8 +180,8 @@ func can_change_kit_now() -> bool:
 # =========================================================================
 
 func _open_change_window() -> void:
-	_change_until_ms = Time.get_ticks_msec() + int(Config.KIT_CHANGE_WINDOW * 1000.0)
-	_notify_change_window.rpc_id(player.get_peer_id(), Config.KIT_CHANGE_WINDOW)
+	_change_until_ms = Time.get_ticks_msec() + int(Config.match_rules.kit_change_window * 1000.0)
+	_notify_change_window.rpc_id(player.get_peer_id(), Config.match_rules.kit_change_window)
 
 
 ## Menu Équipement : le joueur demande un kit (au largage / à la réapparition seulement).
@@ -243,12 +243,12 @@ func _server_on_match_reset() -> void:
 
 func _on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
 	if killer_id == player.get_peer_id():
-		server_add_xp(Config.KIT_XP_MONSTER_KILL)
+		server_add_xp(Config.economy.kit_xp_monster_kill)
 
 
 func _on_player_died(victim_id: int, killer_id: int) -> void:
 	if killer_id == player.get_peer_id() and victim_id != killer_id:
-		server_add_xp(Config.KIT_XP_PLAYER_KILL)
+		server_add_xp(Config.economy.kit_xp_player_kill)
 
 
 # =========================================================================

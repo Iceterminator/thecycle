@@ -42,7 +42,7 @@ func add_rank_points(amount: int) -> void:
 	if not multiplayer.is_server() or amount == 0:
 		return
 	rank_points += amount
-	_kit_xp(amount * Config.KIT_XP_PER_FAME)
+	_kit_xp(amount * Config.economy.kit_xp_per_fame)
 	Events.rank_points_changed.emit(get_peer_id(), rank_points)
 
 
@@ -53,7 +53,7 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 		return
 	var key := track.resource_path
 	var before: int = objective_points.get(key, 0)
-	_kit_xp(amount * Config.KIT_XP_PER_OBJECTIVE_POINT)
+	_kit_xp(amount * Config.economy.kit_xp_per_objective_point)
 	var after := before + amount
 	var d := objective_points.duplicate()
 	d[key] = after

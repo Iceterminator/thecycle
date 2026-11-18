@@ -13,7 +13,7 @@ extends Node
 signal changed
 signal dead_changed(dead: bool)
 
-var health: float = Config.KIT_DEFAULT_HEALTH:
+var health: float = Config.combat.kit_default_health:
 	set(value):
 		health = value
 		changed.emit()
@@ -39,10 +39,10 @@ var is_dead: bool = false:
 ## Temps écoulé depuis les derniers dégâts (régénération des PV et du bouclier).
 var _since_damage: float = 0.0
 ## Serveur : PV max appliqués la dernière fois (pour ajouter un gain de niveau aux PV).
-var _applied_max_health: float = Config.KIT_DEFAULT_HEALTH
+var _applied_max_health: float = Config.combat.kit_default_health
 
 ## État « à terre » (étape 8e) : à 0 PV, un joueur qui a un allié vivant tombe à terre
-## Config.DOWNED_TIME s (PV d'agonie : Config.DOWNED_HEALTH) ; un allié le relève (E),
+## Config.combat.downed_time s (PV d'agonie : Config.combat.downed_health) ; un allié le relève (E),
 ## un ennemi peut l'achever ; la Fame du kill va à celui qui l'a mis à terre.
 ## Synchronisé par DownedSync (créé en code ; player.tscn reste inchangé).
 signal downed_changed(downed: bool)
@@ -92,14 +92,14 @@ func server_revive_downed(by_id: int) -> void:
 		return
 	is_downed = false
 	downed_by = 0
-	health = get_max_health() * Config.REVIVE_HEALTH_RATIO
+	health = get_max_health() * Config.combat.revive_health_ratio
 	shield = 0.0
 	_since_damage = 0.0
 	Events.player_revived.emit(get_peer_id(), by_id)
 
 
 func _ready() -> void:
-	max_shield = Config.KIT_DEFAULT_SHIELD
+	max_shield = Config.combat.kit_default_shield
 	shield = max_shield
 	# La régénération n'est calculée que par le serveur.
 	set_physics_process(multiplayer.is_server())
@@ -121,7 +121,7 @@ func _buffs() -> BuffController:
 func get_max_health() -> float:
 	var kit := _kit()
 	var buffs := _buffs()
-	var base := kit.max_health() if kit else Config.KIT_DEFAULT_HEALTH
+	var base := kit.max_health() if kit else Config.combat.kit_default_health
 	return base + (buffs.get_add("max_health_add") if buffs else 0.0)
 
 
@@ -175,8 +175,8 @@ func apply_damage(amount: float, attacker_id: int, shield_mult: float = 1.0, hea
 		# À terre plutôt que mort : un allié peut venir relever.
 		is_downed = true
 		downed_by = attacker_id
-		_downed_left = Config.DOWNED_TIME
-		health = Config.DOWNED_HEALTH
+		_downed_left = Config.combat.downed_time
+		health = Config.combat.downed_health
 		shield = 0.0
 		Events.player_downed.emit(get_peer_id(), attacker_id)
 		return false
@@ -235,13 +235,13 @@ func _physics_process(delta: float) -> void:
 			_server_bleed_out()
 		return
 	_since_damage += delta
-	if _since_damage >= Config.SHIELD_REGEN_DELAY and shield < max_shield:
-		shield = minf(shield + Config.SHIELD_REGEN_RATE * delta, max_shield)
+	if _since_damage >= Config.combat.shield_regen_delay and shield < max_shield:
+		shield = minf(shield + Config.combat.shield_regen_rate * delta, max_shield)
 	var kit := _kit()
 	var buffs := _buffs()
 	var max_health := get_max_health()
-	var delay := kit.health_regen_delay() if kit else Config.HEALTH_REGEN_DELAY
-	var rate := kit.health_regen_rate() if kit else Config.HEALTH_REGEN_RATE
+	var delay := kit.health_regen_delay() if kit else Config.combat.health_regen_delay
+	var rate := kit.health_regen_rate() if kit else Config.combat.health_regen_rate
 	if buffs:
 		if buffs.get_max("no_health_regen") > 0.0:
 			return  # régénération retardée tant que l'effet dure

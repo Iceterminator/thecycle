@@ -66,7 +66,7 @@ func _plan_throw(data: Dictionary) -> void:
 	var origin: Vector3 = data["origin"]
 	var dir: Vector3 = data["dir"]
 	var start := origin + dir * 0.6
-	var vel := dir * Config.GRENADE_THROW_SPEED + Vector3.UP * 2.0
+	var vel := dir * Config.combat.grenade_throw_speed + Vector3.UP * 2.0
 	var g := float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 	var space := container.get_world_3d().direct_space_state
 	var t := 0.0
