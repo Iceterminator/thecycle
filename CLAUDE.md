@@ -83,6 +83,11 @@ Tests scriptés réseau et captures : voir `docs/REPRISE.md`.
 - Nouvelle `class_name` : lancer `--import` avant l'analyse.
 - Textures des `.gltf` Quaternius : versionnées (exception dans `.gitignore`).
 
+## Sous-agents
+- Recherche, exploration, logs, runs headless → agent chercheur (Haiku)
+- Écriture et modification de code → agent codeur (Sonnet)
+- Décisions d'architecture → session principale, pas de sous-agent
+
 ## Règles de travail
 - Réponses courtes : pas de récap au-delà de 5 lignes, pas d'explication si on ne la demande pas.
 - Scripts .gd : moins de 150 lignes, une responsabilité, noms en snake_case explicites. Si un fichier dépasse, propose un découpage.
@@ -90,6 +95,5 @@ Tests scriptés réseau et captures : voir `docs/REPRISE.md`.
 - Ne lis pas un .tscn en entier si un grep suffit. Ne lis que les fichiers nécessaires à la tâche.
 - Avant d'explorer, consulte la table « mécanique → fichiers » et le docs/ concerné.
 - Après tout déplacement ou renommage : mets à jour les références res:// et les UID, puis lance un test en headless.
-- Recherches larges et runs bavards (tests, headless) : passe par un sous-agent, ne renvoie que les erreurs.
 - Pour une tâche de plus de 3 fichiers : propose un plan court et attends mon accord.
 - Garde le CLAUDE.md et docs/ à jour quand tu ajoutes ou déplaces un système.
