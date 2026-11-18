@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/hammer.png" id="1_5bg50"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Revolver.gltf" id="1_och8b"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_oln0t"]
 
 [resource]
 script = ExtResource("1_oln0t")
 id = &"hammer"
-display_name = "Barillet"
+display_name = "Hammer"
 reference_name = "Hammer"
 faction = 1
 faction_level = 1
@@ -32,6 +33,7 @@ tracer_width = 0.015
 muzzle_flash_scale = 0.775
 impact_scale = 0.7
 projectile_size = 0.05
+hud_icon = ExtResource("1_5bg50")
 model = ExtResource("1_och8b")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.26

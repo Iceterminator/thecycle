@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/ica_guarantee.png" id="1_17ugi"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_gf5u3"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_q73qc"]
 
 [resource]
 script = ExtResource("1_q73qc")
 id = &"ica_guarantee"
-display_name = "Rempart"
+display_name = "ICA Guarantee"
 reference_name = "ICA Guarantee"
 faction = 3
 faction_level = 2
@@ -34,10 +35,12 @@ tracer_width = 0.025
 muzzle_flash_scale = 1.25
 impact_scale = 1.1111111111111112
 projectile_size = 0.05
+hud_icon = ExtResource("1_17ugi")
 model = ExtResource("1_gf5u3")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.41600000000000004
+model_length = 0.416
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.7735294, 1, 0.45, 1)
 role = "Mitrailleuse légère à batteries d'ICA : arrose longtemps sans recharger."
 shot_feel = "Tir continu très rapide ; l'arme est lourde, on ralentit en visée."
 projectile_visual = "Hitscan ; traçants électriques bleus, gros flash."

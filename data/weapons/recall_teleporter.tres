@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_1n8f2"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_Mine.gltf" id="1_kc3gd"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/recall_teleporter.png" id="1_rlki6"]
 
 [resource]
 script = ExtResource("1_1n8f2")
 id = &"recall_teleporter"
-display_name = "Balise de rappel"
+display_name = "Recall Teleporter"
 reference_name = "Recall Teleporter"
 faction = 3
 faction_level = 3
@@ -22,6 +23,7 @@ consumable = true
 place_time_s = 1.0
 beacon_health = 300.0
 spawn_cost_credits = 250
+hud_icon = ExtResource("1_rlki6")
 model = ExtResource("1_kc3gd")
 model_length = 0.15
 role = "1) Maintenir le tir quelques secondes pour poser la balise. 2) Plus tard, maintenir le tir 3.3 s pour se téléporter sur la balise."

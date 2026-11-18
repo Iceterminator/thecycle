@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_dggp4"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/voltaic_brute.png" id="1_jlkh1"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_sy10y"]
 
 [resource]
 script = ExtResource("1_sy10y")
 id = &"voltaic_brute"
-display_name = "Étincelle"
+display_name = "Voltaic Brute"
 reference_name = "Voltaic Brute"
 faction = 3
 faction_level = 5
@@ -32,10 +33,12 @@ tracer_color = Color(0.45, 0.75, 1, 1)
 tracer_width = 0.015
 impact_scale = 0.8888888888888888
 projectile_size = 0.05
+hud_icon = ExtResource("1_jlkh1")
 model = ExtResource("1_dggp4")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.30400000000000005
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(1, 0.45, 0.83823514, 1)
 role = "SMG électrique d'ICA : énorme DPS de près mais difficile à tenir."
 shot_feel = "Tir rapide et violent, l'arme 'saute' dans les mains."
 projectile_visual = "Hitscan ; décharges électriques bleues et étincelles au canon."

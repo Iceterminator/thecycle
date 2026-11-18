@@ -48,7 +48,7 @@ var _loco := ""
 func setup(owner_player: Player, body: MeshInstance3D) -> void:
 	player = owner_player
 	_body = body
-	var model := (load(MODELS[absi(player.name.to_int()) % MODELS.size()]) as PackedScene).instantiate() as Node3D
+	var model := load_model(player)
 	add_child(model)
 	model.rotation.y = PI  # le glTF regarde vers +Z, Godot vers -Z
 	var top := 0.0
@@ -62,7 +62,7 @@ func setup(owner_player: Player, body: MeshInstance3D) -> void:
 	_hand = _skeleton.find_bone(HAND_BONE)
 	var anim := AnimationPlayer.new()
 	model.add_child(anim)  # root_node ".." = le modèle : pistes « Armature/Skeleton3D:os »
-	anim.add_animation_library("", _get_library())
+	anim.add_animation_library("", animation_library())
 	_tree = AnimationTree.new()
 	model.add_child(_tree)
 	_tree.anim_player = _tree.get_path_to(anim)
@@ -72,7 +72,12 @@ func setup(owner_player: Player, body: MeshInstance3D) -> void:
 	_last_pos = player.global_position
 
 
-static func _get_library() -> AnimationLibrary:
+## Personnage du joueur (homme ou femme selon son id), le même partout.
+static func load_model(p: Player) -> Node3D:
+	return (load(MODELS[absi(p.name.to_int()) % MODELS.size()]) as PackedScene).instantiate() as Node3D
+
+
+static func animation_library() -> AnimationLibrary:
 	if _library == null:
 		var source := (load(ANIMS) as PackedScene).instantiate()
 		var ap := source.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer

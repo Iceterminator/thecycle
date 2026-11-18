@@ -2,11 +2,12 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_1okhi"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_f0dig"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/kor_47.png" id="1_tnmdt"]
 
 [resource]
 script = ExtResource("1_f0dig")
 id = &"kor_47"
-display_name = "Enclume"
+display_name = "KOR-47"
 reference_name = "KOR-47"
 faction = 1
 faction_level = 2
@@ -27,10 +28,12 @@ tracer_color = Color(1, 0.55, 0.2, 1)
 muzzle_flash_scale = 0.85
 impact_scale = 0.7555555555555555
 projectile_size = 0.05
+hud_icon = ExtResource("1_tnmdt")
 model = ExtResource("1_1okhi")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.376
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.45, 1, 0.9029412, 1)
 role = "Fusil d'assaut 'qui tape fort' de Korolev ; récompense les joueurs qui contrôlent le recul."
 shot_feel = "Tir automatique lourd et lent, chaque balle donne un coup ; arme massive (bullpup industriel)."
 projectile_visual = "Hitscan ; gros flash de canon orange, traçants épais."

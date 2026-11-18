@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_8yhcu"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/karla.png" id="1_l3aqr"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_sa7y8"]
 
 [resource]
 script = ExtResource("1_sa7y8")
 id = &"karla"
-display_name = "Marteau-pilon"
+display_name = "KARLA"
 reference_name = "KARLA"
 faction = 1
 faction_level = 10
@@ -37,10 +38,12 @@ muzzle_flash_scale = 2.5
 impact_scale = 3.0
 projectile_size = 0.15
 smoke_trail = true
+hud_icon = ExtResource("1_l3aqr")
 model = ExtResource("1_8yhcu")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.44000000000000006
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.57941175, 1, 0.45, 1)
 role = "Arme lourde ultime de Korolev : canon explosif lent qui gagne le combat si les premiers tirs touchent."
 shot_feel = "Tir TRÈS lourd : gros recul, l'écran tremble, on attend 1.7 s entre deux tirs."
 projectile_visual = "Gros obus explosif lumineux, assez lent, avec traînée de fumée épaisse."

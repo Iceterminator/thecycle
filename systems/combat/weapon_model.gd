@@ -15,7 +15,8 @@ extends Node3D
 const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
 const AIM_SPEED := 12.0
-const HAND_SHIFT := Vector3(0.0, 0.04, -0.08)  ## arme des autres : un peu devant et au-dessus de la paume
+const ARMS_AIM_SHIFT := Vector3(0.0, 0.03, 0.04)  ## visée avec les bras : corps un peu relevé et reculé
+const HAND_SHIFT :=Vector3(0.0, 0.04, -0.08)  ## arme des autres : un peu devant et au-dessus de la paume
 
 const KICK_BACK := 0.07          ## recul de l'arme vers l'arrière (m) à pleine force
 const KICK_UP_DEG := 8.0         ## canon qui se relève (degrés) à pleine force
@@ -49,6 +50,8 @@ var _sprint := 0.0
 var _raise := 0.0
 var _trauma := 0.0
 var _shake_time := 0.0
+var _model: Node3D
+var _arms: FirstPersonArms  ## joueur local seulement
 
 
 func setup(owner_player: Player) -> void:
@@ -56,6 +59,11 @@ func setup(owner_player: Player) -> void:
 	position = HIP_POSITION
 	player.inventory.active_weapon_changed.connect(_refresh)
 	Events.camera_shake_requested.connect(_on_camera_shake_requested)
+	if player.is_multiplayer_authority() and not Net.is_dedicated_server:
+		_arms = FirstPersonArms.new()
+		_arms.name = "Arms"
+		add_child(_arms)
+		_arms.setup(player)
 	_refresh()
 
 
@@ -64,11 +72,13 @@ func _refresh() -> void:
 	if weapon == _current:
 		return
 	_current = weapon
-	for child in get_children():
-		child.queue_free()
+	if _model:
+		_model.queue_free()
+		_model = null
 	if weapon and weapon.model:
 		_offset = weapon.model_offset
-		add_child(build(weapon))
+		_model = build(weapon)
+		add_child(_model)
 		_raise = 1.0
 
 
@@ -78,6 +88,8 @@ func kick(strength: float) -> void:
 	# Le recul vient de tourner la vue : ne pas le compter comme un mouvement de souris.
 	_last_look = Vector2(player.rotation.y, player.head.rotation.x)
 	_trauma = minf(_trauma + strength * 0.12, 1.0)
+	if _arms:
+		_arms.play_shot()
 
 
 func _on_camera_shake_requested(point: Vector3, strength: float, reach: float) -> void:
@@ -103,7 +115,9 @@ func _process(delta: float) -> void:
 			position = position.lerp(HIP_POSITION + _offset, t)
 		return
 	var aiming := player.weapon.is_aiming
-	_base = _base.lerp((AIM_POSITION if aiming else HIP_POSITION) + _offset, t)
+	# Avec les bras, la visée ne déplace presque pas le corps (la pose tient déjà l'arme au centre).
+	var aim_pos := HIP_POSITION + ARMS_AIM_SHIFT if _arms else AIM_POSITION
+	_base = _base.lerp((aim_pos if aiming else HIP_POSITION) + _offset, t)
 	_kick = lerpf(_kick, 0.0, clampf(delta * KICK_RECOVER, 0.0, 1.0))
 	_raise = maxf(_raise - delta * RAISE_SPEED, 0.0)
 	var raise := _raise * _raise  # remontée rapide au début, douce à la fin
@@ -131,13 +145,23 @@ func _process(delta: float) -> void:
 			and Input.is_action_pressed("sprint")
 	_sprint = lerpf(_sprint, 1.0 if sprinting else 0.0, clampf(delta * 10.0, 0.0, 1.0))
 
-	position = _base + bob + SPRINT_OFFSET * _sprint \
+	var pos := _base + bob + SPRINT_OFFSET * _sprint \
 			+ Vector3(0.0, _kick * 0.015 - raise * RAISE_DROP, _kick * KICK_BACK)
-	rotation = Vector3(
+	var rot := Vector3(
 		deg_to_rad(KICK_UP_DEG) * _kick - _sway.y - deg_to_rad(RAISE_TILT_DEG) * raise,
 		-_sway.x,
 		sin(_bob_time) * 0.015 * _bob_amp,
 	) + SPRINT_ROT_DEG * (PI / 180.0) * _sprint
+	if _arms:
+		# Rotation autour de la caméra (pas de l'arme) : la tête du corps reste sur la caméra.
+		transform = Transform3D(Basis.from_euler(rot), Vector3.ZERO) * Transform3D(Basis(), pos)
+		_arms.set_reloading(player.weapon.is_reloading)
+		_arms.anchor_head(-(HIP_POSITION + _offset))
+		if _model:
+			_model.position = _arms.hand_local()
+	else:
+		position = pos
+		rotation = rot
 	_shake_camera(delta)
 
 
@@ -164,6 +188,13 @@ static func build(weapon: WeaponData) -> Node3D:
 	for node in instance.find_children("*", "MeshInstance3D", true, false):
 		var mesh := node as MeshInstance3D
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if weapon.model_tint != Color.WHITE:
+			for s in mesh.mesh.get_surface_count():
+				var mat := mesh.get_active_material(s) as BaseMaterial3D
+				if mat:
+					mat = mat.duplicate() as BaseMaterial3D
+					mat.albedo_color *= weapon.model_tint
+					mesh.set_surface_override_material(s, mat)
 		var xf := Transform3D.IDENTITY
 		var n: Node = mesh
 		while n != pivot:

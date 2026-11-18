@@ -123,6 +123,9 @@ enum GadgetKind { NONE, FRAG_GRENADE, HEAL_BEAM, RECALL }
 @export var model_length: float = 0.25
 ## Décalage de la position en main (m, repère de la tête : x droite, y haut, -z devant).
 @export var model_offset: Vector3 = Vector3.ZERO
+## Teinte multipliée sur les couleurs du modèle (blanc = aucune) : distingue les armes
+## qui partagent le même modèle.
+@export var model_tint: Color = Color.WHITE
 
 @export_group("Fiche (detailed)")
 ## Fiche de design de la référence : ce que l'arme doit faire ressentir.

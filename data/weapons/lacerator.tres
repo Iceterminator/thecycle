@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_2adkb"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_3gg72"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/lacerator.png" id="1_4pxv1"]
 
 [resource]
 script = ExtResource("1_2adkb")
 id = &"lacerator"
-display_name = "Lame"
+display_name = "Lacerator"
 reference_name = "Lacerator"
 faction = 3
 faction_level = 8
@@ -32,10 +33,12 @@ tracer_time = 0.12
 muzzle_flash_scale = 1.75
 impact_scale = 1.5555555555555556
 projectile_size = 0.05
+hud_icon = ExtResource("1_4pxv1")
 model = ExtResource("1_3gg72")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.36000000000000004
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.45, 0.9029411, 1, 1)
 role = "Fusil semi-auto d'ICA à gros dégâts par tir."
 shot_feel = "Coups secs et puissants au clic, rythme rapide pour un semi-auto."
 projectile_visual = "Hitscan, traçant net."

@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/trench_grenade.png" id="1_0ykvp"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_Grenade.gltf" id="1_dbox3"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_my1ap"]
 
 [resource]
 script = ExtResource("1_my1ap")
 id = &"trench_grenade"
-display_name = "Grenade à fragmentation"
+display_name = "Trench Grenade"
 reference_name = "Trench Grenade"
 type = 9
 fire_mode = 1
@@ -21,6 +22,7 @@ gadget = 1
 consumable = true
 fuse_s = 2.5
 spawn_cost_credits = 100
+hud_icon = ExtResource("1_0ykvp")
 model = ExtResource("1_dbox3")
 model_length = 0.12
 role = "Lancer en arc ; n'explose pas au contact d'une cible, mais après son délai."

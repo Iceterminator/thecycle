@@ -2,11 +2,12 @@
 
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_8s2d7"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_my2y2"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/haze.png" id="1_t02bh"]
 
 [resource]
 script = ExtResource("1_my2y2")
 id = &"haze"
-display_name = "Nuée"
+display_name = "HAZE"
 reference_name = "HAZE"
 faction = 3
 faction_level = 10
@@ -37,10 +38,12 @@ muzzle_flash_scale = 2.5
 impact_scale = 5.0
 projectile_size = 0.15
 smoke_trail = true
+hud_icon = ExtResource("1_t02bh")
 model = ExtResource("1_8s2d7")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.44000000000000006
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.967647, 1, 0.45, 1)
 role = "Lance-roquettes d'ICA à très grande zone : déloge les groupes et les campeurs."
 shot_feel = "Tir lourd et lent ('fwoosh'), recul net."
 projectile_visual = "Grosse roquette lente (35 m/s) avec épaisse traînée de fumée bleutée ; bien visible."

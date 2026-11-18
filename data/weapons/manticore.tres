@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/manticore.png" id="1_d3nu6"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_fweq3"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_i7hi4"]
 
 [resource]
 script = ExtResource("1_i7hi4")
 id = &"manticore"
-display_name = "Lynx"
+display_name = "Manticore"
 reference_name = "Manticore"
 faction = 2
 faction_level = 5
@@ -30,10 +31,12 @@ tracer_color = Color(0.45, 1, 0.55, 1)
 muzzle_flash_scale = 1.175
 impact_scale = 1.0444444444444445
 projectile_size = 0.05
+hud_icon = ExtResource("1_d3nu6")
 model = ExtResource("1_fweq3")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.36000000000000004
 model_offset = Vector3(0, -0.02, -0.12)
+model_tint = Color(0.45, 0.7088235, 1, 1)
 role = "Fusil d'assaut à fléchettes d'Osiris : précis à moyenne portée."
 shot_feel = "Automatique stable et léger."
 projectile_visual = "Fléchettes-projectiles (150 m/s), petites aiguilles lumineuses."

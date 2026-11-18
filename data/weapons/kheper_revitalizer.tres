@@ -2,11 +2,12 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_11t02"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_HealthPack_Tube.gltf" id="1_073b4"]
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/kheper_revitalizer.png" id="1_shkxj"]
 
 [resource]
 script = ExtResource("1_11t02")
 id = &"kheper_revitalizer"
-display_name = "Rayon vital"
+display_name = "Kheper Revitalizer"
 reference_name = "Kheper Revitalizer"
 faction = 2
 type = 9
@@ -22,6 +23,7 @@ spawn_cost_credits = 250
 tracer_color = Color(0.4, 1, 0.55, 1)
 tracer_width = 0.06
 tracer_time = 0.25
+hud_icon = ExtResource("1_shkxj")
 model = ExtResource("1_073b4")
 model_length = 0.18
 role = "Viser un allié et maintenir le tir : rayon de soin continu. Clic secondaire (estimé) : se soigner soi-même."

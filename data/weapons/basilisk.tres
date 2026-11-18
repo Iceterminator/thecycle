@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/basilisk.png" id="1_71xxw"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Sniper.gltf" id="1_ph0lp"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_rb2mx"]
 
 [resource]
 script = ExtResource("1_rb2mx")
 id = &"basilisk"
-display_name = "Épervier"
+display_name = "Basilisk"
 reference_name = "Basilisk"
 faction = 2
 faction_level = 8
@@ -38,6 +39,7 @@ tracer_time = 0.25
 muzzle_flash_scale = 2.5
 impact_scale = 2.5
 projectile_size = 0.05
+hud_icon = ExtResource("1_71xxw")
 model = ExtResource("1_ph0lp")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.4

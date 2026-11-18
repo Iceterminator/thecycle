@@ -1,12 +1,13 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="Texture2D" path="res://assets/icons/weapons/advocate.png" id="1_2uyat"]
 [ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_10ypw"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_xo6dn"]
 
 [resource]
 script = ExtResource("1_xo6dn")
 id = &"advocate"
-display_name = "Sentinelle"
+display_name = "Advocate"
 reference_name = "Advocate"
 faction = 3
 faction_level = 9
@@ -25,6 +26,7 @@ tracer_color = Color(0.45, 0.75, 1, 1)
 muzzle_flash_scale = 1.025
 impact_scale = 0.9111111111111112
 projectile_size = 0.05
+hud_icon = ExtResource("1_2uyat")
 model = ExtResource("1_10ypw")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.36000000000000004
