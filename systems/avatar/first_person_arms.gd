@@ -4,7 +4,7 @@ extends Node3D
 ## (PlayerAvatar.load_model) en pose « arme en main », la caméra dans sa tête. Vue de
 ## l'intérieur, la tête n'est pas dessinée (faces arrière) : on voit les bras tendus.
 ## Enfant de WeaponModel : le corps suit le recul et le balancement de l'arme ; la tête
-## reste calée sur la caméra et l'arme est posée dans la main droite (hand_local).
+## reste calée sur la caméra et l'arme est posée au centre de la paume droite (hand_local).
 
 const AIM := "Pistol_Aim_Neutral"
 const HEAD_BONE := "Head"
@@ -12,13 +12,14 @@ const HEAD_BONE := "Head"
 ## juste devant le visage, qui reste ainsi derrière la caméra (matériaux à double face).
 const EYE := Vector3(0.0, 0.02, -0.16)
 const HIDDEN_MESHES := ["Eyes", "Eyebrows"]
-const GRIP := Vector3(0.0, 0.05, -0.07)  ## centre de l'arme par rapport à la main droite (m)
+const GRIP := Vector3.ZERO  ## ajustement fin du point d'attache (m, repère de l'arme)
 
 var _skeleton: Skeleton3D
-var _hand := -1
+var _palm := PackedInt32Array()
 var _head := -1
 var _anim: AnimationPlayer
 var _reloading := false
+var _left_hand: LeftHandIk
 
 
 func setup(p: Player) -> void:
@@ -33,12 +34,19 @@ func setup(p: Player) -> void:
 		top = maxf(top, mi.get_aabb().end.y)
 	scale = Vector3.ONE * (PlayerAvatar.BODY_HEIGHT / top if top > 0.0 else 1.0)
 	_skeleton = model.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
-	_hand = _skeleton.find_bone(PlayerAvatar.HAND_BONE)
+	_palm = PlayerAvatar.palm_bones(_skeleton)
 	_head = _skeleton.find_bone(HEAD_BONE)
 	_anim = AnimationPlayer.new()
 	model.add_child(_anim)
 	_anim.add_animation_library("", PlayerAvatar.animation_library())
 	_anim.play(AIM)
+	_left_hand = LeftHandIk.new()
+	_left_hand.setup(_skeleton)
+
+
+## Main gauche sur `target` (position globale) ; null = pose d'animation.
+func set_left_target(target: Variant) -> void:
+	_left_hand.follow(target, global_basis)
 
 
 func play_shot() -> void:
@@ -60,11 +68,16 @@ func anchor_head(camera_local: Vector3) -> void:
 		position += camera_local - _bone_local(_head) - EYE
 
 
-## Où poser l'arme (repère du parent) : dans la main droite.
+## Où poser l'arme (repère du parent) : centre de la paume droite.
 func hand_local() -> Vector3:
-	return _bone_local(_hand) + GRIP if _hand >= 0 else Vector3.ZERO
+	if _palm.is_empty():
+		return Vector3.ZERO
+	return _to_parent(PlayerAvatar.palm_global(_skeleton, _palm)) + GRIP
 
 
 func _bone_local(bone: int) -> Vector3:
-	var global := (_skeleton.global_transform * _skeleton.get_bone_global_pose(bone)).origin
+	return _to_parent((_skeleton.global_transform * _skeleton.get_bone_global_pose(bone)).origin)
+
+
+func _to_parent(global: Vector3) -> Vector3:
 	return (get_parent() as Node3D).global_transform.affine_inverse() * global

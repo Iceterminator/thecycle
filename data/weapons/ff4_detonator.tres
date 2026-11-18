@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_bx64i"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/ff4_detonator.png" id="1_v6ur8"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_x1nx0"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_v6ur8"]
 
 [resource]
 script = ExtResource("1_bx64i")
@@ -37,11 +37,11 @@ impact_scale = 3.0
 projectile_size = 0.15
 smoke_trail = true
 hud_icon = ExtResource("1_v6ur8")
-model = ExtResource("1_x1nx0")
+model = ExtResource("2_v6ur8")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.416
+model_length = 0.9
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.6441176, 0.45, 1)
+model_tint = Color(0.58, 0.58, 0.6, 1)
 role = "Arme lourde de départ : lance-grenades/missiles explosifs contre les monstres, les groupes et les joueurs à couvert."
 shot_feel = "Tir lourd et sourd ('thoump'), l'arme recule nettement ; on sent qu'on envoie un gros objet."
 projectile_visual = "Gros projectile lumineux qui voyage lentement (40 m/s) avec une traînée de fumée ; on peut le voir arriver et l'esquiver."

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/km9_scrapper.png" id="1_3hbnv"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_idgbt"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_k32bd"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_3hbnv"]
 
 [resource]
 script = ExtResource("1_k32bd")
@@ -35,11 +35,11 @@ muzzle_flash_scale = 0.875
 impact_scale = 0.7777777777777778
 projectile_size = 0.05
 hud_icon = ExtResource("1_3hbnv")
-model = ExtResource("1_idgbt")
+model = ExtResource("2_3hbnv")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.30400000000000005
+model_length = 0.55
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(0.45, 1, 0.5147059, 1)
+model_tint = Color(0.85, 0.3, 0.28, 1)
 role = "SMG de Korolev qui crache des éclats de cristal ; domine à très courte portée."
 shot_feel = "Tir très rapide et stable, sensation de 'déchiquetage'."
 projectile_visual = "Hitscan ; petits éclats de cristal lumineux visibles à la sortie du canon."

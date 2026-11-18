@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_Mine.gltf" id="1_22k2y"]
+
+[node name="Prop_Mine_held" type="Node3D" unique_id=548986680]
+
+[node name="Modele" type="Node3D" parent="." unique_id=1589494030 instance=ExtResource("1_22k2y")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=234777973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9604645e-08, 0.406488, 0.10714802)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=1789171080]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9604645e-08, 0.406488, 0.10714804)
+gizmo_extents = 0.05

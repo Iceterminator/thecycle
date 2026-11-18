@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Revolver.gltf" id="1_5getb"]
+
+[node name="Gun_Revolver_held" type="Node3D" unique_id=183125629]
+
+[node name="Modele" type="Node3D" parent="." unique_id=439148859 instance=ExtResource("1_5getb")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=738136125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.001193464, -0.02228545, -7.3984125e-09)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=1143326583]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45219648, 0.09543103, 1.2315555e-08)
+gizmo_extents = 0.05
+
+[node name="MainGauche" type="Marker3D" parent="." unique_id=824497196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.021600835, -0.042692825, 0.09183319)
+gizmo_extents = 0.05

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_de3bh"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/asp_flechette_gun.png" id="1_ome2c"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/asp_flechette_gun/asp_flechette_gun.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/asp_flechette_gun_held.tscn" id="2_ome2c"]
 
 [resource]
 script = ExtResource("1_de3bh")
@@ -36,7 +36,9 @@ muzzle_flash_scale = 0.925
 impact_scale = 0.8222222222222222
 projectile_size = 0.05
 hud_icon = ExtResource("1_ome2c")
-model = ExtResource("2_model")
+model = ExtResource("2_ome2c")
+model_length = 0.3
+model_tint = Color(0.48, 1, 0.48, 1)
 role = "SMG à fléchettes d'Osiris : plus précise et plus longue portée que les autres SMG."
 shot_feel = "Tir automatique doux et stable, 'pchit-pchit' rapide."
 projectile_visual = "Fléchettes-projectiles visibles (100 m/s) : petites aiguilles lumineuses vertes."

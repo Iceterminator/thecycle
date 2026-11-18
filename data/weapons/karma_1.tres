@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/karma_1.png" id="1_2taw8"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Sniper.gltf" id="1_jypac"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_yul0u"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Sniper_held.tscn" id="2_2taw8"]
 
 [resource]
 script = ExtResource("1_yul0u")
@@ -42,11 +42,11 @@ impact_scale = 1.5
 projectile_size = 0.15
 smoke_trail = true
 hud_icon = ExtResource("1_2taw8")
-model = ExtResource("1_jypac")
+model = ExtResource("2_2taw8")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.496
+model_length = 1.15
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(0.725, 1, 0.45, 1)
+model_tint = Color(1, 0.4, 0.36, 1)
 role = "Railgun de Korolev : tir chargé dévastateur à longue portée."
 shot_feel = "Maintenir la gâchette : l'arme se charge avec un bourdonnement montant et des arcs électriques, puis tir énorme au relâchement."
 projectile_visual = "Rayon/projectile très rapide avec traînée électrique bleue persistante, visible de loin."

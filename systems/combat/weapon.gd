@@ -605,6 +605,8 @@ func _effects_parent() -> Node3D:
 
 ## Point de départ visuel « du canon » (un peu à droite et en dessous des yeux).
 func _muzzle(origin: Vector3) -> Vector3:
+	if player.held_weapon and player.held_weapon.has_model():
+		return player.held_weapon.muzzle_position()
 	return origin + camera.global_basis * Vector3(0.18, -0.15, -0.4)
 
 

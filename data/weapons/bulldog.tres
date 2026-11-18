@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/bulldog.png" id="1_c3bf1"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Pistol.gltf" id="1_phk4c"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_yx3qa"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Pistol_held.tscn" id="2_c3bf1"]
 
 [resource]
 script = ExtResource("1_yx3qa")
@@ -39,9 +39,10 @@ muzzle_flash_scale = 2.5
 impact_scale = 2.5
 projectile_size = 0.05
 hud_icon = ExtResource("1_c3bf1")
-model = ExtResource("1_phk4c")
+model = ExtResource("2_c3bf1")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.24
+model_tint = Color(0.42, 0.62, 1, 1)
 role = "Pistolet-fusil à pompe d'ICA à 2 coups : finisher de corps à corps."
 shot_feel = "Deux gros coups rapides puis rechargement."
 projectile_visual = "Hitscan en gerbe de 7 plombs."

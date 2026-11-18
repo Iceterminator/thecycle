@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_4chwe"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/zeus_beam.png" id="1_8sgs1"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_utfyy"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_8sgs1"]
 
 [resource]
 script = ExtResource("1_4chwe")
@@ -39,11 +39,11 @@ muzzle_flash_scale = 0.6
 impact_scale = 0.7
 projectile_size = 0.05
 hud_icon = ExtResource("1_8sgs1")
-model = ExtResource("1_utfyy")
+model = ExtResource("2_8sgs1")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.416
+model_length = 0.85
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.45, 0.6441176, 1)
+model_tint = Color(0.45, 0.95, 0.62, 1)
 role = "Arme lourde ultime d'Osiris : rayon d'énergie continu qui fond boucliers et santé."
 shot_feel = "Maintenir : l'arme monte en régime 1.15 s (bourdonnement croissant), puis rayon continu tant qu'on tient."
 projectile_visual = "Rayon d'énergie épais et lumineux (bleu-blanc) du canon jusqu'à la cible, avec distorsion."

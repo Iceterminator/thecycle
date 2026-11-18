@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/asp_flechette_gun/asp_flechette_gun.glb" id="1_vcw4w"]
+
+[node name="asp_flechette_gun_held" type="Node3D" unique_id=1634026995]
+
+[node name="Modele" type="Node3D" parent="." unique_id=1017701481 instance=ExtResource("1_vcw4w")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=660119980]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05377085, 0.04483168)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=1017436012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.010471129, -0.16350001)
+gizmo_extents = 0.05
+
+[node name="MainGauche" type="Marker3D" parent="." unique_id=948359893]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.03720209, -0.062037982, 0.036564548)
+gizmo_extents = 0.05

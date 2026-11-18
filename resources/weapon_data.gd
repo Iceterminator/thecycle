@@ -114,17 +114,17 @@ enum GadgetKind { NONE, FRAG_GRENADE, HEAL_BEAM, RECALL }
 @export var hud_icon: Texture2D
 
 @export_group("Modèle 3D")
-## Modèle de l'arme (.glb), tenu en main : vue à la première personne et par les autres
+## Scène « tenue en main » de l'arme (assets/models/weapons/held/, tools/make_held_scenes.gd) :
+## le modèle + les repères Poignee (posée dans la paume) et Bouche (bout du canon). Vue à la première personne et par les autres
 ## joueurs (WeaponModel). Sans modèle, rien n'est affiché en main.
 @export var model: PackedScene
 ## Rotation pour mettre le canon vers l'avant (-Z) et le dessus vers le haut.
 @export var model_rotation_deg: Vector3 = Vector3.ZERO
-## Longueur de l'arme une fois mise à l'échelle (m) : le modèle est redimensionné et centré.
+## Longueur réelle de l'arme (m) : le modèle est redimensionné, le repère Poignee sur l'origine.
 @export var model_length: float = 0.25
 ## Décalage de la position en main (m, repère de la tête : x droite, y haut, -z devant).
 @export var model_offset: Vector3 = Vector3.ZERO
-## Teinte multipliée sur les couleurs du modèle (blanc = aucune) : distingue les armes
-## qui partagent le même modèle.
+## Teinte multipliée sur les couleurs du modèle (blanc = aucune) : couleur de la faction (gris départ, rouge Forge Brask, vert Lumen, bleu Consortium Vega), légèrement variée quand un même modèle revient dans une faction.
 @export var model_tint: Color = Color.WHITE
 
 @export_group("Fiche (detailed)")

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_hr11q"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/shattergun.png" id="1_qmn6b"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_sf0q0"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_qmn6b"]
 
 [resource]
 script = ExtResource("1_hr11q")
@@ -40,11 +40,11 @@ muzzle_flash_scale = 3.75
 impact_scale = 2.5
 projectile_size = 0.05
 hud_icon = ExtResource("1_qmn6b")
-model = ExtResource("1_sf0q0")
+model = ExtResource("2_qmn6b")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.36000000000000004
+model_length = 0.8
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(0.967647, 0.45, 1, 1)
+model_tint = Color(0.36, 0.7, 0.95, 1)
 role = "Fusil à pompe à levier d'ICA : un tir énorme, très fort contre la santé."
 shot_feel = "Gros tir lourd puis action du levier (1.27 s) ; chaque coup secoue l'écran."
 projectile_visual = "Hitscan en gerbe de 10 plombs avec flash bleu."

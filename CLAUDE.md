@@ -52,6 +52,8 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --path . -- --join=127.0.0.1 --name=Test
 # Icônes d'armes (avec fenêtre, puis --import, puis -- --assign)
 <godot> --path . -s tools/render_weapon_icons.gd
+# Scène « tenue en main » (repères Poignee / Bouche) pour un nouveau modèle d'arme
+<godot> --headless --path . -s tools/make_held_scenes.gd
 ```
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
 Test réseau scripté : hôte `-- --host` + client `--headless -s mon_test.gd` (script `extends SceneTree`
@@ -61,7 +63,7 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 | Mécanique | Code | Données | Doc |
 | --- | --- | --- | --- |
 | Joueur, déplacement | `scenes/player/`, `systems/kits/kit_movement.gd` | `data/rules/combat.tres` | DESIGN §1 |
-| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`) | `data/weapons/` | DESIGN §2-3 |
+| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`) | `data/weapons/`, `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
 | HUD | `systems/combat/hud.gd`, `systems/ui/` | — | — |
 | Personnages animés | `systems/avatar/` | `assets/models/characters/` | — |
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
@@ -75,7 +77,7 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
 | Carte, décor | `scenes/world/`, `systems/map/`, `systems/decor/` | `assets/models/nature/` | — |
-| Menu admin (touche 0) | `systems/admin/` | — | — |
+| Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |
 
 ## Pièges connus

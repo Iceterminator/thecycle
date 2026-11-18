@@ -211,6 +211,14 @@ func _build() -> void:
 		goto_row.add_child(button)
 
 	box.add_child(HSeparator.new())
+	box.add_child(_section("Outils de dev"))
+	var dev_row := _row()
+	box.add_child(dev_row)
+	var tune_button := _button("Régler la prise de l'arme", _start_grip_tuner)
+	tune_button.tooltip_text = "Flèches, Page ↑/↓, +/− : déplacer et redimensionner l'arme en main ; Entrée : enregistrer ; Fin : quitter"
+	dev_row.add_child(tune_button)
+
+	box.add_child(HSeparator.new())
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_status_label)
@@ -219,6 +227,19 @@ func _build() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
 	box.add_child(hint)
+
+
+## Ferme le menu et lance l'outil de réglage de la prise (un seul à la fois).
+func _start_grip_tuner() -> void:
+	close()
+	var parent := get_parent()
+	if parent.has_node("GripTuner"):
+		return
+	var tuner := GripTuner.new()
+	tuner.name = "GripTuner"
+	tuner.layer = 12
+	parent.add_child(tuner)
+	tuner.setup(_player)
 
 
 func _section(text: String) -> Label:

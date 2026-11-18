@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_j6mb1"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_ld8mu"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/phasic_lancer.png" id="1_r65ts"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_r65ts"]
 
 [resource]
 script = ExtResource("1_ld8mu")
@@ -36,11 +36,11 @@ muzzle_flash_scale = 1.05
 impact_scale = 0.9333333333333332
 projectile_size = 0.05
 hud_icon = ExtResource("1_r65ts")
-model = ExtResource("1_j6mb1")
+model = ExtResource("2_r65ts")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.36000000000000004
+model_length = 0.8
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(0.45, 0.5147058, 1, 1)
+model_tint = Color(0.6, 1, 0.45, 1)
 role = "Fusil en rafale de 3 d'Osiris pour la moyenne portée."
 shot_feel = "Rafales de 3 coups rapides par appui, rythme 'tac-tac-tac … tac-tac-tac'."
 projectile_visual = "Hitscan ; trois traits d'énergie fins par rafale."

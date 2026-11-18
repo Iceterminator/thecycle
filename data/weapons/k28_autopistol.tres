@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_137oj"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/k28_autopistol.png" id="1_itdrd"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/k28_autopistol/k28_autopistol.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/k28_autopistol_held.tscn" id="2_itdrd"]
 
 [resource]
 script = ExtResource("1_137oj")
@@ -35,9 +35,10 @@ muzzle_flash_scale = 1.075
 impact_scale = 0.9555555555555556
 projectile_size = 0.05
 hud_icon = ExtResource("1_itdrd")
-model = ExtResource("2_model")
+model = ExtResource("2_itdrd")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.22
+model_length = 0.229
+model_tint = Color(0.7, 0.7, 0.72, 1)
 role = "Arme de secours : finir un ennemi quand le chargeur principal est vide."
 shot_feel = "Pistolet semi-auto classique, tir rapide au clic, léger."
 projectile_visual = "Hitscan, petit flash de canon."

@@ -5,7 +5,7 @@ extends Node3D
 ## quand il vise), les autres joueurs la voient devant lui, orientée comme son regard
 ## (rotation de la tête synchronisée). Suit l'arme en main (Inventory.active_weapon_changed).
 ## Sans modèle pour l'arme en main, rien n'est affiché.
-## Le modèle est tourné (model_rotation_deg), mis à l'échelle (model_length) et centré.
+## Le modèle est tourné (model_rotation_deg), mis à l'échelle (model_length) et son repère Poignee (scène du modèle) posé sur l'origine.
 ##
 ## Ressenti (joueur local seulement) : recul à chaque tir (kick), balancement qui suit la
 ## vue, balancement de marche, pose de sprint, arme qui remonte quand on la sort, et
@@ -16,7 +16,7 @@ const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
 const AIM_SPEED := 12.0
 const ARMS_AIM_SHIFT := Vector3(0.0, 0.03, 0.04)  ## visée avec les bras : corps un peu relevé et reculé
-const HAND_SHIFT :=Vector3(0.0, 0.04, -0.08)  ## arme des autres : un peu devant et au-dessus de la paume
+const HAND_SHIFT := Vector3.ZERO  ## ajustement fin, la paume est déjà calculée par l'avatar
 
 const KICK_BACK := 0.07          ## recul de l'arme vers l'arrière (m) à pleine force
 const KICK_UP_DEG := 8.0         ## canon qui se relève (degrés) à pleine force
@@ -52,6 +52,22 @@ var _trauma := 0.0
 var _shake_time := 0.0
 var _model: Node3D
 var _arms: FirstPersonArms  ## joueur local seulement
+var tune_offset := Vector3.ZERO  ## réglage en jeu (GripTuner) : décalage de l'arme (m, repère de l'arme)
+var tune_scale := 1.0  ## réglage en jeu : facteur de taille
+var tune_left := Vector3.ZERO  ## réglage en jeu : décalage de la main gauche (m, repère de l'arme)
+
+## Matériaux teintés partagés (matériau d'origine + teinte → copie) : une copie par arme
+## libérée avec elle provoquait des erreurs du moteur (« material is null »).
+static var _tint_cache: Dictionary = {}
+
+
+static func _tinted(source: BaseMaterial3D, tint: Color) -> BaseMaterial3D:
+	var key := [source, tint]
+	if not _tint_cache.has(key):
+		var mat := source.duplicate() as BaseMaterial3D
+		mat.albedo_color *= tint
+		_tint_cache[key] = mat
+	return _tint_cache[key]
 
 
 func setup(owner_player: Player) -> void:
@@ -111,6 +127,7 @@ func _process(delta: float) -> void:
 		if player.avatar and player.avatar.is_visible_in_tree():
 			rotation = Vector3.ZERO
 			global_position = player.avatar.hand_position() + player.head.global_basis * HAND_SHIFT
+			player.avatar.set_left_target(left_hand_target())
 		else:
 			position = position.lerp(HIP_POSITION + _offset, t)
 		return
@@ -158,10 +175,16 @@ func _process(delta: float) -> void:
 		_arms.set_reloading(player.weapon.is_reloading)
 		_arms.anchor_head(-(HIP_POSITION + _offset))
 		if _model:
-			_model.position = _arms.hand_local()
+			_model.position = _arms.hand_local() + tune_offset
 	else:
 		position = pos
 		rotation = rot
+		if _model:
+			_model.position = tune_offset
+	if _model:
+		_model.scale = Vector3.ONE * tune_scale
+	if _arms:
+		_arms.set_left_target(left_hand_target())
 	_shake_camera(delta)
 
 
@@ -175,7 +198,7 @@ func _shake_camera(delta: float) -> void:
 	cam.rotation.z = sin(_shake_time * 1.1 + 2.0) * deg_to_rad(SHAKE_ROLL_DEG) * s
 
 
-## Modèle de l'arme prêt à poser : tourné, mis à l'échelle, centré sur l'origine, sans ombre.
+## Modèle de l'arme prêt à poser : tourné, mis à l'échelle, poignée sur l'origine, sans ombre.
 static func build(weapon: WeaponData) -> Node3D:
 	var pivot := Node3D.new()
 	pivot.name = "Model"
@@ -192,9 +215,7 @@ static func build(weapon: WeaponData) -> Node3D:
 			for s in mesh.mesh.get_surface_count():
 				var mat := mesh.get_active_material(s) as BaseMaterial3D
 				if mat:
-					mat = mat.duplicate() as BaseMaterial3D
-					mat.albedo_color *= weapon.model_tint
-					mesh.set_surface_override_material(s, mat)
+					mesh.set_surface_override_material(s, _tinted(mat, weapon.model_tint))
 		var xf := Transform3D.IDENTITY
 		var n: Node = mesh
 		while n != pivot:
@@ -208,5 +229,57 @@ static func build(weapon: WeaponData) -> Node3D:
 	var longest := maxf(box.size.x, maxf(box.size.y, box.size.z))
 	var scale_factor := weapon.model_length / maxf(longest, 0.001)
 	instance.scale = Vector3.ONE * scale_factor
-	instance.position = -box.get_center() * scale_factor
+	# Le repère Poignee de la scène du modèle sur l'origine : c'est lui qui est posé dans la main.
+	var marker := instance.find_child("Poignee", true, false) as Node3D
+	var grip := box.get_center()
+	if marker:
+		grip = Basis.from_euler(instance.rotation) * _local_in(instance, marker)
+	instance.position = -grip * scale_factor
 	return pivot
+
+
+## Position de `node` dans le repère de `ancestor` (exclu : sa propre transformation n'est pas comptée).
+static func _local_in(ancestor: Node3D, node: Node3D) -> Vector3:
+	var xf := Transform3D.IDENTITY
+	var n: Node = node
+	while n != ancestor:
+		xf = (n as Node3D).transform * xf
+		n = n.get_parent()
+	return xf.origin
+
+
+## Position globale du bout du canon (repère « Bouche » du modèle en main) ; sans repère, celle de l'arme.
+func muzzle_position() -> Vector3:
+	var marker := _model.find_child("Bouche", true, false) as Node3D if _model else null
+	return marker.global_position if marker else global_position
+
+
+## Position globale où poser la main gauche (repère « MainGauche » du modèle + réglage), ou null.
+func left_hand_target() -> Variant:
+	var marker := _model.find_child("MainGauche", true, false) as Node3D if _model else null
+	if marker == null:
+		return null
+	return marker.global_position + global_basis * tune_left
+
+
+## Vrai si un modèle est affiché (faux sur le serveur dédié ou sans modèle).
+func has_model() -> bool:
+	return _model != null
+
+
+## Arme actuellement affichée en main.
+func current_weapon() -> WeaponData:
+	return _current
+
+
+## Échelle de l'instance du modèle (sans le réglage en jeu), 1.0 sans modèle.
+func model_scale_factor() -> float:
+	if _model == null or _model.get_child_count() == 0:
+		return 1.0
+	return (_model.get_child(0) as Node3D).scale.x
+
+
+## Force la reconstruction du modèle (après modification de la scène ou des données).
+func rebuild() -> void:
+	_current = null
+	_refresh()

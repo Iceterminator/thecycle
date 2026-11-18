@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/hammer.png" id="1_5bg50"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Revolver.gltf" id="1_och8b"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_oln0t"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Revolver_held.tscn" id="2_5bg50"]
 
 [resource]
 script = ExtResource("1_oln0t")
@@ -34,9 +34,10 @@ muzzle_flash_scale = 0.775
 impact_scale = 0.7
 projectile_size = 0.05
 hud_icon = ExtResource("1_5bg50")
-model = ExtResource("1_och8b")
+model = ExtResource("2_5bg50")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.26
+model_tint = Color(1, 0.4, 0.36, 1)
 role = "Revolver de Korolev, arme secondaire stable et puissante."
 shot_feel = "Tir lent et lourd au clic, comme un revolver."
 projectile_visual = "Hitscan, flash de canon marqué."

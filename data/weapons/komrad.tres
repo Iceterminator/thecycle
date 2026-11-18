@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_cpcis"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_i2atr"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/komrad.png" id="1_istsf"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_istsf"]
 
 [resource]
 script = ExtResource("1_i2atr")
@@ -41,11 +41,11 @@ impact_scale = 2.0
 projectile_size = 0.15
 smoke_trail = true
 hud_icon = ExtResource("1_istsf")
-model = ExtResource("1_cpcis")
+model = ExtResource("2_istsf")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.44000000000000006
+model_length = 0.9
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(0.45, 1, 0.7088235, 1)
+model_tint = Color(1, 0.52, 0.4, 1)
 role = "Lance-roquettes en rafale de Korolev : sature une zone de 3 roquettes, idéal contre les monstres et les groupes."
 shot_feel = "Chaque appui lâche 3 roquettes l'une après l'autre (0.11 s) : 'poum-poum-poum', l'arme tremble à chaque départ."
 projectile_visual = "3 petites roquettes avec flamme de propulsion et traînée de fumée, trajectoire légèrement dispersée."

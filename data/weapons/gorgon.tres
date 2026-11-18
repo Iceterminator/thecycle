@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_o00ny"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_oi7hh"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/gorgon.png" id="1_utn3q"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_utn3q"]
 
 [resource]
 script = ExtResource("1_o00ny")
@@ -33,11 +33,11 @@ muzzle_flash_scale = 0.6
 impact_scale = 0.7
 projectile_size = 0.05
 hud_icon = ExtResource("1_utn3q")
-model = ExtResource("1_oi7hh")
+model = ExtResource("2_utn3q")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.376
+model_length = 0.72
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.8382353, 0.45, 1)
+model_tint = Color(0.48, 1, 0.48, 1)
 role = "Fusil à rayon électrique d'Osiris : charge courte puis décharge en rafale."
 shot_feel = "Appui → courte charge (0.35 s, grésillement) → décharge rapide de 15 impacts comme un éclair."
 projectile_visual = "Hitscan ; arc électrique continu entre le canon et la cible pendant la rafale."

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_3h6li"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Pistol.gltf" id="1_w4mk1"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/scarab_pistol.png" id="1_ywb0e"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Pistol_held.tscn" id="2_ywb0e"]
 
 [resource]
 script = ExtResource("1_3h6li")
@@ -39,10 +39,10 @@ muzzle_flash_scale = 0.95
 impact_scale = 0.8444444444444444
 projectile_size = 0.05
 hud_icon = ExtResource("1_ywb0e")
-model = ExtResource("1_w4mk1")
+model = ExtResource("2_ywb0e")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 0.22
-model_tint = Color(1, 0.45, 0.45, 1)
+model_tint = Color(0.48, 1, 0.48, 1)
 role = "Pistolet à phase d'Osiris en rafale de 3."
 shot_feel = "Rafale de 3 tirs légers par clic."
 projectile_visual = "Hitscan, petits traits d'énergie verts."

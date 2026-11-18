@@ -26,6 +26,8 @@ const LOCO := [
 ]
 const UPPER_ROOT_BONE := "spine_01"   ## ce bone et ses enfants = haut du corps
 const HAND_BONE := "hand_r"
+const PALM_BONES := ["hand_r", "index_01_r", "middle_01_r", "pinky_01_r"]  ## leur moyenne = paume
+const PALM_DEPTH := 0.035  ## la poignée est tenue côté paume, pas sur les os (m)
 const BODY_HEIGHT := 1.8       ## taille du personnage (m), comme la capsule du joueur
 const BLEND := 0.2             ## fondu entre deux animations des jambes (s)
 const MOVE_MIN := 0.4          ## m/s : en dessous, le joueur est immobile
@@ -37,7 +39,8 @@ var player: Player
 var _body: MeshInstance3D
 var _tree: AnimationTree
 var _skeleton: Skeleton3D
-var _hand := -1
+var _palm := PackedInt32Array()
+var _left_hand: LeftHandIk
 var _meshes: Array[MeshInstance3D] = []
 var _last_pos: Vector3
 var _speed := 0.0
@@ -59,7 +62,9 @@ func setup(owner_player: Player, body: MeshInstance3D) -> void:
 	scale = Vector3.ONE * (BODY_HEIGHT / top if top > 0.0 else 1.0)
 	position.y = -body.position.y  # le BodyMesh est centré sur la capsule : pieds au sol
 	_skeleton = model.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
-	_hand = _skeleton.find_bone(HAND_BONE)
+	_palm = palm_bones(_skeleton)
+	_left_hand = LeftHandIk.new()
+	_left_hand.setup(_skeleton)
 	var anim := AnimationPlayer.new()
 	model.add_child(anim)  # root_node ".." = le modèle : pistes « Armature/Skeleton3D:os »
 	anim.add_animation_library("", animation_library())
@@ -137,16 +142,48 @@ func _build_tree(skeleton_path: NodePath) -> AnimationNodeBlendTree:
 
 
 ## Un coup de feu de ce joueur (appelé sur tous les peers par l'effet de tir).
+## Main gauche sur `target` (position globale) ; null = pose d'animation.
+func set_left_target(target: Variant) -> void:
+	_left_hand.follow(target, global_basis)
+
+
 func play_shot() -> void:
 	if _tree and not player.health.is_dead:
 		_tree.set("parameters/shoot/request", AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 
-## Position de la main droite (l'arme des autres joueurs s'y accroche).
+## Point d'attache de l'arme : centre de la paume droite (l'arme des autres joueurs s'y accroche).
 func hand_position() -> Vector3:
-	if _hand < 0:
+	if _palm.is_empty():
 		return global_position
-	return (_skeleton.global_transform * _skeleton.get_bone_global_pose(_hand)).origin
+	return palm_global(_skeleton, _palm)
+
+
+## Os de la paume droite présents dans le squelette.
+static func palm_bones(skeleton: Skeleton3D) -> PackedInt32Array:
+	var bones := PackedInt32Array()
+	for bone_name: String in PALM_BONES:
+		var bone := skeleton.find_bone(bone_name)
+		if bone >= 0:
+			bones.append(bone)
+	return bones
+
+
+## Point d'attache de l'arme : moyenne des os de la paume, décalée vers l'intérieur de la
+## main (normale de la paume, côté doigts repliés) pour que la poignée soit dans le creux.
+static func palm_global(skeleton: Skeleton3D, bones: PackedInt32Array) -> Vector3:
+	var points: Array[Vector3] = []
+	var sum := Vector3.ZERO
+	for bone in bones:
+		var point := (skeleton.global_transform * skeleton.get_bone_global_pose(bone)).origin
+		points.append(point)
+		sum += point
+	var center := sum / maxf(bones.size(), 1.0)
+	if points.size() == PALM_BONES.size():  # main, index, majeur, auriculaire
+		var normal := (points[1] - points[3]).cross(points[2] - points[0])
+		if normal.length_squared() > 0.0:
+			center += normal.normalized() * PALM_DEPTH
+	return center
 
 
 func _process(delta: float) -> void:

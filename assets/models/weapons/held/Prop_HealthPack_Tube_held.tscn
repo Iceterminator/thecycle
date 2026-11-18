@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_HealthPack_Tube.gltf" id="1_nb3rn"]
+
+[node name="Prop_HealthPack_Tube_held" type="Node3D" unique_id=515090949]
+
+[node name="Modele" type="Node3D" parent="." unique_id=678235408 instance=ExtResource("1_nb3rn")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=461144496]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.018436685, 0)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=1731175364]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.018436685, 0)
+gizmo_extents = 0.05

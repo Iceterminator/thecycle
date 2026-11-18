@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Sniper.gltf" id="1_7qruy"]
+
+[node name="Gun_Sniper_held" type="Node3D" unique_id=1842299919]
+
+[node name="Modele" type="Node3D" parent="." unique_id=1286742804 instance=ExtResource("1_7qruy")]
+
+[node name="Poignee" type="Marker3D" parent="." unique_id=1604853799]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.057338867, -0.047842946, -1.2189287e-09)
+gizmo_extents = 0.05
+
+[node name="Bouche" type="Marker3D" parent="." unique_id=23259302]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2768533, 0.09401281, 5.2087742e-08)
+gizmo_extents = 0.05
+
+[node name="MainGauche" type="Marker3D" parent="." unique_id=5372284]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5651587, -0.0030353144, 0.037339717)
+gizmo_extents = 0.05

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_1q6me"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_jxyaf"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/ar55_phase_autorifle.png" id="1_nuwqn"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_nuwqn"]
 
 [resource]
 script = ExtResource("1_1q6me")
@@ -25,11 +25,11 @@ tracer_color = Color(1, 0.85, 0.45, 1)
 muzzle_flash_scale = 1.125
 projectile_size = 0.05
 hud_icon = ExtResource("1_nuwqn")
-model = ExtResource("1_jxyaf")
+model = ExtResource("2_nuwqn")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.36000000000000004
+model_length = 0.72
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.45, 0.45, 1)
+model_tint = Color(0.7, 0.7, 0.72, 1)
 role = "Fusil polyvalent de départ, à l'aise de 10 à 50 m."
 shot_feel = "Tir automatique régulier et contrôlable, chaque balle 'compte' davantage que la SMG."
 projectile_visual = "Hitscan ; traçant à effet de phase (léger scintillement) une balle sur trois."

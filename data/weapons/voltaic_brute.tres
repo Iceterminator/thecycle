@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
-[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_dggp4"]
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/voltaic_brute.png" id="1_jlkh1"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_sy10y"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Rifle_held.tscn" id="2_jlkh1"]
 
 [resource]
 script = ExtResource("1_sy10y")
@@ -34,11 +34,11 @@ tracer_width = 0.015
 impact_scale = 0.8888888888888888
 projectile_size = 0.05
 hud_icon = ExtResource("1_jlkh1")
-model = ExtResource("1_dggp4")
+model = ExtResource("2_jlkh1")
 model_rotation_deg = Vector3(0, -90, 0)
-model_length = 0.30400000000000005
+model_length = 0.55
 model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.45, 0.83823514, 1)
+model_tint = Color(0.55, 0.65, 0.95, 1)
 role = "SMG électrique d'ICA : énorme DPS de près mais difficile à tenir."
 shot_feel = "Tir rapide et violent, l'arme 'saute' dans les mains."
 projectile_visual = "Hitscan ; décharges électriques bleues et étincelles au canon."
