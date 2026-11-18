@@ -18,6 +18,8 @@ var _next_uid: int = 0
 var _generation: int = 0
 ## Niveau des monstres (1 à 3, Events.monster_level_changed) : appliqué à ceux qui apparaissent.
 var _level: int = 1
+## Camp qui bloque la plateforme d'évac (créé à l'annonce de l'évac, jamais repeuplé).
+var _pad_camp: MonsterCamp
 
 
 func _ready() -> void:
@@ -26,6 +28,7 @@ func _ready() -> void:
 		return
 	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
 	Events.match_reset_requested.connect(_on_match_reset)
+	Events.evac_announced.connect(_spawn_evac_pad_camp)
 	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.MONSTER_LEVEL_HEALTH_MULT.size()))
 	_setup.call_deferred()
 
@@ -135,6 +138,9 @@ func _new_uid() -> int:
 ## clients), puis chaque camp est repeuplé.
 func _on_match_reset() -> void:
 	_generation += 1
+	if is_instance_valid(_pad_camp):
+		_pad_camp.queue_free()
+	_pad_camp = null
 	for node in spawner.get_node(spawner.spawn_path).get_children():
 		node.queue_free()
 	for node in camps.get_children():
@@ -152,3 +158,22 @@ func _level_mult(table: Array) -> float:
 func _apply_level(monster: Monster, damage_mult: float) -> void:
 	monster.damage_mult = damage_mult * _level_mult(Config.MONSTER_LEVEL_DAMAGE_MULT)
 	monster.credits_mult = _level_mult(Config.MONSTER_LEVEL_CREDITS_MULT)
+
+
+## Annonce de l'évac : des monstres occupent la plateforme. La navette ne se pose qu'une
+## fois ce camp vidé (MatchManager écoute Events.evac_pad_cleared). Serveur seulement.
+func _spawn_evac_pad_camp() -> void:
+	var camp_data := load(Config.EVAC_PAD_CAMP) as CampData if Config.EVAC_PAD_CAMP != "" else null
+	if camp_data == null:
+		Events.evac_pad_cleared.emit(0)
+		return
+	if is_instance_valid(_pad_camp):
+		_pad_camp.queue_free()
+	_pad_camp = MonsterCamp.new()
+	_pad_camp.name = "CampPlateformeEvac"
+	_pad_camp.camp_data = camp_data
+	_pad_camp.radius = 8.0
+	_pad_camp.position = Config.EVAC_POSITION
+	add_child(_pad_camp)
+	_pad_camp.cleared.connect(func(_camp: MonsterCamp, killer_id: int) -> void: Events.evac_pad_cleared.emit(killer_id))
+	_spawn_camp(_pad_camp)

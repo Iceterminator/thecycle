@@ -57,16 +57,18 @@
   - Fait le 18/11/2026 : test réseau OK (12 éclats + 1 collecteur créés à 10:00 et vus par le client ; ramasser puis déposer un éclat : objectif 0 → 30). Erreur « Kit » à la connexion corrigée au passage.
     À tester en jeu : nombre d'éclats et place du collecteur (30, 0, 30).
 - [x] **A3. Calendrier de l'évac.**
-  Ce qu'il faut : annonce à 16:10 (bandeau rouge « La navette arrivera dans … »), atterrissage à 19:10, décollage à 20:00.
-  - `[code]` `Config.EVAC_LANDING_TIME == 19 * 60 + 10`, avec une constante pour l'annonce à 16:10.
-  - `[test]` à 16:15, l'annonce a été émise ; à 19:15, la navette est posée.
-  - Fait le 18/11/2026 : test réseau OK (annonce rouge « arrivera dans 180 secondes » reçue par le client, phase EVAC à 19:15). Aussi : avertissement de décollage à 19:30 (au lieu de 19:00, avant l'atterrissage) et raccourcis du menu admin mis à jour.
-    À tester en jeu : 50 s pour embarquer, est-ce jouable ?
-- [ ] **A4. Plateforme d'évac bloquée par des monstres.** Dépend de A3.
+  Ce qu'il faut (modifié le 18/11/2026 à la demande de l'utilisatrice : la navette arrive 3 min avant la fin) : annonce à 16:00 (bandeau rouge « La navette arrivera dans … »), arrivée à 17:00, décollage à 20:00.
+  - `[code]` `Config.EVAC_LANDING_TIME == 17 * 60`, `Config.EVAC_ANNOUNCE_TIME == 16 * 60`.
+  - `[test]` à 16:05, l'annonce a été émise ; à 17:05 (plateforme nettoyée), la navette est posée.
+  - Fait le 18/11/2026 (16:10 / 19:10), puis passé à 16:00 / 17:00 avec A4 : test A4 OK. Aussi : avertissement de décollage à 19:30 (au lieu de 19:00, avant l'atterrissage) et raccourcis du menu admin mis à jour.
+    À tester en jeu : temps d'embarquement (jusqu'à 3 min si la plateforme est nettoyée vite).
+- [x] **A4. Plateforme d'évac bloquée par des monstres.** Dépend de A3.
   Ce qu'il faut : à l'annonce, un camp de monstres apparaît sur la plateforme (réutiliser `data/camps/`) ;
   le message « NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME » s'affiche ; le contrat « Nettoyer la plateforme » est actif.
-  La navette ne se pose qu'une fois la plateforme vide (et pas avant 19:10).
-  - `[test]` plateforme non nettoyée à 19:15 : navette pas posée ; tuer les monstres du camp : la navette se pose.
+  La navette ne se pose qu'une fois la plateforme vide (et pas avant 17:00).
+  - `[test]` plateforme non nettoyée à 17:05 : navette pas posée ; tuer les monstres du camp : la navette se pose.
+  - Fait le 18/11/2026 : test réseau OK (16:05 : 4-5 monstres, plateforme bloquée chez le client ; 17:05 : navette pas posée, annonce « NAVETTE BLOQUÉE » ; tous tués : navette posée, tueur +20 Fame).
+    À tester en jeu : difficulté du camp (1 Colosse + 3-4 Rôdeurs, niveau 2), lisibilité du message dans le HUD.
 - [ ] **A5. Classement final : les évacués d'abord.**
   Ce qu'il faut : le tri final met tous les évacués devant tous les non-évacués, puis trie par Fame.
   Supprimer `EVAC_MISSED_PENALTY`.

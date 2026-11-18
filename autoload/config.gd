@@ -31,8 +31,10 @@ const MAX_PLAYERS := 20
 
 # --- Partie (en secondes) ---
 const MATCH_DURATION := 20.0 * 60.0     # décollage de l'évac
-const EVAC_ANNOUNCE_TIME := 16.0 * 60.0 + 10.0  # annonce de l'évac (bandeau rouge)
-const EVAC_LANDING_TIME := 19.0 * 60.0 + 10.0   # l'évac se pose (moins d'1 min pour embarquer)
+const EVAC_ANNOUNCE_TIME := 16.0 * 60.0  # annonce de l'évac (bandeau rouge) ; des monstres occupent la plateforme
+const EVAC_LANDING_TIME := 17.0 * 60.0   # l'évac arrive (3 min avant la fin) ; elle ne se pose qu'une fois la plateforme nettoyée
+const EVAC_PAD_CAMP := "res://data/camps/evac_pad.tres"  # monstres qui bloquent la plateforme ("" = aucun)
+const EVAC_PAD_CLEAR_FAME := 20         # Fame du joueur qui tue le dernier monstre de la plateforme
 const EVENT_TIMES := [5.0 * 60.0, 10.0 * 60.0]
 const RESPAWN_DELAY := 5.0
 const EVAC_BOARD_TIME := 5.0            # temps à rester dans la soute pour embarquer

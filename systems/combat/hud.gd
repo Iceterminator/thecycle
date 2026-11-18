@@ -173,9 +173,13 @@ func _update_clock(delta: float) -> void:
 		_clock_sub.text = "DÉCOLLAGE DE L'ÉVAC"
 		_status_label.text = "ÉVAC AU SOL — EMBARQUEZ !"
 	else:
-		_clock_label.text = _fmt(Config.EVAC_LANDING_TIME - _clock_elapsed)
+		_clock_label.text = _fmt(maxf(Config.EVAC_LANDING_TIME - _clock_elapsed, 0.0))
 		_clock_sub.text = "ÉVAC DANS   ·   partie %s / %s" % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
 		_status_label.text = ""
+		if MatchManager.is_pad_blocked():
+			var late := _clock_elapsed >= Config.EVAC_LANDING_TIME
+			_clock_sub.text = ("NAVETTE BLOQUÉE   ·   partie %s / %s" if late else "ÉVAC DANS   ·   partie %s / %s") % [_fmt(_clock_elapsed), _fmt(Config.MATCH_DURATION)]
+			_status_label.text = "CONTRAT : tuez les monstres pour nettoyer la plateforme d'évac"
 
 
 func _fmt(seconds: float) -> String:

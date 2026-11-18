@@ -47,6 +47,10 @@ signal announcement(text: String, color: Color)
 signal fame_changed(peer_id: int, new_fame: int)
 signal contract_completed(peer_id: int, contract_id: StringName)
 signal evac_landed()
+## Serveur : l'évac est annoncée (Config.EVAC_ANNOUNCE_TIME) ; MonsterManager occupe la plateforme.
+signal evac_announced()
+## Serveur : le dernier monstre de la plateforme d'évac est mort (killer_id = joueur ou id spécial).
+signal evac_pad_cleared(killer_id: int)
 signal evac_departed()
 signal match_ended()
 ## Serveur, menu admin : avancer le temps de partie de `seconds` (MatchManager).

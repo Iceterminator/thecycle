@@ -186,7 +186,7 @@ func _build() -> void:
 		time_row.add_child(_button("+%d min" % int(seconds / 60.0), func() -> void:
 			_admin.request_time_skip.rpc_id(1, seconds)))
 	# Juste avant chaque moment clé : niveau 2 des monstres (5:00), Grande Marée (annonce 9:00),
-	# niveau 3 + cristaux + Grande Marée (10:00), annonce de l'évac (16:10), évac (19:10), décollage.
+	# niveau 3 + cristaux + Grande Marée (10:00), annonce de l'évac (16:00), arrivée de l'évac (17:00), décollage.
 	var goto_row := _row()
 	box.add_child(goto_row)
 	var targets: Array[float] = [290.0, 530.0, 590.0, Config.EVAC_ANNOUNCE_TIME - 10.0, Config.EVAC_LANDING_TIME - 10.0, Config.MATCH_DURATION - 10.0]

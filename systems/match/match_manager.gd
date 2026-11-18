@@ -28,6 +28,8 @@ var ready_players: Dictionary = {}
 var elapsed: float = 0.0
 ## Serveur : ids des joueurs embarqués, dans l'ordre.
 var evacuated: Array[int] = []
+## Des monstres occupent la plateforme d'évac : la navette ne peut pas se poser (copié chez les clients).
+var pad_blocked: bool = false
 
 var _resync_left: float = 0.0
 var _restart_left: float = 0.0
@@ -45,6 +47,7 @@ func _ready() -> void:
 	Events.match_time_set_requested.connect(_set_time)
 	Events.player_evacuated.connect(_on_player_evacuated)
 	Events.player_joined.connect(_on_player_joined)
+	Events.evac_pad_cleared.connect(_on_evac_pad_cleared)
 	_broadcast_clock.call_deferred()
 
 
@@ -75,7 +78,6 @@ func _announces() -> Array:
 	var end := Config.MATCH_DURATION
 	return [
 		[Config.EVAC_ANNOUNCE_TIME, "La navette d'évacuation arrivera dans %d secondes, au centre de la carte !" % roundi(land - Config.EVAC_ANNOUNCE_TIME), EVAC_COLOR],
-		[land - 60.0, "L'évac arrive dans 1 minute, au centre de la carte !", EVAC_COLOR],
 		[end - 30.0, "Décollage de l'évac dans 30 secondes !", EVAC_COLOR],
 		[end - 10.0, "Décollage dans 10 secondes !", EVAC_COLOR],
 	]
@@ -88,7 +90,14 @@ func _advance(to: float) -> void:
 	for entry: Array in _announces():
 		if before < entry[0] and elapsed >= entry[0]:
 			Events.announce_requested.emit(entry[1], entry[2])
-	if phase == Phase.PLAYING and elapsed >= Config.EVAC_LANDING_TIME:
+	if before < Config.EVAC_ANNOUNCE_TIME and elapsed >= Config.EVAC_ANNOUNCE_TIME:
+		_set_pad_blocked(true)
+		Events.evac_announced.emit()  # MonsterManager occupe la plateforme (ou la déclare libre)
+		if pad_blocked:
+			Events.announce_requested.emit("Des monstres occupent la plateforme d'évac : tuez-les pour que la navette puisse se poser !", EVAC_COLOR)
+	if phase == Phase.PLAYING and pad_blocked and before < Config.EVAC_LANDING_TIME and elapsed >= Config.EVAC_LANDING_TIME:
+		Events.announce_requested.emit("NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME", EVAC_COLOR)
+	if phase == Phase.PLAYING and not pad_blocked and elapsed >= Config.EVAC_LANDING_TIME:
 		phase = Phase.EVAC
 		Events.evac_landed.emit()
 		Events.announce_requested.emit("L'évac se pose au centre ! Montez à bord par la rampe.", ANNOUNCE_COLOR)
@@ -129,6 +138,26 @@ func _on_player_evacuated(peer_id: int) -> void:
 		text += " (premier à bord : +%d)" % bonus
 	Events.announce_requested.emit(text, ANNOUNCE_COLOR)
 	print("[Partie] Joueur %d embarqué (+%d)" % [peer_id, bonus])
+
+
+func _set_pad_blocked(blocked: bool) -> void:
+	pad_blocked = blocked
+	_sync_pad.rpc(blocked)
+
+
+## Contrat « Nettoyer la plateforme » rempli : Fame au tueur, la navette peut se poser
+## (tout de suite si elle est déjà là, sinon à Config.EVAC_LANDING_TIME).
+func _on_evac_pad_cleared(killer_id: int) -> void:
+	if not pad_blocked or phase != Phase.PLAYING:
+		return
+	_set_pad_blocked(false)
+	var killer := world.get_player(killer_id)
+	if killer:
+		killer.score.add_contract_fame(Config.EVAC_PAD_CLEAR_FAME)
+		Events.announce_requested.emit("%s a nettoyé la plateforme d'évac ! (+%d)" % [ProfileManager.name_of(killer_id), Config.EVAC_PAD_CLEAR_FAME], EVAC_COLOR)
+	else:
+		Events.announce_requested.emit("La plateforme d'évac est dégagée !", EVAC_COLOR)
+	_advance(elapsed)  # se pose tout de suite si l'heure est passée
 
 
 func _end_match() -> void:
@@ -179,6 +208,7 @@ func _restart() -> void:
 		_reset_player(player, spawn)
 	ready_players = {}
 	evacuated.clear()
+	_set_pad_blocked(false)
 	_results = []
 	phase = Phase.PLAYING
 	elapsed = 0.0
@@ -204,6 +234,7 @@ func _on_player_joined(peer_id: int) -> void:
 	if not peer_id in multiplayer.get_peers():
 		return
 	_sync_clock.rpc_id(peer_id, elapsed, phase)
+	_sync_pad.rpc_id(peer_id, pad_blocked)
 	if phase == Phase.LOBBY:
 		_sync_lobby.rpc_id(peer_id, ready_players)
 	for id in evacuated:
@@ -231,6 +262,16 @@ func _sync_clock(server_elapsed: float, server_phase: int) -> void:
 		elapsed = server_elapsed
 		phase = server_phase as Phase
 	Events.match_clock_synced.emit(server_elapsed, server_phase)
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_pad(blocked: bool) -> void:
+	pad_blocked = blocked
+
+
+## HUD : la plateforme d'évac est-elle occupée par des monstres ?
+static func is_pad_blocked() -> bool:
+	return _current != null and _current.pad_blocked
 
 
 @rpc("authority", "call_local", "reliable")
