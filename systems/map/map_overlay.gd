@@ -70,7 +70,7 @@ func _refresh_ranking() -> void:
 	var rank := 1
 	for p in players:
 		var me := p == _player
-		var who := "Vous" if me else "Joueur %d" % p.get_peer_id()
+		var who := "Vous (%s)" % ProfileManager.name_of(p.get_peer_id()) if me else ProfileManager.name_of(p.get_peer_id())
 		var tags: PackedStringArray = []
 		if p.is_evacuated:
 			tags.append("à bord")

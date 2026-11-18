@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="FactionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/faction_data.gd" id="1_faction"]
+
+[resource]
+script = ExtResource("1_faction")
+id = 3
+display_name = "Consortium Vega"
+reference_name = "ICA"
+color = Color(0.4, 0.7, 1, 1)
+style = "Équilibre : armes polyvalentes, électriques (batteries)."

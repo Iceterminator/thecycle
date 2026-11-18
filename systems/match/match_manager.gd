@@ -10,14 +10,21 @@ extends Node
 ## Embarquement (voir EvacShip) : premier embarqué +EVAC_FIRST_BONUS, suivants
 ## +EVAC_OTHER_BONUS ; au décollage, les joueurs restés au sol perdent EVAC_MISSED_PENALTY.
 
-enum Phase { PLAYING, EVAC, ENDED }
+## LOBBY (étape 9) : entre deux parties et au démarrage du serveur ; équipement, escouades,
+## « prêt ». La partie démarre quand tous sont prêts ou après Config.LOBBY_DURATION s.
+enum Phase { PLAYING, EVAC, ENDED, LOBBY }
+
+static var _current: MatchManager
 
 const ANNOUNCE_COLOR := Color(0.6, 0.85, 1.0)
 const MONSTER_COLOR := Color(1.0, 0.5, 0.35)
 
 @onready var world: World = get_parent()
 
-var phase: Phase = Phase.PLAYING
+var phase: Phase = Phase.LOBBY
+## Lobby : joueurs prêts (peer -> true) et secondes avant le départ.
+var ready_players: Dictionary = {}
+var lobby_left: float = 0.0
 var elapsed: float = 0.0
 ## Serveur : ids des joueurs embarqués, dans l'ordre.
 var evacuated: Array[int] = []
@@ -28,6 +35,8 @@ var _results: Array = []
 
 
 func _ready() -> void:
+	_current = self
+	lobby_left = Config.LOBBY_DURATION
 	Events.match_clock_requested.connect(func() -> void: Events.match_clock_synced.emit(elapsed, phase))
 	set_physics_process(multiplayer.is_server())
 	set_process(not multiplayer.is_server())
@@ -41,10 +50,13 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if phase == Phase.LOBBY:
+		_server_lobby(delta)
+		return
 	if phase == Phase.ENDED:
 		_restart_left -= delta
 		if _restart_left <= 0.0:
-			_restart()
+			_enter_lobby()
 		return
 	_advance(elapsed + delta)
 	_resync_left -= delta
@@ -54,7 +66,7 @@ func _physics_process(delta: float) -> void:
 
 ## Clients : copie locale de l'horloge, avancée entre deux envois du serveur.
 func _process(delta: float) -> void:
-	if phase != Phase.ENDED:
+	if phase != Phase.ENDED and phase != Phase.LOBBY:
 		elapsed = minf(elapsed + delta, Config.MATCH_DURATION)
 
 
@@ -95,7 +107,7 @@ func _advance(to: float) -> void:
 
 ## Menu admin : on ne peut qu'avancer (revenir en arrière défairait l'évac).
 func _set_time(seconds: float) -> void:
-	if phase == Phase.ENDED or not is_finite(seconds) or seconds <= elapsed:
+	if phase == Phase.ENDED or phase == Phase.LOBBY or not is_finite(seconds) or seconds <= elapsed:
 		return
 	_advance(seconds)
 	if phase != Phase.ENDED:
@@ -112,7 +124,7 @@ func _on_player_evacuated(peer_id: int) -> void:
 	var bonus := Config.EVAC_FIRST_BONUS if evacuated.size() == 1 else Config.EVAC_OTHER_BONUS
 	player.score.add_rank_points(bonus)
 	player.set_evacuated.rpc(true)
-	var text := "Joueur %d a embarqué dans l'évac !" % peer_id
+	var text := "%s a embarqué dans l'évac !" % ProfileManager.name_of(peer_id)
 	if bonus > 0:
 		text += " (premier à bord : +%d)" % bonus
 	Events.announce_requested.emit(text, ANNOUNCE_COLOR)
@@ -147,10 +159,25 @@ func _restart() -> void:
 	# Niveau 1 d'abord : les camps sont repeuplés pendant match_reset_requested.
 	Events.monster_level_changed.emit(1)
 	Events.match_reset_requested.emit()
+	# Équipement du profil (choisi dans le lobby), puis largage : une escouade au même endroit.
+	var profiles := world.get_node_or_null("ProfileManager") as ProfileManager
+	var squad_spawns := {}
+	var squad_index := {}
 	for node in world.players.get_children():
 		var player := node as Player
-		if player:
-			_reset_player(player)
+		if player == null:
+			continue
+		if profiles:
+			profiles.server_apply_loadout(player.get_peer_id())
+		var squad := SquadManager.squad_of(player.get_peer_id())
+		var spawn := world.pick_spawn_point()
+		if squad != 0:
+			if not squad_spawns.has(squad):
+				squad_spawns[squad] = spawn
+			squad_index[squad] = int(squad_index.get(squad, 0)) + 1
+			spawn = squad_spawns[squad] + Vector3(1.5 * (int(squad_index[squad]) - 1), 0, 0)
+		_reset_player(player, spawn)
+	ready_players = {}
 	evacuated.clear()
 	_results = []
 	phase = Phase.PLAYING
@@ -160,9 +187,8 @@ func _restart() -> void:
 	print("[Partie] Nouvelle partie")
 
 
-func _reset_player(player: Player) -> void:
+func _reset_player(player: Player, pos: Vector3) -> void:
 	player.set_evacuated.rpc(false)
-	var pos := world.pick_spawn_point()
 	player.global_position = pos
 	player.teleport.rpc_id(player.get_peer_id(), pos)
 	player.health.server_reset()
@@ -178,6 +204,8 @@ func _on_player_joined(peer_id: int) -> void:
 	if not peer_id in multiplayer.get_peers():
 		return
 	_sync_clock.rpc_id(peer_id, elapsed, phase)
+	if phase == Phase.LOBBY:
+		_sync_lobby.rpc_id(peer_id, ready_players, lobby_left)
 	for id in evacuated:
 		var player := world.get_player(id)
 		if player:
@@ -187,8 +215,10 @@ func _on_player_joined(peer_id: int) -> void:
 
 
 func _broadcast_clock() -> void:
-	_resync_left = Config.MATCH_CLOCK_RESYNC
+	_resync_left = 1.0 if phase == Phase.LOBBY else Config.MATCH_CLOCK_RESYNC
 	_sync_clock.rpc(elapsed, phase)
+	if phase == Phase.LOBBY:
+		_sync_lobby.rpc(ready_players, lobby_left)
 
 
 # =========================================================================
@@ -206,3 +236,68 @@ func _sync_clock(server_elapsed: float, server_phase: int) -> void:
 @rpc("authority", "call_local", "reliable")
 func _show_results(results: Array, restart_in: float) -> void:
 	Events.match_results_received.emit(results, restart_in)
+
+
+# =========================================================================
+# Lobby (étape 9)
+# =========================================================================
+
+static func is_lobby() -> bool:
+	return _current != null and _current.phase == Phase.LOBBY
+
+
+## Serveur : décompte du lobby (seulement s'il y a des joueurs) ; départ quand tous sont prêts.
+func _server_lobby(delta: float) -> void:
+	var count := world.players.get_child_count()
+	if count == 0:
+		lobby_left = Config.LOBBY_DURATION
+		return
+	lobby_left -= delta
+	var all_ready := true
+	for node in world.players.get_children():
+		if not ready_players.get((node as Player).get_peer_id(), false):
+			all_ready = false
+	_resync_left -= delta
+	if _resync_left <= 0.0:
+		_broadcast_clock()
+	if all_ready or lobby_left <= 0.0:
+		print("[Partie] Départ (tous prêts : %s)" % all_ready)
+		_restart()
+
+
+## Après l'écran de fin : retour au lobby (les joueurs restent dans le monde, sans dégâts).
+func _enter_lobby() -> void:
+	phase = Phase.LOBBY
+	lobby_left = Config.LOBBY_DURATION
+	ready_players = {}
+	for node in world.players.get_children():
+		var player := node as Player
+		if player:
+			player.set_evacuated.rpc(false)
+			player.health.server_reset()
+	_broadcast_clock()
+	Events.announce_requested.emit("Lobby : préparez votre équipement, la partie démarre bientôt", ANNOUNCE_COLOR)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func request_lobby_ready(value: bool) -> void:
+	if not multiplayer.is_server() or phase != Phase.LOBBY:
+		return
+	var d := ready_players.duplicate()
+	d[multiplayer.get_remote_sender_id()] = value
+	ready_players = d
+	_broadcast_clock()
+
+
+## Menu admin : lancer la partie tout de suite.
+func server_force_start() -> void:
+	if phase == Phase.LOBBY:
+		_restart()
+
+
+@rpc("authority", "call_local", "reliable")
+func _sync_lobby(ready: Dictionary, left: float) -> void:
+	if not multiplayer.is_server():
+		ready_players = ready
+		lobby_left = left
+	Events.lobby_synced.emit(ready, left)

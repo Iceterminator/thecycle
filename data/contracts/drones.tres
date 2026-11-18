@@ -17,3 +17,4 @@ target_health = 400.0
 duration = 45.0
 radius = 5.0
 waves = Array[ExtResource("2_camp")]([ExtResource("3_w1"), ExtResource("4_w2")])
+faction = 2

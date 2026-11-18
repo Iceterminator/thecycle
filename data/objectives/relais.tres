@@ -9,3 +9,4 @@ display_name = "Relais satellite"
 color = Color(1, 0.85, 0.2, 1)
 thresholds = PackedInt32Array(120, 300, 540, 840)
 rewards = PackedInt32Array(10, 15, 20, 25)
+faction = 2

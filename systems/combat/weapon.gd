@@ -140,7 +140,7 @@ func _process(delta: float) -> void:
 		_reload_left -= delta
 		if _reload_left <= 0.0:
 			is_reloading = false
-			ammo = data.magazine
+			ammo = player.magazine_for(data)
 			_emit_ammo()
 		return
 	if not can_act:
@@ -163,7 +163,7 @@ func _process(delta: float) -> void:
 	# Rayon vital : clic droit = se soigner soi-même.
 	if data.gadget == WeaponData.GadgetKind.HEAL_BEAM and Input.is_action_just_pressed("aim"):
 		request_gadget_alt.rpc_id(1)
-	if Input.is_action_just_pressed("reload") and ammo < data.magazine:
+	if Input.is_action_just_pressed("reload") and ammo < player.magazine_for(data):
 		_stop_holding()
 		_start_reload()
 		return
@@ -288,7 +288,7 @@ func _apply_recoil() -> void:
 
 
 func _emit_ammo() -> void:
-	ammo_changed.emit(ammo, data.magazine, is_reloading)
+	ammo_changed.emit(ammo, player.magazine_for(data), is_reloading)
 
 
 ## Le serveur corrige le chargeur du client (refus de tir, réapparition).
@@ -317,7 +317,7 @@ func _confirm_hit(headshot: bool, killed: bool) -> void:
 func request_reload() -> void:
 	if not multiplayer.is_server() or not _sender_is_owner():
 		return
-	if health.is_dead or _srv_reload_end_ms > 0 or inventory.get_active_ammo() >= data.magazine:
+	if health.is_dead or _srv_reload_end_ms > 0 or inventory.get_active_ammo() >= player.magazine_for(data):
 		return
 	inventory.cancel_use()
 	_srv_trigger_ms = 0
@@ -356,7 +356,7 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if _srv_reload_end_ms > 0:
 		if now < _srv_reload_end_ms:
 			return
-		inventory.set_active_ammo(data.magazine)
+		inventory.set_active_ammo(player.magazine_for(data))
 		_srv_reload_end_ms = 0
 	if inventory.get_active_ammo() <= 0:
 		_sync_ammo.rpc_id(player.get_peer_id(), 0)
@@ -516,11 +516,30 @@ func _server_hit(target: Node, point: Vector3, distance: float, wdata: WeaponDat
 func _server_damage(target: Node, amount: float, wdata: WeaponData) -> bool:
 	if target is Monster and player.kit:
 		amount *= 1.0 + player.kit.get_effect("creature_damage")
+	var mod := player.weapon_mod(wdata)
+	_server_apply_dots(target, amount, mod)
 	var victim := target as Player
-	if victim and (wdata.damage_vs_shield_multiplier != 1.0 or wdata.damage_vs_health_multiplier != 1.0):
+	var shield_mult := wdata.damage_vs_shield_multiplier * (mod.shield_damage_mult if mod else 1.0)
+	if victim and (shield_mult != 1.0 or wdata.damage_vs_health_multiplier != 1.0):
 		return victim.health.apply_damage(amount, player.get_peer_id(),
-				wdata.damage_vs_shield_multiplier, wdata.damage_vs_health_multiplier)
+				shield_mult, wdata.damage_vs_health_multiplier)
 	return target.server_receive_hit(amount, player.get_peer_id())
+
+
+## Mods d'arme feu / poison : dégâts en plus sur la durée (part des dégâts du tir).
+func _server_apply_dots(target: Node, amount: float, mod: WeaponModData) -> void:
+	if mod == null:
+		return
+	for dot: Array in [["burn", mod.burn_ratio, mod.burn_time, false, "Brûlure"], ["poison", mod.poison_ratio, mod.poison_time, true, "Poison"]]:
+		var ratio: float = dot[1]
+		var time: float = dot[2]
+		if ratio <= 0.0 or time <= 0.0:
+			continue
+		var per_s := amount * ratio / time
+		if target is Player:
+			(target as Player).buffs.server_add_dot(dot[0], dot[4], per_s, time, dot[3], player.get_peer_id())
+		elif target is Monster:
+			(target as Monster).apply_dot(per_s, time, player.get_peer_id())
 
 
 ## Explosion : aoe_damage au centre, EXPLOSION_EDGE_RATIO au bord, sur tout ce qui est
@@ -781,7 +800,7 @@ func _server_gadget(origin: Vector3, dir: Vector3) -> void:
 			var end: Vector3 = hit["position"] if not hit.is_empty() else to
 			var target := hit.get("collider") as Player if not hit.is_empty() else null
 			var kind := HitKind.NONE
-			if target and not target.health.is_dead and PactManager.allied(peer, target.get_peer_id()):
+			if target and not target.health.is_dead and Allies.allied(peer, target.get_peer_id()):
 				target.health.heal(data.heal_per_tick)
 				kind = HitKind.TARGET
 			_show_shot.rpc(origin, end, kind)

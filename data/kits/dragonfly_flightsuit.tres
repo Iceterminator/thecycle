@@ -52,10 +52,20 @@ level_perk_effects = Array[Dictionary]([{
 }])
 mods = Array[Dictionary]([{
 "effect": "Vol plus long mais poussée plus faible (fuel_consumption -30 %, thrust -25 %)",
-"id": "slow_and_steady"
+"effects": {
+"fuel_consumption_mult": -0.3,
+"thrust_mult": -0.25
+},
+"id": "slow_and_steady",
+"unlock_level": 3
 }, {
 "effect": "Poussée beaucoup plus forte mais grosse consommation (thrust +50 %, fuel_consumption +60 %)",
-"id": "catapult"
+"effects": {
+"fuel_consumption_mult": 0.6,
+"thrust_mult": 0.5
+},
+"id": "catapult",
+"unlock_level": 5
 }])
 estimated_fields = PackedStringArray("movement.jetpack.fuel_max", "movement.jetpack.fuel_consumption_per_s", "movement.jetpack.fuel_regen_per_s", "movement.jetpack.fuel_regen_delay_s", "movement.jetpack.thrust_acceleration_mps2", "movement.jetpack.max_vertical_speed_mps", "movement.dive_attack.activation", "movement.dive_attack.dive_speed_mps", "movement.dive_attack.damage", "movement.dive_attack.radius_m", "movement.dive_attack.cooldown_s", "movement.dive_attack.pauses_fuel_regen_s", "level_perks[5]", "mods[*].effect (pourcentages)")
 history = "Avant le Release 8 : 600 santé / 300 bouclier."

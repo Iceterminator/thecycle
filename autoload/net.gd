@@ -12,6 +12,10 @@ signal connection_failed
 signal server_disconnected
 
 var is_dedicated_server := false
+## Pseudo choisi dans le menu (envoyé au serveur à l'arrivée, voir ProfileManager).
+var player_name: String = ""
+## Dernière adresse rejointe (serveurs récents du menu).
+var last_address: String = ""
 
 
 func _ready() -> void:
@@ -46,6 +50,7 @@ func host(port: int = Config.DEFAULT_PORT) -> Error:
 
 func join(address: String, port: int = Config.DEFAULT_PORT) -> Error:
 	var peer := ENetMultiplayerPeer.new()
+	last_address = address
 	var err := peer.create_client(address, port)
 	if err != OK:
 		push_error("Impossible de se connecter à %s:%d (erreur %d)" % [address, port, err])

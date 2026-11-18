@@ -91,7 +91,7 @@ func find_player(peer_id: int) -> Player:
 
 
 static func player_name(peer_id: int) -> String:
-	return "Joueur %d" % peer_id
+	return ProfileManager.name_of(peer_id)
 
 
 ## Serveur : gain continu de points d'objectif (fractions cumulées).

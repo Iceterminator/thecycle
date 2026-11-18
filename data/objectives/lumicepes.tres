@@ -9,3 +9,4 @@ display_name = "Lumicèpes"
 color = Color(0.5, 1, 0.6, 1)
 thresholds = PackedInt32Array(75, 200, 375, 600)
 rewards = PackedInt32Array(10, 15, 20, 25)
+faction = 3

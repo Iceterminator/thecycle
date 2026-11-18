@@ -102,7 +102,7 @@ func server_interact(player: Player) -> void:
 	if done or not _all_active():
 		return
 	done = true
-	player.score.add_contract_fame(data.points)
+	player.score.add_contract_fame(data.points, data.faction)
 	announce("%s a réactivé la %s (+%d Fame)" % [player_name(player.get_peer_id()), data.display_name.to_lower(), data.points])
 	await get_tree().create_timer(Config.CONTRACT_RESET_DELAY).timeout
 	if is_inside_tree():

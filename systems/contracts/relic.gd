@@ -121,7 +121,7 @@ func _drop() -> void:
 
 ## Écran Tab : au sol, ou qui le porte (sa position suit le porteur).
 func map_info() -> Dictionary:
-	var status := "au sol, à ramasser" if carrier_id == 0 else "porté par Joueur %d" % carrier_id
+	var status := "au sol, à ramasser" if carrier_id == 0 else "porté par %s" % ProfileManager.name_of(carrier_id)
 	return {"text": "★ %s\n%s" % [data.display_name, status], "color": data.color, "kind": "relic"}
 
 

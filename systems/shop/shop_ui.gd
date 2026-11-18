@@ -1,15 +1,21 @@
 class_name ShopUi
 extends CanvasLayer
-## Interface de la boutique (joueur local), construite en code.
-## T ouvre / ferme, Échap ferme. Pendant qu'elle est ouverte, la souris est libre
-## (donc pas de tir, pas de visée, pas d'interaction).
+## Interface de la boutique (joueur local), construite en code. T ouvre / ferme, Échap ferme.
+## Trois rangées de cartes : les 4 armes et les 4 gadgets / capacités configurés dans le lobby,
+## puis les consommables. Chaque carte dit ce qu'un clic fait maintenant (acheter, palier de
+## boost si l'arme est déjà portée, amélioration, recharge) et son prix (Shop.offer).
+## Pendant qu'elle est ouverte, la souris est libre (pas de tir, de visée ni d'interaction).
 
 var _player: Player
 var _shop: Shop
 var _credits_label: Label
 var _status_label: Label
-var _rows: Array[Dictionary] = []  # { item, button, info }
+var _pending_label: Label
+var _weapon_row: HBoxContainer
+var _gadget_row: HBoxContainer
+var _cards: Array[Dictionary] = []  # { id, card }
 var _status_tween: Tween
+var _shop_key: String = ""
 
 
 func setup(player: Player, shop: Shop) -> void:
@@ -29,8 +35,15 @@ func _input(event: InputEvent) -> void:
 		if event.is_action_pressed("open_shop") or event.is_action_pressed("toggle_mouse"):
 			close()
 			get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("open_shop") and not _player.health.is_dead:
+	elif event.is_action_pressed("open_shop") and not _player.health.is_dead and not MatchManager.is_lobby() \
+			and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		open()
+		get_viewport().set_input_as_handled()
+
+
+## Boutique ouverte : les clics et la molette restent dans le menu.
+func _unhandled_input(event: InputEvent) -> void:
+	if visible and event is InputEventMouseButton:
 		get_viewport().set_input_as_handled()
 
 
@@ -45,117 +58,71 @@ func close() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+func _process(_delta: float) -> void:
+	if visible:
+		_refresh()
+
+
 func _refresh() -> void:
-	if _credits_label == null:
+	if _credits_label == null or not visible:
 		return
-	if visible and _player.health.is_dead:
+	if _player.health.is_dead:
 		close()
+		return
+	_rebuild_if_needed()
 	_credits_label.text = "%d crédits" % _player.inventory.credits
-	for row in _rows:
-		var item: ItemData = row["item"]
-		var refusal := _shop.check_purchase(item)
-		var button: Button = row["button"]
-		button.disabled = refusal != ""
-		(row["info"] as Label).text = refusal
-	_refresh_ability_upgrades()
-	_refresh_weapon_boost()
+	var pending := _player.abilities.pending
+	_pending_label.text = ">> %s attend : appuyez sur Q ou F (en jeu) pour l'équiper" % Shop.entry_name(pending) if pending != "" else ""
+	for entry in _cards:
+		var id: String = entry["id"]
+		var card: UiCard = entry["card"]
+		if id == "":
+			continue
+		var o := _shop.offer(id)
+		var verb: String = {"buy": "Acheter", "boost": "Améliorer", "upgrade": "Améliorer", "refill": "Recharger", "pending": "Acheter"}.get(o["action"], "")
+		var refusal: String = o["refusal"]
+		if refusal != "":
+			card.set_info(refusal, Color(1, 0.5, 0.45))
+		else:
+			card.set_info("%s — %d cr." % [verb, o["price"]])
+		card.tooltip_text = "%s\n%s" % [Shop.entry_description(id), o["text"]]
+		card.set_state(o["action"] in ["boost", "upgrade", "refill"], refusal != "" and refusal.begins_with("Verrouillé"))
+		card.disabled = refusal != ""
 
 
-# --- Boost de l'arme en main (étape 8e) ---
-
-var _boost_name: Label
-var _boost_info: Label
-var _boost_button: Button
-
-
-func _build_weapon_boost(box: VBoxContainer) -> void:
-	var section := Label.new()
-	section.text = "Boost de l'arme en main (3 paliers, gardés si elle tombe au sol)"
-	section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-	box.add_child(section)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	_boost_name = Label.new()
-	_boost_name.add_theme_font_size_override("font_size", 20)
-	_boost_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(_boost_name)
-	_boost_info = Label.new()
-	_boost_info.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
-	row.add_child(_boost_info)
-	_boost_button = Button.new()
-	_boost_button.custom_minimum_size = Vector2(110, 36)
-	_boost_button.pressed.connect(func() -> void: _shop.request_boost.rpc_id(1))
-	row.add_child(_boost_button)
-	box.add_child(row)
-
-
-func _refresh_weapon_boost() -> void:
-	if _boost_button == null:
+## La boutique configurée a changé (lobby) : on refait les cartes.
+func _rebuild_if_needed() -> void:
+	var shop := ProfileManager.shop_of(_player.get_peer_id())
+	var key := JSON.stringify(shop)
+	if key == _shop_key:
 		return
-	var weapon := _player.inventory.get_active_weapon()
-	var level := _player.inventory.get_active_boost()
-	var max_level := mini(weapon.boosts.size(), Config.WEAPON_BOOST_PRICES.size()) if weapon else 0
-	_boost_name.text = "%s (palier %d/%d)" % [weapon.display_name if weapon else "?", level, max_level]
-	if level >= max_level:
-		_boost_info.text = "Au maximum"
-		_boost_button.text = "—"
-		_boost_button.disabled = true
-		return
-	var price: int = Config.WEAPON_BOOST_PRICES[level]
-	_boost_info.text = Shop.boost_text(weapon, level)
-	_boost_button.text = "%d cr." % price
-	_boost_button.disabled = _player.inventory.credits < price
+	_shop_key = key
+	_cards = _cards.filter(func(e: Dictionary) -> bool: return Shop.entry_kind(e["id"]) == Shop.Entry.CONSUMABLE)
+	for row in [_weapon_row, _gadget_row]:
+		for child in row.get_children():
+			child.queue_free()
+	var weapons: Array = shop.get("weapons", [])
+	var gadgets: Array = shop.get("gadgets", [])
+	for i in Config.SHOP_WEAPON_SLOTS:
+		_weapon_row.add_child(_make_card(String(weapons[i]) if i < weapons.size() else ""))
+	for i in Config.SHOP_GADGET_SLOTS:
+		_gadget_row.add_child(_make_card(String(gadgets[i]) if i < gadgets.size() else ""))
 
 
-# --- Améliorations des capacités (étape 8c) ---
-
-var _upgrade_rows: Array[Dictionary] = []  # { name, info, button }
-
-
-func _build_ability_upgrades(box: VBoxContainer) -> void:
-	var section := Label.new()
-	section.text = "Capacités : chaque amélioration réduit la recharge"
-	section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-	box.add_child(section)
-	for slot in AbilityController.SLOTS:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 12)
-		var name_label := Label.new()
-		name_label.add_theme_font_size_override("font_size", 20)
-		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(name_label)
-		var info := Label.new()
-		info.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
-		row.add_child(info)
-		var button := Button.new()
-		button.text = "%d cr." % Config.ABILITY_UPGRADE_PRICE
-		button.custom_minimum_size = Vector2(110, 36)
-		button.pressed.connect(func() -> void: _player.abilities.request_upgrade.rpc_id(1, slot))
-		row.add_child(button)
-		box.add_child(row)
-		_upgrade_rows.append({"name": name_label, "info": info, "button": button})
-
-
-func _refresh_ability_upgrades() -> void:
-	var abilities := _player.abilities
-	if abilities == null:
-		return
-	var keys := ["Q", "F"]
-	for slot in _upgrade_rows.size():
-		var row: Dictionary = _upgrade_rows[slot]
-		var a := abilities.get_slot(slot)
-		var level: int = abilities.upgrades[slot]
-		(row["name"] as Label).text = "[%s] %s (%d/%d)" % [keys[slot], a.get_display_name() if a else "?", level, Config.ABILITY_MAX_UPGRADES]
-		var refusal := ""
-		if level >= Config.ABILITY_MAX_UPGRADES:
-			refusal = "Au maximum"
-		elif _player.inventory.credits < Config.ABILITY_UPGRADE_PRICE:
-			refusal = "Pas assez de crédits"
-		elif a:
-			refusal = "-%d s de recharge" % int(a.upgrade_cooldown_s)
-		(row["info"] as Label).text = refusal
-		(row["button"] as Button).disabled = a == null or level >= Config.ABILITY_MAX_UPGRADES \
-				or _player.inventory.credits < Config.ABILITY_UPGRADE_PRICE
+func _make_card(id: String) -> UiCard:
+	var card := UiCard.make(Vector2(200, 104))
+	if id == "":
+		card.set_content("Case vide", "À configurer dans le lobby", "")
+		card.disabled = true
+		return card
+	var lock := Shop.entry_lock(id)
+	var kind := Shop.entry_kind(id)
+	var sub: String = {Shop.Entry.WEAPON: "Arme", Shop.Entry.GADGET: "Gadget (Q / F)", Shop.Entry.ABILITY: "Capacité (Q / F)",
+			Shop.Entry.CONSUMABLE: "Consommable"}.get(kind, "")
+	card.set_content(Shop.entry_name(id), sub, "", FactionData.color_of(lock[0]))
+	card.pressed.connect(func() -> void: _shop.request_buy.rpc_id(1, id))
+	_cards.append({"id": id, "card": card})
+	return card
 
 
 func _on_purchase_result(ok: bool, message: String) -> void:
@@ -166,8 +133,6 @@ func _on_purchase_result(ok: bool, message: String) -> void:
 	_status_tween = create_tween()
 	_status_tween.tween_interval(2.5)
 	_status_tween.tween_property(_status_label, "modulate:a", 0.0, 0.5)
-	if ok:
-		close()  # on referme pour voir arriver la capsule
 
 
 func _build() -> void:
@@ -177,82 +142,79 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.09, 0.11, 0.95)
+	style.bg_color = Color(0.06, 0.07, 0.09, 0.96)
 	style.border_color = Color(0.95, 0.6, 0.2)
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(20)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(22)
 	panel.add_theme_stylebox_override("panel", style)
 	center.add_child(panel)
-
 	var box := VBoxContainer.new()
-	box.custom_minimum_size = Vector2(520, 0)
+	box.custom_minimum_size = Vector2(900, 0)
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 
 	var header := HBoxContainer.new()
 	box.add_child(header)
 	var title := Label.new()
-	title.text = "BOUTIQUE — largage en %d s" % int(Config.DROP_POD_FALL_TIME)
-	title.add_theme_font_size_override("font_size", 26)
+	title.text = "BOUTIQUE"
+	title.add_theme_font_size_override("font_size", 28)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	_credits_label = Label.new()
-	_credits_label.add_theme_font_size_override("font_size", 22)
+	_credits_label.add_theme_font_size_override("font_size", 24)
 	_credits_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
 	header.add_child(_credits_label)
 
-	box.add_child(HSeparator.new())
-	var last_kind := -1
-	for item in Items.get_shop_items():
-		if item.kind != last_kind:
-			last_kind = item.kind
-			var section := Label.new()
-			section.text = "Armes" if item.kind == ItemData.Kind.WEAPON else "Objets"
-			section.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-			box.add_child(section)
-		box.add_child(_make_row(item))
-	_build_weapon_boost(box)
-	_build_ability_upgrades(box)
+	box.add_child(_section("ARMES — largage en %d s ; arme déjà portée : palier de boost suivant" % int(Config.DROP_POD_FALL_TIME)))
+	_weapon_row = _row()
+	box.add_child(_weapon_row)
+	box.add_child(_section("GADGETS ET CAPACITÉS — achetés, puis Q ou F pour les équiper ; déjà équipés : améliorer / recharger"))
+	_gadget_row = _row()
+	box.add_child(_gadget_row)
+	var consumables := _row()
+	if not Shop.consumables().is_empty():  # soins / cellules : seulement s'ils ont un prix
+		box.add_child(_section("CONSOMMABLES"))
+		box.add_child(consumables)
+	else:
+		consumables.queue_free()
+	for id in Shop.consumables():
+		var card := _make_card(id)
+		card.custom_minimum_size = Vector2(200, 80)
+		consumables.add_child(card)
+	for i in maxi(Config.SHOP_WEAPON_SLOTS - consumables.get_child_count(), 0):
+		var spacer := Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		consumables.add_child(spacer)
 
-	box.add_child(HSeparator.new())
+	_pending_label = Label.new()
+	_pending_label.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))
+	_pending_label.add_theme_font_size_override("font_size", 18)
+	box.add_child(_pending_label)
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(_status_label)
 	var hint := Label.new()
-	hint.text = "T ou Échap : fermer"
+	hint.text = "T ou Échap : fermer — la boutique se configure dans le lobby (onglet Boutique)"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
 	box.add_child(hint)
 
 
-func _make_row(item: ItemData) -> HBoxContainer:
+func _section(text: String) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	return label
+
+
+func _row() -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	var swatch := ColorRect.new()
-	swatch.color = item.color
-	swatch.custom_minimum_size = Vector2(8, 28)
-	row.add_child(swatch)
-	var name_label := Label.new()
-	name_label.text = item.display_name
-	name_label.add_theme_font_size_override("font_size", 20)
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(name_label)
-	var info := Label.new()
-	info.add_theme_color_override("font_color", Color(1, 1, 1, 0.5))
-	row.add_child(info)
-	var button := Button.new()
-	button.text = "%d cr." % item.price
-	button.custom_minimum_size = Vector2(110, 36)
-	button.pressed.connect(func() -> void: _shop.request_buy.rpc_id(1, String(item.id)))
-	row.add_child(button)
-	_rows.append({"item": item, "button": button, "info": info})
+	row.add_theme_constant_override("separation", 10)
 	return row

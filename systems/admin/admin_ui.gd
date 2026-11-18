@@ -177,6 +177,8 @@ func _build() -> void:
 		quest_row.add_child(button)
 
 	# --- Temps ---
+	var start_button := _button("Lancer la partie (lobby)", func() -> void: _admin.request_force_start.rpc_id(1))
+	box.add_child(start_button)
 	box.add_child(_section("Temps de partie (on ne peut qu'avancer)"))
 	var time_row := _row()
 	box.add_child(time_row)

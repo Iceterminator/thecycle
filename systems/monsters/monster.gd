@@ -195,6 +195,7 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	if not _projectiles.is_empty():
 		_step_projectiles(delta)
+	_tick_dots(delta)
 
 
 ## Monstres plus agressifs dans la tempête.
@@ -621,3 +622,26 @@ func _exit_tree() -> void:
 func apply_slow(mult: float, duration: float) -> void:
 	_slow_mult = clampf(mult, 0.1, 1.0)
 	_slow_until_ms = Time.get_ticks_msec() + int(duration * 1000.0)
+
+
+# --- Dégâts sur la durée (mods d'arme feu / poison) ---
+var _dots: Array = []        # [par seconde, fin (ms), attaquant]
+var _dot_left: float = 0.0
+
+
+func apply_dot(per_s: float, duration: float, attacker_id: int) -> void:
+	_dots.append([per_s, Time.get_ticks_msec() + int(duration * 1000.0), attacker_id])
+
+
+func _tick_dots(delta: float) -> void:
+	if _dots.is_empty() or health <= 0.0:
+		return
+	_dot_left -= delta
+	if _dot_left > 0.0:
+		return
+	_dot_left = 0.25
+	var now := Time.get_ticks_msec()
+	_dots = _dots.filter(func(d: Array) -> bool: return now < int(d[1]))
+	for d: Array in _dots.duplicate():
+		if health > 0.0:
+			server_receive_hit(float(d[0]) * 0.25, int(d[2]))

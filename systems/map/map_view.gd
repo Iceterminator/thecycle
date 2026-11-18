@@ -218,7 +218,7 @@ func _draw_scanner() -> void:
 			if other == null or other == player or other.health.is_dead or other.is_evacuated:
 				continue
 			var p := to_map(other.global_position)
-			if PactManager.allied(player.get_peer_id(), other.get_peer_id()):
+			if Allies.allied(player.get_peer_id(), other.get_peer_id()):
 				draw_circle(p, 6.0, Color(0.4, 1.0, 0.6))
 				draw_arc(p, 6.0, 0, TAU, 16, Color.BLACK, 1.5)
 			elif other.global_position.distance_to(player.global_position) <= Config.SCANNER_RANGE:

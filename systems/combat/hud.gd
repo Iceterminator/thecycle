@@ -37,6 +37,7 @@ var _results_panel: ColorRect
 var _results_label: Label
 var _clock_elapsed: float = 0.0
 var _clock_phase: int = MatchManager.Phase.PLAYING
+var _lobby_left: float = 0.0
 var _restart_left: float = 0.0
 
 var _hold_ratio: float = 0.0  ## maintien de E en cours (cristal…)
@@ -63,9 +64,10 @@ func setup(player: Player) -> void:
 	Events.announcement.connect(_on_announcement)
 	_on_health_changed()
 	_on_inventory_changed()
-	_on_ammo_changed(player.weapon.ammo, player.weapon.data.magazine, false)
+	_on_ammo_changed(player.weapon.ammo, player.magazine_for(player.weapon.data), false)
 	_on_dead_changed(player.health.is_dead)
 	Events.match_clock_synced.connect(_on_clock_synced)
+	Events.lobby_synced.connect(func(_ready: Dictionary, left: float) -> void: _lobby_left = left)
 	Events.evac_board_progress.connect(_on_board_progress)
 	Events.match_results_received.connect(_on_results)
 	player.evacuated_changed.connect(func(aboard: bool) -> void: _aboard_label.visible = aboard)
@@ -108,7 +110,12 @@ func _update_clock(delta: float) -> void:
 		_clock_label.text = "Fin de partie"
 		_restart_left = maxf(_restart_left - delta, 0.0)
 		if _results_panel.visible:
-			_results_label.text = _results_text + "\nNouvelle partie dans %d s" % ceili(_restart_left)
+			_results_label.text = _results_text + "\nRetour au lobby dans %d s" % ceili(_restart_left)
+		return
+	if _clock_phase == MatchManager.Phase.LOBBY:
+		_lobby_left = maxf(_lobby_left - delta, 0.0)
+		_clock_label.text = "LOBBY — départ dans %d s" % ceili(_lobby_left)
+		_storm_label.text = ""
 		return
 	_clock_elapsed = minf(_clock_elapsed + delta, Config.MATCH_DURATION)
 	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ") + _scanner_text()
@@ -141,7 +148,7 @@ func _on_results(results: Array, restart_in: float) -> void:
 	var rank := 1
 	for entry: Dictionary in results:
 		var peer: int = entry["peer"]
-		var who := "Vous" if peer == _player.get_peer_id() else "Joueur %d" % peer
+		var who := "Vous" if peer == _player.get_peer_id() else ProfileManager.name_of(peer)
 		var status := "évacué" if entry["evacuated"] else "resté au sol (-%d)" % Config.EVAC_MISSED_PENALTY
 		lines.append("%d. %s — %d Fame — %s" % [rank, who, entry["points"], status])
 		rank += 1
@@ -522,7 +529,7 @@ func _scanner_text() -> String:
 		var other := node as Player
 		if other == null or other == _player or other.health.is_dead or other.is_evacuated:
 			continue
-		if PactManager.allied(_player.get_peer_id(), other.get_peer_id()):
+		if Allies.allied(_player.get_peer_id(), other.get_peer_id()):
 			continue
 		nearest = minf(nearest, other.global_position.distance_to(_player.global_position))
 	if nearest > Config.SCANNER_RANGE:

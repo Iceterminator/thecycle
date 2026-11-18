@@ -12,3 +12,4 @@ hold_time = 4.0
 points_per_second = 1.0
 points_growth = 1.5
 track = ExtResource("9_track")
+faction = 1

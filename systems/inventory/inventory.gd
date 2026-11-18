@@ -1,6 +1,7 @@
 class_name Inventory
 extends Node
-## Inventaire d'un joueur : 2 emplacements d'arme, consommables, crédits.
+## Inventaire d'un joueur : 2 emplacements d'arme (0, 1), 2 emplacements de gadget (2 = Q, 3 = F,
+## remplis par AbilityController quand un gadget est assigné), consommables, crédits.
 ## SEUL LE SERVEUR le modifie ; InventorySync (autorité 1, voir player.gd::_enter_tree)
 ## l'envoie à tous les clients. Le client propriétaire lit les touches
 ## (1 / 2 / molette, 3 = soin, 4 = recharge de bouclier) et envoie des demandes.
@@ -9,20 +10,22 @@ extends Node
 signal changed
 signal active_weapon_changed
 
+const WEAPON_SLOTS := 2  ## emplacements 0 et 1 ; 2 et 3 = gadgets de Q et F
+
 ## Ids d'objet des 2 emplacements ("" = vide). Toujours réassigner le tableau entier
 ## (via _set_slot) pour que le setter et la synchro voient le changement.
-var slot_ids: PackedStringArray = PackedStringArray([String(Config.BASE_WEAPON), ""]):
+var slot_ids: PackedStringArray = PackedStringArray([String(Config.BASE_WEAPON), "", "", ""]):
 	set(value):
 		slot_ids = value
 		_after_change()
 ## Chargeur de chaque emplacement (c'est le compteur du serveur qui fait foi).
-var slot_ammo: PackedInt32Array = PackedInt32Array([0, 0]):
+var slot_ammo: PackedInt32Array = PackedInt32Array([0, 0, 0, 0]):
 	set(value):
 		slot_ammo = value
 		changed.emit()
 ## Palier de boost de chaque emplacement (0 à 3, voir WeaponData.boosts). Synchronisé par
 ## BoostSync (créé en code). Une arme lâchée garde son palier (quantité au sol = 1 + palier).
-var slot_boosts: PackedInt32Array = PackedInt32Array([0, 0]):
+var slot_boosts: PackedInt32Array = PackedInt32Array([0, 0, 0, 0]):
 	set(value):
 		slot_boosts = value
 		changed.emit()
@@ -117,7 +120,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("slot_2"):
 		_ask_switch(1)
 	elif event.is_action_pressed("next_weapon") or event.is_action_pressed("prev_weapon"):
-		_ask_switch(1 - active_slot)
+		_ask_switch(1 - active_slot if active_slot < WEAPON_SLOTS else 0)
 	elif event.is_action_pressed("use_heal"):
 		request_use.rpc_id(1, String(Config.HEAL_ITEM))
 	elif event.is_action_pressed("use_shield"):
@@ -187,12 +190,15 @@ func cancel_use() -> void:
 
 
 ## Serveur : équipement de base (réapparition). Les crédits sont conservés.
+## L'arme de départ est celle du profil (choisie dans le lobby parmi les armes secondaires).
 func reset_loadout() -> void:
-	slot_boosts = PackedInt32Array([0, 0])
-	var base := Items.get_item(Config.BASE_WEAPON)
-	slot_ammo = PackedInt32Array([base.weapon.magazine, 0])
+	slot_boosts = PackedInt32Array([0, 0, 0, 0])
+	var base_id := player.start_weapon_id()
+	var base := Items.get_item(base_id)
+	slot_ammo = PackedInt32Array([player.magazine_for(base.weapon), 0, 0, 0])
 	active_slot = 0
-	slot_ids = PackedStringArray([String(Config.BASE_WEAPON), ""])
+	_last_active_id = ""
+	slot_ids = PackedStringArray([String(base_id), "", "", ""])
 	medkits = 0
 	shield_cells = 0
 	cancel_use()
@@ -209,15 +215,19 @@ func set_active_ammo(value: int) -> void:
 func server_take(item: ItemData, amount: int, ammo: int) -> bool:
 	match item.kind:
 		ItemData.Kind.WEAPON:
-			var mag := ammo if ammo >= 0 else item.weapon.magazine
+			# Gadget ramassé : il attend d'être assigné à Q ou F (comme un achat).
+			if item.weapon.gadget != WeaponData.GadgetKind.NONE:
+				return player.abilities.server_offer(String(item.id)) == ""
+			var mag := ammo if ammo >= 0 else player.magazine_for(item.weapon)
 			var boost := clampi(amount - 1, 0, item.weapon.boosts.size())  # palier porté par l'objet au sol
-			var free := slot_ids.find("")
+			var free := slot_ids.slice(0, WEAPON_SLOTS).find("")
 			if free >= 0:
 				_set_slot(free, item.id, mag, boost)
 			else:
-				# Emplacements pleins : l'arme en main est lâchée (avec son boost) et remplacée.
-				Events.loot_drop_requested.emit(get_active_id(), 1 + get_active_boost(), get_active_ammo(), _drop_position(), false)
-				_set_slot(active_slot, item.id, mag, boost)
+				# Emplacements pleins : l'arme en main (ou la 1re si un gadget est en main) est lâchée.
+				var slot := active_slot if active_slot < WEAPON_SLOTS else 0
+				Events.loot_drop_requested.emit(StringName(slot_ids[slot]), 1 + slot_boosts[slot], slot_ammo[slot], _drop_position(), false)
+				_set_slot(slot, item.id, mag, boost)
 		ItemData.Kind.HEAL:
 			if medkits >= Config.MAX_MEDKITS:
 				return false
@@ -290,8 +300,8 @@ func _on_dead_changed_server(dead: bool) -> void:
 		return
 	cancel_use()
 	var pos := player.global_position + Vector3(0, 0.5, 0)
-	for i in slot_ids.size():
-		if slot_ids[i] != "" and StringName(slot_ids[i]) != Config.BASE_WEAPON:
+	for i in WEAPON_SLOTS:  # les gadgets (Q / F) sont perdus
+		if slot_ids[i] != "" and StringName(slot_ids[i]) != player.start_weapon_id():
 			Events.loot_drop_requested.emit(StringName(slot_ids[i]), 1 + slot_boosts[i], slot_ammo[i], pos, true)
 	for i in medkits:
 		Events.loot_drop_requested.emit(Config.HEAL_ITEM, 1, -1, pos, true)
@@ -353,12 +363,61 @@ func server_boost_active() -> void:
 	slot_boosts = b
 
 
-## Serveur : retire l'arme en main (gadget épuisé) et passe sur l'autre emplacement.
+## Serveur : retire l'arme en main (gadget épuisé). Un gadget de Q / F libère aussi son emplacement
+## de capacité ; on reprend une arme.
 func server_remove_active() -> void:
 	var slot := active_slot
+	if slot >= WEAPON_SLOTS:
+		player.abilities.server_clear_slot(slot - WEAPON_SLOTS)
+		return
 	var other := 1 - slot
 	if slot_ids[other] != "":
 		active_slot = other
 	_set_slot(slot, &"", 0)
 	if slot_ids[active_slot] == "":
 		reset_loadout()
+
+
+## Serveur : met un gadget dans l'emplacement de Q (0) ou F (1), chargeur plein.
+func server_set_gadget(key_slot: int, item_id: StringName) -> void:
+	var slot := WEAPON_SLOTS + key_slot
+	var item := Items.get_item(item_id)
+	if item == null or item.weapon == null:
+		return
+	_set_slot(slot, item_id, player.magazine_for(item.weapon))
+
+
+## Serveur : vide l'emplacement de gadget de Q (0) ou F (1) ; s'il était en main, on reprend l'arme 1.
+func server_clear_gadget(key_slot: int) -> void:
+	var slot := WEAPON_SLOTS + key_slot
+	if slot_ids[slot] == "":
+		return
+	if active_slot == slot:
+		cancel_use()
+		active_slot = 0 if slot_ids[0] != "" else 1
+	_set_slot(slot, &"", 0)
+
+
+## Serveur : recharge le gadget de Q (0) ou F (1) (rachat en boutique).
+func server_refill_gadget(key_slot: int) -> void:
+	var slot := WEAPON_SLOTS + key_slot
+	var item := Items.get_item(StringName(slot_ids[slot]))
+	if item and item.weapon:
+		var a := slot_ammo
+		a[slot] = player.magazine_for(item.weapon)
+		slot_ammo = a
+
+
+## Serveur : monte d'un palier le boost de l'arme d'un emplacement (rachat en boutique).
+func server_boost_slot(slot: int) -> void:
+	var b := slot_boosts
+	b[slot] += 1
+	slot_boosts = b
+
+
+## Emplacement d'arme (0 / 1) qui contient cet objet, -1 sinon.
+func weapon_slot_of(item_id: StringName) -> int:
+	for i in WEAPON_SLOTS:
+		if StringName(slot_ids[i]) == item_id:
+			return i
+	return -1

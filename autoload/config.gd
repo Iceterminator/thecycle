@@ -143,9 +143,17 @@ const KIT_XP_PER_FAME := 1.0             # XP par point de Fame gagné
 const MELEE_RANGE := 2.5                 # portée du coup de poing chargé (m)
 
 # --- Capacités (étape 8c) ---
-const DEFAULT_ABILITIES := ["shock_grenade", "stim_boost"]  # capacités de départ (référence)
+const DEFAULT_ABILITIES := ["shock_grenade", "stim_boost"]  # menu admin seulement (Q / F vides au départ)
 const ABILITY_UPGRADE_PRICE := 100      # crédits par amélioration (référence)
 const ABILITY_MAX_UPGRADES := 2
+const ABILITY_PRICE := 150               # achat d'une capacité en boutique (valeur de départ)
+const WEAPON_FALLBACK_PRICE := 150       # arme sans prix dans les données (secondaires de départ)
+
+# --- Boutique configurable (lobby) : 4 cases d'armes + 4 cases gadgets / capacités ---
+const SHOP_WEAPON_SLOTS := 4
+const SHOP_GADGET_SLOTS := 4
+const DEFAULT_SHOP_WEAPONS := ["s76_pdw", "c32_bolt_action", "ar55_phase_autorifle", "ff4_detonator"]
+const DEFAULT_SHOP_GADGETS := ["trench_grenade", "shock_grenade", "stim_boost", ""]
 const ABILITY_AIM_RANGE := 80.0          # frappes : portée de visée (m)
 const ABILITY_PLACE_RANGE := 40.0        # tourelle : portée de pose (m)
 const GRENADE_THROW_SPEED := 18.0        # grenades et sphères lancées (m/s)
@@ -174,6 +182,15 @@ const DOWNED_HEALTH := 150.0             # PV à terre (un ennemi peut achever)
 const DOWNED_SPEED := 1.0                # vitesse à terre, en rampant (m/s)
 const REVIVE_TIME := 5.0                 # maintenir E pour relever un allié (s)
 const REVIVE_HEALTH_RATIO := 0.5         # relevé avec cette part de ses PV max
+
+# --- Profils, factions, lobby, escouades (étape 9) ---
+## Points de réputation cumulés pour les niveaux 1 à 10 d'une faction (valeurs de départ).
+const REP_LEVELS := [100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
+const PREFERRED_FACTION_BONUS := 0.5     # +50 % de réputation avec la faction de prédilection
+const BOUNTY_FACTION := 3                 # la prime est un contrat de l'ICA
+const LOBBY_DURATION := 60.0              # lobby : la partie démarre après ce délai (ou quand tous sont prêts)
+const SQUAD_MAX := 4
+const QUICK_PLAY_ADDRESSES := ["127.0.0.1"]  # « Partie rapide » : essayés après le dernier serveur
 
 # --- Quêtes : cristal + foreuse (valeurs provisoires) ---
 const CRYSTAL_ACTIVATE_TIME := 3.0       # maintenir E pour lancer la foreuse (s)

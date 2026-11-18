@@ -51,16 +51,33 @@ level_perk_effects = Array[Dictionary]([{
 }])
 mods = Array[Dictionary]([{
 "effect": "+200 bouclier, vitesse de déplacement -0.66 m/s",
-"id": "more_shields"
+"effects": {
+"max_shield_add": 200.0,
+"move_speed_add": -0.66
+},
+"id": "more_shields",
+"unlock_level": 3
 }, {
 "effect": "Super saut plus puissant (jump_velocity_max +30 %)",
-"id": "super_duper_jump"
+"effects": {
+"super_jump_mult": 0.3
+},
+"id": "super_duper_jump",
+"unlock_level": 5
 }, {
 "effect": "Coup de poing plus puissant (+25 % dégâts)",
-"id": "stronger_charge_punch"
+"effects": {
+"punch_damage_mult": 0.25
+},
+"id": "stronger_charge_punch",
+"unlock_level": 7
 }, {
 "effect": "Recharge du coup de poing plus rapide (cooldown -2 s)",
-"id": "faster_charge_punch"
+"effects": {
+"punch_cooldown_add": -2.0
+},
+"id": "faster_charge_punch",
+"unlock_level": 9
 }])
 estimated_fields = PackedStringArray("movement.super_jump.charge_time_max_s", "movement.super_jump.jump_velocity_min_mps", "movement.super_jump.jump_velocity_max_mps", "movement.super_jump.cooldown_s", "movement.charge_punch.activation", "movement.charge_punch.dash_distance_m", "movement.charge_punch.knockback_mps", "movement.charge_punch.cooldown_s", "movement.fast_health_regen", "faction_level", "level_perks (répartition exacte par niveau)", "mods[1].effect (valeur)", "mods[2].effect (valeur)")
 history = "Le développeur a réduit la vitesse de son coup de poing car il était trop puissant avec les mods ; il ne doit pas être aussi rapide que les autres kits."

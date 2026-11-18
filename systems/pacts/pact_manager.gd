@@ -88,8 +88,8 @@ func request_propose(target: int) -> void:
 	var d := proposals.duplicate()
 	d[target] = from
 	proposals = d
-	_notify(target, "Joueur %d vous propose un pacte (touche P)" % from)
-	_notify(from, "Proposition de pacte envoyée à Joueur %d" % target)
+	_notify(target, "%s vous propose un pacte (touche P)" % ProfileManager.name_of(from))
+	_notify(from, "Proposition de pacte envoyée à %s" % ProfileManager.name_of(target))
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -101,7 +101,7 @@ func request_answer(from: int, accept: bool) -> void:
 	d.erase(target)
 	proposals = d
 	if not accept:
-		_notify(from, "Joueur %d a refusé le pacte" % target)
+		_notify(from, "%s a refusé le pacte" % ProfileManager.name_of(target))
 		return
 	if partner_of(from) != 0 or partner_of(target) != 0 or _player(from) == null:
 		return
@@ -109,8 +109,8 @@ func request_answer(from: int, accept: bool) -> void:
 	p[from] = target
 	p[target] = from
 	pairs = p
-	_notify(from, "Pacte conclu avec Joueur %d : vous ne pouvez plus vous blesser, Fame des contrats partagée" % target)
-	_notify(target, "Pacte conclu avec Joueur %d : vous ne pouvez plus vous blesser, Fame des contrats partagée" % from)
+	_notify(from, "Pacte conclu avec %s : vous ne pouvez plus vous blesser, Fame des contrats partagée" % ProfileManager.name_of(target))
+	_notify(target, "Pacte conclu avec %s : vous ne pouvez plus vous blesser, Fame des contrats partagée" % ProfileManager.name_of(from))
 
 
 ## Rompre son pacte (trahison) : l'autre est prévenu.
@@ -135,7 +135,7 @@ func _server_break(peer: int, betrayal: bool) -> void:
 	p.erase(partner)
 	pairs = p
 	if betrayal:
-		_notify(partner, "TRAHISON : Joueur %d a rompu votre pacte !" % peer)
-		_notify(peer, "Vous avez rompu le pacte avec Joueur %d" % partner)
+		_notify(partner, "TRAHISON : %s a rompu votre pacte !" % ProfileManager.name_of(peer))
+		_notify(peer, "Vous avez rompu le pacte avec %s" % ProfileManager.name_of(partner))
 	else:
 		_notify(partner, "Votre partenaire de pacte est parti : pacte terminé")

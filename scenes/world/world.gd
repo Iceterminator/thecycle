@@ -11,6 +11,8 @@ const STORM_SCRIPT := preload("res://systems/storm/storm_manager.gd")
 const FAME_SCRIPT := preload("res://systems/score/fame_manager.gd")
 const ABILITY_MANAGER_SCRIPT := preload("res://systems/abilities/ability_manager.gd")
 const PACT_SCRIPT := preload("res://systems/pacts/pact_manager.gd")
+const PROFILE_SCRIPT := preload("res://systems/profiles/profile_manager.gd")
+const SQUAD_SCRIPT := preload("res://systems/squads/squad_manager.gd")
 
 @onready var players: Node3D = $Players
 @onready var spawn_points: Node3D = $SpawnPoints
@@ -41,6 +43,12 @@ func _ready() -> void:
 	var pacts: PactManager = PACT_SCRIPT.new()
 	pacts.name = "PactManager"
 	add_child(pacts)
+	var profiles: ProfileManager = PROFILE_SCRIPT.new()
+	profiles.name = "ProfileManager"
+	add_child(profiles)
+	var squads: SquadManager = SQUAD_SCRIPT.new()
+	squads.name = "SquadManager"
+	add_child(squads)
 	if not multiplayer.is_server():
 		return
 	Events.player_joined.connect(_add_player)

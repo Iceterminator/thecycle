@@ -32,6 +32,11 @@ var xp: int = 0:
 	set(value):
 		xp = value
 		changed.emit()
+## Mod de kit équipé (id dans KitData.mods, "" = aucun) ; choisi dans le lobby (étape 9).
+var mod_id: String = "":
+	set(value):
+		mod_id = value
+		changed.emit()
 
 var player: Player
 var _kit: KitData
@@ -41,7 +46,7 @@ var _change_until_ms: int = 0   # le kit peut être changé jusqu'à ce moment
 
 func _init() -> void:
 	var config := SceneReplicationConfig.new()
-	for key in ["kit_id", "level", "xp"]:
+	for key in ["kit_id", "level", "xp", "mod_id"]:
 		var path := NodePath(".:" + key)
 		config.add_property(path)
 		config.property_set_spawn(path, true)
@@ -97,6 +102,10 @@ func get_effect(effect: String) -> float:
 		return total
 	for i in mini(level, kit.level_perk_effects.size()):
 		total += float(kit.level_perk_effects[i].get(effect, 0.0))
+	# Mod équipé.
+	var mod := get_mod()
+	if not mod.is_empty():
+		total += float(mod.get("effects", {}).get(effect, 0.0))
 	return total
 
 
@@ -138,6 +147,7 @@ func max_shield() -> float:
 func move_speed() -> float:
 	var kit := get_kit()
 	var base := kit.move_speed_mps if kit and kit.move_speed_mps > 0.0 else Config.KIT_DEFAULT_SPEED
+	base += get_effect("move_speed_add")
 	return base * (1.0 + get_effect("move_speed_mult"))
 
 
@@ -178,6 +188,10 @@ func _open_change_window() -> void:
 func request_kit(id: String) -> void:
 	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != player.get_peer_id():
 		return
+	var wanted: KitData = load(KITS_DIR + id + ".tres") as KitData if ResourceLoader.exists(KITS_DIR + id + ".tres") else null
+	if wanted and not ProfileManager.is_unlocked(player.get_peer_id(), wanted.faction, wanted.faction_level):
+		_kit_result.rpc_id(player.get_peer_id(), false, "Kit verrouillé : " + FactionData.lock_text(wanted.faction, wanted.faction_level))
+		return
 	if not (player.health.is_dead or Time.get_ticks_msec() < _change_until_ms):
 		_kit_result.rpc_id(player.get_peer_id(), false, "Changement de kit seulement au largage ou à la réapparition")
 		return
@@ -190,6 +204,7 @@ func server_set_kit(id: String) -> bool:
 	if not ResourceLoader.exists(KITS_DIR + id + ".tres") or (load(KITS_DIR + id + ".tres") as KitData) == null:
 		return false
 	kit_id = id
+	mod_id = ""
 	level = 1
 	xp = 0
 	_server_apply_stats(true)
@@ -254,3 +269,39 @@ func _notify_change_window(seconds: float) -> void:
 	if multiplayer.get_remote_sender_id() != 1:
 		return
 	_change_until_ms = Time.get_ticks_msec() + int(seconds * 1000.0)
+
+
+# =========================================================================
+# Mods de kit (étape 9)
+# =========================================================================
+
+## Mod équipé : { id, effect, effects, unlock_level }, ou {}.
+func get_mod() -> Dictionary:
+	var kit := get_kit()
+	if kit == null or mod_id == "":
+		return {}
+	for m: Dictionary in kit.mods:
+		if String(m.get("id", "")) == mod_id:
+			return m
+	return {}
+
+
+## Le mod `id` de ce kit est-il débloqué pour ce joueur (réputation de la faction du kit) ?
+static func mod_unlocked(peer: int, kit: KitData, id: String) -> bool:
+	if kit == null:
+		return false
+	for m: Dictionary in kit.mods:
+		if String(m.get("id", "")) == id:
+			return ProfileManager.is_unlocked(peer, kit.faction, int(m.get("unlock_level", 0)))
+	return false
+
+
+## Serveur : équipe un mod du kit actuel ("" = aucun), s'il est débloqué. PV / bouclier
+## recalculés (ex. +200 bouclier).
+func server_set_mod(id: String) -> void:
+	if id != "" and not mod_unlocked(player.get_peer_id(), get_kit(), id):
+		id = ""
+	if id == mod_id:
+		return
+	mod_id = id
+	_server_apply_stats(false)

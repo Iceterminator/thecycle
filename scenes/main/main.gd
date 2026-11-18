@@ -1,9 +1,14 @@
 extends Node
-## Scène principale : menu Héberger / Rejoindre, puis charge le monde.
+## Scène principale : menu (pseudo, Héberger / Rejoindre, serveurs récents, Partie rapide),
+## puis charge le monde.
 ## Le monde est toujours ajouté sous /root/Main/World, sur le serveur
 ## comme sur les clients : les chemins réseau doivent être identiques.
+## Le pseudo et les derniers serveurs rejoints sont gardés dans user://settings.cfg (ce
+## poste) ; le profil (réputation, équipement) est gardé par le serveur (ProfileManager).
 
 const WORLD_SCENE := preload("res://scenes/world/world.tscn")
+const SETTINGS_PATH := "user://settings.cfg"
+const MAX_RECENT := 5
 
 @onready var menu: CanvasLayer = $Menu
 @onready var address_edit: LineEdit = %AddressEdit
@@ -11,18 +16,31 @@ const WORLD_SCENE := preload("res://scenes/world/world.tscn")
 @onready var join_button: Button = %JoinButton
 @onready var status_label: Label = %StatusLabel
 
+var name_edit: LineEdit
+var _recent: PackedStringArray = []
+var _recent_box: VBoxContainer
+var _quick_queue: Array = []   # Partie rapide : adresses encore à essayer
+
 
 func _ready() -> void:
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	Net.hosting_started.connect(_load_world)
-	Net.connected_to_server.connect(func(): status_label.text = "Connecté !")
-	Net.connection_failed.connect(_back_to_menu.bind("Échec de connexion."))
+	Net.connected_to_server.connect(func():
+		status_label.text = "Connecté !"
+		_quick_queue.clear()
+		_remember(Net.last_address))
+	Net.connection_failed.connect(_on_connection_failed)
 	Net.server_disconnected.connect(_back_to_menu.bind("Le serveur s'est arrêté."))
 	if Net.is_dedicated_server:
 		menu.hide()
 		return
-	# Raccourcis de test : godot -- --host   ou   godot -- --join=127.0.0.1
+	_build_extra_menu()
+	_load_settings()
+	# Raccourcis de test : godot -- --host   ou   godot -- --join=127.0.0.1   (--name=Pseudo)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--name="):
+			name_edit.text = arg.trim_prefix("--name=")
 	for arg in OS.get_cmdline_user_args():
 		if arg == "--host":
 			_on_host_pressed.call_deferred()
@@ -31,19 +49,121 @@ func _ready() -> void:
 			_on_join_pressed.call_deferred()
 
 
+## Pseudo (en haut), serveurs récents et Partie rapide (en bas), ajoutés en code.
+func _build_extra_menu() -> void:
+	var vbox := host_button.get_parent()
+	var name_label := Label.new()
+	name_label.text = "Pseudo"
+	vbox.add_child(name_label)
+	vbox.move_child(name_label, 1)
+	name_edit = LineEdit.new()
+	name_edit.placeholder_text = "Votre pseudo (16 caractères max)"
+	name_edit.max_length = 16
+	vbox.add_child(name_edit)
+	vbox.move_child(name_edit, 2)
+	var quick := Button.new()
+	quick.text = "Partie rapide"
+	quick.pressed.connect(_on_quick_play)
+	vbox.add_child(quick)
+	vbox.move_child(quick, status_label.get_index())
+	var recent_title := Label.new()
+	recent_title.text = "Serveurs récents"
+	vbox.add_child(recent_title)
+	_recent_box = VBoxContainer.new()
+	vbox.add_child(_recent_box)
+
+
+func _load_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_PATH) == OK:
+		name_edit.text = String(cfg.get_value("player", "name", ""))
+		_recent = PackedStringArray(cfg.get_value("servers", "recent", []))
+	_refresh_recent()
+
+
+func _save_settings() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("player", "name", name_edit.text.strip_edges())
+	cfg.set_value("servers", "recent", _recent)
+	cfg.save(SETTINGS_PATH)
+
+
+func _remember(address: String) -> void:
+	if address == "":
+		return
+	var list := Array(_recent)
+	list.erase(address)
+	list.push_front(address)
+	_recent = PackedStringArray(list.slice(0, MAX_RECENT))
+	_save_settings()
+	_refresh_recent()
+
+
+func _refresh_recent() -> void:
+	if _recent_box == null:
+		return
+	for child in _recent_box.get_children():
+		child.queue_free()
+	for address in _recent:
+		var b := Button.new()
+		b.text = address
+		b.pressed.connect(func() -> void:
+			address_edit.text = address
+			_on_join_pressed())
+		_recent_box.add_child(b)
+
+
+func _use_name() -> void:
+	Net.player_name = name_edit.text.strip_edges() if name_edit else ""
+	if name_edit:
+		_save_settings()
+
+
 func _on_host_pressed() -> void:
+	_use_name()
 	status_label.text = "Lancement du serveur..."
 	Net.host()
 
 
 func _on_join_pressed() -> void:
+	_use_name()
 	var address := address_edit.text.strip_edges()
 	if address.is_empty():
 		address = "127.0.0.1"
+	_join(address)
+
+
+func _join(address: String) -> void:
 	status_label.text = "Connexion à %s..." % address
 	# On charge le monde tout de suite : le serveur y fera apparaître les joueurs.
 	if Net.join(address) == OK:
 		_load_world()
+
+
+## Partie rapide : le dernier serveur rejoint, puis les adresses de Config.QUICK_PLAY_ADDRESSES.
+func _on_quick_play() -> void:
+	_use_name()
+	_quick_queue = Array(_recent).slice(0, 1)
+	for address in Config.QUICK_PLAY_ADDRESSES:
+		if not address in _quick_queue:
+			_quick_queue.append(address)
+	_try_next_quick()
+
+
+func _try_next_quick() -> void:
+	if _quick_queue.is_empty():
+		_back_to_menu("Partie rapide : aucun serveur trouvé.")
+		return
+	_join(String(_quick_queue.pop_front()))
+
+
+func _on_connection_failed() -> void:
+	if not _quick_queue.is_empty():
+		if has_node("World"):
+			$World.free()
+		_try_next_quick()
+		return
+	_back_to_menu("Échec de connexion.")
 
 
 func _load_world() -> void:

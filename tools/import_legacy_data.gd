@@ -86,6 +86,20 @@ const PERK_EFFECTS := {
 	"Régénération de santé +20 % et poussée +20 %": {"health_regen_mult": 0.2, "thrust_mult": 0.2},
 }
 
+## Mods de kit (étape 9) : effets chiffrés d'après le texte de la référence (KitData.mods).
+const KIT_MOD_EFFECTS := {
+	"slow_and_steady": {"fuel_consumption_mult": -0.3, "thrust_mult": -0.25},
+	"catapult": {"thrust_mult": 0.5, "fuel_consumption_mult": 0.6},
+	"reduced_dodge_damage": {"dodge_damage_reduction": 0.5},
+	"extra_charge": {"energy_charges_add": 1.0},
+	"longer_slide": {"slide_duration_mult": 0.5},
+	"more_charges_fragile": {"energy_charges_add": 2.0, "lose_charge_on_damage": 1.0},
+	"more_shields": {"max_shield_add": 200.0, "move_speed_add": -0.66},
+	"super_duper_jump": {"super_jump_mult": 0.3},
+	"stronger_charge_punch": {"punch_damage_mult": 0.25},
+	"faster_charge_punch": {"punch_cooldown_add": -2.0},
+}
+
 ## Champs numériques copiés tels quels (null -> -1).
 const WEAPON_NUMBERS := [
 	"faction_level", "damage", "pellets", "pellet_damage", "spread_deg", "rpm", "fire_interval_s",
@@ -241,8 +255,15 @@ func _save_kit(k: Dictionary) -> bool:
 	res.set("level_perks", perks)
 	res.set("level_perk_effects", effects)
 	var mods: Array[Dictionary] = []
+	var kit_level := int(k.get("faction_level", 0) if k.get("faction_level") != null else 0)
+	var index := 0
 	for m: Dictionary in k.get("mods", []):
-		mods.append(m)
+		var mod := m.duplicate()
+		mod["effects"] = KIT_MOD_EFFECTS.get(m["id"], {})
+		# Niveau de faction requis : pas dans la référence (valeur de départ : +2 par mod).
+		mod["unlock_level"] = mini(kit_level + 2 * (index + 1), 10)
+		mods.append(mod)
+		index += 1
 	res.set("mods", mods)
 	res.set("estimated_fields", PackedStringArray(k.get("estimated_fields", [])))
 	res.set("history", k.get("history", ""))

@@ -17,6 +17,7 @@ const MOVEMENT_SCRIPT := preload("res://systems/kits/kit_movement.gd")
 const BUFFS_SCRIPT := preload("res://systems/abilities/buff_controller.gd")
 const ABILITIES_SCRIPT := preload("res://systems/abilities/ability_controller.gd")
 const PACT_UI_SCRIPT := preload("res://systems/pacts/pact_ui.gd")
+const LOBBY_UI_SCRIPT := preload("res://systems/lobby/lobby_ui.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -107,10 +108,18 @@ func _ready() -> void:
 		map_overlay.name = "MapOverlay"
 		add_child(map_overlay)
 		map_overlay.setup(self)
+		# Profil : le serveur charge réputation et équipement de ce pseudo.
+		var profiles := get_parent().get_parent().get_node_or_null("ProfileManager")
+		if profiles:
+			profiles.request_register.rpc_id(1, Net.player_name)
 		var pact_ui: PactUi = PACT_UI_SCRIPT.new()
 		pact_ui.name = "PactUi"
 		add_child(pact_ui)
 		pact_ui.setup(self)
+		var lobby_ui: LobbyUi = LOBBY_UI_SCRIPT.new()
+		lobby_ui.name = "LobbyUi"
+		add_child(lobby_ui)
+		lobby_ui.setup(self)
 	health.downed_changed.connect(_on_downed_changed)
 	set_physics_process(is_local)
 	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
@@ -210,6 +219,26 @@ func _current_speed(input_dir: Vector2) -> float:
 	return kit.move_speed() * buff
 
 
+## Mod d'arme choisi par ce joueur pour cette arme (lobby, étape 9), ou null.
+func weapon_mod(wdata: WeaponData) -> WeaponModData:
+	if wdata == null:
+		return null
+	return WeaponModData.get_mod(String(ProfileManager.weapon_mods(get_peer_id()).get(String(wdata.id), "")))
+
+
+## Arme de départ (profil, choisie dans le lobby) ; Config.BASE_WEAPON sinon.
+func start_weapon_id() -> StringName:
+	return ProfileManager.start_weapon(get_peer_id())
+
+
+## Taille de chargeur de cette arme pour ce joueur (mod « chargeur étendu » compris).
+func magazine_for(wdata: WeaponData) -> int:
+	if wdata == null:
+		return 0
+	var mod := weapon_mod(wdata)
+	return maxi(roundi(wdata.magazine * (mod.magazine_mult if mod else 1.0)), 1)
+
+
 ## À terre : un allié peut nous relever (interaction E maintenue) ; tous les peers.
 func _on_downed_changed(downed: bool) -> void:
 	if downed:
@@ -222,9 +251,9 @@ func _on_downed_changed(downed: bool) -> void:
 
 ## Interaction (relever) : seulement pour un allié, et seulement si on est à terre.
 func get_prompt(viewer: Player) -> String:
-	if not health.is_downed or viewer == self or not PactManager.allied(viewer.get_peer_id(), get_peer_id()):
+	if not health.is_downed or viewer == self or not Allies.can_revive(viewer.get_peer_id(), get_peer_id()):
 		return ""
-	return "Maintenir E : relever Joueur %d" % get_peer_id()
+	return "Maintenir E : relever %s" % ProfileManager.name_of(get_peer_id())
 
 
 func get_hold_time(_viewer: Player) -> float:
@@ -232,7 +261,7 @@ func get_hold_time(_viewer: Player) -> float:
 
 
 func server_interact(viewer: Player) -> void:
-	if health.is_downed and PactManager.allied(viewer.get_peer_id(), get_peer_id()) and not viewer.health.is_downed:
+	if health.is_downed and Allies.can_revive(viewer.get_peer_id(), get_peer_id()) and not viewer.health.is_downed:
 		health.server_revive_downed(viewer.get_peer_id())
 
 

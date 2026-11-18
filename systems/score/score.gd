@@ -60,7 +60,7 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 	objective_points = d
 	for tier in range(track.tiers_reached(before), track.tiers_reached(after)):
 		var reward := track.reward(tier)
-		add_contract_fame(reward)
+		add_contract_fame(reward, track.faction)
 		notify.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d Fame)" % [track.display_name, tier + 1, reward], track.color)
 
 
@@ -112,19 +112,26 @@ func _kit_xp(amount: float) -> void:
 		kit.server_add_xp(roundi(amount))
 
 
-## Serveur : Fame gagnée avec un contrat. Avec un partenaire de pacte, elle est partagée
-## moitié / moitié (la moitié arrondie au-dessus pour celui qui l'a gagnée).
-func add_contract_fame(amount: int) -> void:
-	if not multiplayer.is_server() or amount <= 0:
+## Serveur : Fame gagnée avec un contrat de `faction`. Avec un partenaire de pacte, elle est
+## partagée moitié / moitié (la moitié arrondie au-dessus pour celui qui l'a gagnée).
+## La Fame reçue devient aussi de la réputation auprès de la faction du contrat (étape 9).
+func add_contract_fame(amount: int, faction: int = 0) -> void:
+	if not multiplayer.is_server() or amount <= 0 or MatchManager.is_lobby():
 		return
+	var profiles := ProfileManager._current
 	var partner_id := PactManager.partner_of(get_peer_id())
 	var players := get_parent().get_parent()
 	var partner := players.get_node_or_null(str(partner_id)) as Player if partner_id > 0 and players else null
 	if partner == null:
 		add_rank_points(amount)
+		if profiles:
+			profiles.server_add_rep(get_peer_id(), faction, amount)
 		return
 	var mine := ceili(amount / 2.0)
 	add_rank_points(mine)
 	partner.score.add_rank_points(amount - mine)
+	if profiles:
+		profiles.server_add_rep(get_peer_id(), faction, mine)
+		profiles.server_add_rep(partner_id, faction, amount - mine)
 	if amount - mine > 0:
-		partner.score.notify.rpc_id(partner_id, "Pacte : +%d Fame (contrat de Joueur %d)" % [amount - mine, get_peer_id()], Color(0.55, 1.0, 0.75))
+		partner.score.notify.rpc_id(partner_id, "Pacte : +%d Fame (contrat de %s)" % [amount - mine, ProfileManager.name_of(get_peer_id())], Color(0.55, 1.0, 0.75))

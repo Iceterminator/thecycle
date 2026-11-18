@@ -202,6 +202,13 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - Les contrats donnent de la réputation, qui débloque niveau par niveau des armes et gadgets.
 - Entre les parties : mods d'armes et gadgets (feu, électricité, poison, chargeurs étendus…).
 - Sauvegarde côté serveur (JSON par joueur au début, base de données plus tard).
+- **Codé à l'étape 9 (18/11/2026)** : Forge Brask (Korolev, id 1 : Forage, Ambrine, Station),
+  Lumen (Osiris, id 2 : Relais, Drones, Cœur stellaire), Consortium Vega (ICA, id 3 : collecteurs, Prime).
+  Les vrais noms s'affichent pour l'instant (même interrupteur que les armes), nos noms sont prêts dans
+  `data/factions/`. Réputation = Fame de contrat de la faction (+50 % pour la faction de prédilection),
+  10 niveaux (`Config.REP_LEVELS`). Déblocage par niveau seulement : kits, capacités, armes (boutique),
+  mods de kit (niveau du kit +2/+4/+6/+8), mods d'arme (chargeur étendu libre ; incendie Forge 3,
+  électrique Vega 3, toxine Lumen 3). Profil `user://profiles/<pseudo>.json` (réputation, équipement, stats).
 
 ## Feuille de route
 
@@ -237,7 +244,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
   >    armes importées sont réglées), contre 100 PV + 25 de bouclier aujourd'hui. Soit le kit remplace
   >    tout et les améliorations de bouclier quittent la boutique, soit le kit donne la base et la
   >    boutique ajoute du bouclier en plus.
-- [ ] **Étape 9 – Méta et lobby** — factions, réputation, déblocages, mods, sauvegarde, menu, matchmaking simple. **+ escouades (reportées de l'étape 8)** : jusqu'à 4, comment les former (invitation en jeu, code, lobby…) à décider ; coéquipiers visibles sur la carte, pas de tirs entre eux, ils remplacent le partenaire de pacte pour l'état « à terre ».
+- [x] **Étape 9 – Méta et lobby (fait le 18/11/2026)** — **9a** pseudo + profil JSON côté serveur, menu principal (pseudo, serveurs récents, partie rapide `Config.QUICK_PLAY_ADDRESSES`, `--name=`) ; **9b** factions, réputation, déblocages, boutique élargie (toutes les armes, verrouillées selon la réputation) ; **9c** lobby entre les parties (`MatchManager.Phase.LOBBY`, 60 s ou départ quand tous sont prêts, pas de dégâts ni d'interactions ; écran : joueurs, escouades, faction de prédilection, kit, mod de kit, capacités, mods d'arme ; admin : « Lancer la partie ») ; **9d** escouades jusqu'à 4 formées dans le lobby (largage ensemble, pas de tirs entre eux, carte, relève à terre ; `Allies`) ; **9e** mods de kit (10, chiffres du JSON) et mods d'arme (`data/weapon_mods/`). **9f (18/11/2026)** : arme de départ au choix parmi les secondaires débloquées ; boutique configurée dans le lobby (4 cases d'armes + 4 cases gadgets / capacités, au choix) ; en partie, une arme déjà portée s'améliore (palier de boost) ; Q / F vides au départ : capacité ou gadget acheté (capacité `Config.ABILITY_PRICE`) puis assigné avec Q ou F (remplace), racheté = amélioration / recharge, perdu à la mort ; gadget sur Q / F = pris en main avec la touche ; lobby à onglets (Équipement, Boutique, Progression des factions, Escouade).
 - [ ] **Étape 10 – En ligne** — serveur dédié hébergé (VPS), tests à 10-20 joueurs, optimisation réseau.
 
 ## Architecture Godot

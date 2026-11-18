@@ -65,6 +65,19 @@ func request_spawn_item(item_id: String, amount: int) -> void:
 	_reply(true, message)
 
 
+## Lobby : lancer la partie tout de suite.
+@rpc("any_peer", "call_local", "reliable")
+func request_force_start() -> void:
+	if not _server_allowed():
+		return
+	var match_manager := player.get_parent().get_parent().get_node_or_null("MatchManager") as MatchManager
+	if match_manager and MatchManager.is_lobby():
+		match_manager.server_force_start()
+		_reply(true, "Partie lancée")
+	else:
+		_reply(false, "Pas dans le lobby")
+
+
 ## Capacité équipée tout de suite sur Q (slot 0) ou F (slot 1).
 @rpc("any_peer", "call_local", "reliable")
 func request_set_ability(slot: int, ability_id: String) -> void:

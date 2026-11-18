@@ -59,16 +59,33 @@ level_perk_effects = Array[Dictionary]([{
 }])
 mods = Array[Dictionary]([{
 "effect": "Dégâts subis réduits pendant l'esquive (damage_reduction_during_dodge = 0.5)",
-"id": "reduced_dodge_damage"
+"effects": {
+"dodge_damage_reduction": 0.5
+},
+"id": "reduced_dodge_damage",
+"unlock_level": 3
 }, {
 "effect": "+1 charge d'énergie",
-"id": "extra_charge"
+"effects": {
+"energy_charges_add": 1.0
+},
+"id": "extra_charge",
+"unlock_level": 5
 }, {
 "effect": "Glissade plus longue (slide_duration_s +50 %)",
-"id": "longer_slide"
+"effects": {
+"slide_duration_mult": 0.5
+},
+"id": "longer_slide",
+"unlock_level": 7
 }, {
 "effect": "+2 charges, mais perd 1 charge quand le joueur subit des dégâts",
-"id": "more_charges_fragile"
+"effects": {
+"energy_charges_add": 2.0,
+"lose_charge_on_damage": 1.0
+},
+"id": "more_charges_fragile",
+"unlock_level": 9
 }])
 estimated_fields = PackedStringArray("movement.energy_charges.regen_s_per_charge", "movement.double_jump.jump_velocity_mps", "movement.dodge.distance_m", "movement.dodge.duration_s", "movement.slide.slide_speed_mps", "movement.slide.slide_duration_s", "movement.slide.slide_jump_boost_mps", "level_perks[5]", "mods[*].effect (valeurs chiffrées)")
 history = "Une autre version de la fiche donne 300 santé / 300 bouclier."

@@ -155,6 +155,7 @@ func server_clear() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_tick_dots(delta)
 	if active.is_empty():
 		return
 	var now := Time.get_ticks_msec()
@@ -165,3 +166,42 @@ func _physics_process(delta: float) -> void:
 	var heal := get_add("heal_per_s")
 	if heal > 0.0 and not player.health.is_dead:
 		player.health.heal(heal * delta)
+
+
+# =========================================================================
+# Dégâts sur la durée (mods d'arme feu / poison, étape 9)
+# =========================================================================
+
+const DOT_TICK := 0.25
+var _dots: Dictionary = {}   # serveur : id -> { per_s, end_ms, ignore_shield, attacker }
+var _dot_left: float = 0.0
+
+
+## Serveur : brûlure / poison. Un nouveau coup relance la durée (pas de cumul infini).
+func server_add_dot(id: String, display_name: String, per_s: float, duration: float,
+		ignore_shield: bool, attacker_id: int) -> void:
+	if not multiplayer.is_server() or per_s <= 0.0 or duration <= 0.0 or player.health.is_dead:
+		return
+	var current: float = _dots[id]["per_s"] if _dots.has(id) else 0.0
+	_dots[id] = {"per_s": maxf(per_s, current), "end_ms": Time.get_ticks_msec() + int(duration * 1000.0),
+			"ignore_shield": ignore_shield, "attacker": attacker_id}
+	server_add(id, display_name, {"dot": per_s}, duration)
+
+
+## Appelé par _physics_process (serveur) : applique les dégâts sur la durée.
+func _tick_dots(delta: float) -> void:
+	if _dots.is_empty():
+		return
+	_dot_left -= delta
+	if _dot_left > 0.0:
+		return
+	_dot_left = DOT_TICK
+	var now := Time.get_ticks_msec()
+	for id: String in _dots.keys():
+		var dot: Dictionary = _dots[id]
+		if now >= int(dot["end_ms"]) or player.health.is_dead:
+			_dots.erase(id)
+			continue
+		# Poison : shield_mult 0 = rien sur le bouclier, tout sur les PV.
+		player.health.apply_damage(float(dot["per_s"]) * DOT_TICK, int(dot["attacker"]),
+				0.0 if dot["ignore_shield"] else 1.0)

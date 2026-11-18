@@ -73,7 +73,7 @@ func _refresh() -> void:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		var name_label := Label.new()
-		name_label.text = "Joueur %d — %d Fame" % [id, other.score.rank_points]
+		name_label.text = "%s — %d Fame" % [ProfileManager.name_of(id), other.score.rank_points]
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.add_theme_font_size_override("font_size", 18)
 		row.add_child(name_label)

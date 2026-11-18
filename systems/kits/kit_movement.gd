@@ -56,6 +56,8 @@ var _srv_punch_ready_ms: int = 0
 func _ready() -> void:
 	player = get_parent() as Player
 	kit = player.get_node("Kit") as KitController
+	# Mod « plus de charges mais fragile » : un coup reçu fait perdre une charge.
+	player.health.changed.connect(_on_health_changed)
 
 
 func mobility() -> int:
@@ -149,7 +151,7 @@ func _basic_jump(on_floor: bool) -> void:
 # --- Glissade (tous les kits ; celle du Furet est plus longue) ---
 
 func _slide_duration() -> float:
-	var base := kit.move_param("slide", "slide_duration_s", Config.SLIDE_DURATION)
+	var base := kit.move_param("slide", "slide_duration_s", Config.SLIDE_DURATION) * (1.0 + kit.get_effect("slide_duration_mult"))
 	return base
 
 
@@ -196,7 +198,8 @@ func _process_jet(delta: float, on_floor: bool, block: String, from_ground: bool
 		var thrust := kit.move_param(block, "thrust_acceleration_mps2", 12.0) * (1.0 + kit.get_effect("thrust_mult"))
 		var max_up := kit.move_param(block, "max_vertical_speed_mps", 3.0)
 		player.velocity.y = minf(player.velocity.y + thrust * delta, max_up)
-		fuel = maxf(fuel - kit.move_param(block, "fuel_consumption_per_s", 50.0) * delta, 0.0)
+		var consumption := kit.move_param(block, "fuel_consumption_per_s", 50.0) * (1.0 + kit.get_effect("fuel_consumption_mult"))
+		fuel = maxf(fuel - consumption * delta, 0.0)
 		_fuel_pause = kit.move_param(block, "fuel_regen_delay_s", 1.0)
 	else:
 		_fuel_pause = maxf(_fuel_pause - delta, 0.0)
@@ -236,6 +239,9 @@ func _process_dash(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 			_dash_velocity = dir * kit.move_param("dodge", "distance_m", 4.0) / maxf(duration, 0.01)
 			_dash_left = duration
 			charges -= 1.0
+			# Mod « esquive blindée » : le serveur réduit les dégâts pendant l'esquive.
+			if kit.get_effect("dodge_damage_reduction") > 0.0:
+				request_dodge_guard.rpc_id(1, duration)
 		else:
 			_basic_jump(on_floor)
 		_jump_used = true
@@ -282,7 +288,7 @@ func _process_punch(delta: float) -> void:
 		var dist := kit.move_param("charge_punch", "dash_distance_m", 6.0)
 		_dash_velocity = dir * dist / PUNCH_DASH_TIME * (1.0 + kit.get_effect("charge_speed_mult"))
 		_dash_left = PUNCH_DASH_TIME
-		_punch_cd = kit.move_param("charge_punch", "cooldown_s", 8.0)
+		_punch_cd = maxf(kit.move_param("charge_punch", "cooldown_s", 8.0) + kit.get_effect("punch_cooldown_add"), 1.0)
 		request_punch.rpc_id(1, dir)
 
 
@@ -342,7 +348,7 @@ func request_punch(dir: Vector3) -> void:
 	var now := Time.get_ticks_msec()
 	if now < _srv_punch_ready_ms:
 		return
-	_srv_punch_ready_ms = now + int(kit.move_param("charge_punch", "cooldown_s", 8.0) * 900.0)
+	_srv_punch_ready_ms = now + int(maxf(kit.move_param("charge_punch", "cooldown_s", 8.0) + kit.get_effect("punch_cooldown_add"), 1.0) * 900.0)
 	await get_tree().create_timer(PUNCH_HIT_DELAY).timeout
 	if not is_inside_tree() or player.health.is_dead:
 		return
@@ -374,3 +380,25 @@ func request_punch(dir: Vector3) -> void:
 ## Bonus de dégâts du kit contre les créatures.
 func _vs_creature(target: Node, damage: float) -> float:
 	return damage * (1.0 + kit.get_effect("creature_damage")) if target is Monster else damage
+
+
+var _last_hp: float = -1.0
+
+
+func _on_health_changed() -> void:
+	var hp := player.health.health + player.health.shield
+	if _last_hp >= 0.0 and hp < _last_hp - 0.5 and player.is_multiplayer_authority() \
+			and kit.get_effect("lose_charge_on_damage") > 0.0:
+		charges = maxf(charges - 1.0, 0.0)
+	_last_hp = hp
+
+
+## Mod « esquive blindée » : dégâts subis réduits pendant l'esquive (le serveur l'accorde).
+@rpc("any_peer", "call_local", "reliable")
+func request_dodge_guard(duration: float) -> void:
+	if not _sender_ok() or mobility() != KitData.MobilityType.DASH:
+		return
+	var reduction := clampf(kit.get_effect("dodge_damage_reduction"), 0.0, 0.9)
+	if reduction <= 0.0:
+		return
+	player.buffs.server_add("dodge_guard", "Esquive", {"damage_taken_mult": 1.0 - reduction}, clampf(duration, 0.1, 0.5) + 0.1)

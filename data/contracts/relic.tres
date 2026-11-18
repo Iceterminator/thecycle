@@ -10,3 +10,4 @@ display_name = "Cœur stellaire"
 color = Color(1, 0.75, 0.2, 1)
 points_per_second = 4.0
 track = ExtResource("9_track")
+faction = 2

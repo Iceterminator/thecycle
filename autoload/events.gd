@@ -78,5 +78,11 @@ signal scan_revealed(positions: Array)
 ## Serveur : un joueur tombe à terre / est relevé (étape 8e).
 signal player_downed(peer_id: int, attacker_id: int)
 signal player_revived(peer_id: int, by_id: int)
+## Serveur : le profil d'un joueur est chargé (étape 9).
+signal profile_loaded(peer_id: int)
+## Client : équipement sauvegardé reçu (pré-remplit le lobby).
+signal local_loadout_received(loadout: Dictionary)
+## Client : état du lobby (joueurs prêts, secondes avant le départ).
+signal lobby_synced(ready: Dictionary, left: float)
 
 @warning_ignore_restore("unused_signal")

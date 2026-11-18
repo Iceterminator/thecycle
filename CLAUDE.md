@@ -36,7 +36,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
 - `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
-  LootManager), `shop/` (boutique, interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (Fame = `rank_points` + points d'objectif à paliers ; FameManager : +50 par joueur tué),
+  LootManager), `shop/` (boutique configurée dans le lobby : 4 armes + 4 gadgets / capacités ; arme possédée = boost ; interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (Fame = `rank_points` + points d'objectif à paliers ; FameManager : +50 par joueur tué),
   `kits/` (KitController : kit, niveau, XP ; KitMovement : capacités de mouvement ; menu Équipement K),
   `pacts/` (PactManager : pactes, alliés ; menu P),
   `abilities/` (AbilityController : capacités Q / F ; BuffController : bonus / malus ; AbilityManager + AbilityObject :
@@ -45,7 +45,9 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
   navmesh), `contracts/` (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime ; base `ContractSite`),
   `admin/` (menu de test, touche 0 : armes, crédits, cristaux, avance du temps → `Events.time_skip_requested` ;
   désactivable via `Config.ADMIN_MENU_ENABLED`) ;
-  `match/` (minuteur de partie, fin, relance : `MatchManager`, créé par World), `evac/` (vaisseau, soute,
+  `match/` (minuteur de partie, fin, lobby entre les parties : `MatchManager`, créé par World),
+  `profiles/` (ProfileManager : pseudo, réputation, équipement, JSON `user://profiles/`), `squads/` (SquadManager :
+  escouades du lobby ; `Allies` : qui est allié), `lobby/` (écran du lobby à onglets, `UiCard` = carte cliquable des menus), `evac/` (vaisseau, soute,
   embarquement : `EvacShip`, créé par World) ; `storm/` (tempête en zone qui se referme : `StormManager`, phases dans `data/storm/`) ;
   `map/` (écran Tab : carte, quêtes, classement ; `MapView` sert aussi à la minimap du HUD ; un objet apparaît sur la carte s'il est dans le groupe
   `map_marker` et a `map_info() -> { text, color, kind, [position], [radius] }`). Nouvelle partie : `Events.match_reset_requested`,
@@ -53,7 +55,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `resources/` scripts de types de données
 - `data/reference/the_cycle_legacy_data.json` : chiffres des armes, kits, capacités et gadgets du jeu d'origine (référence) ;
   `tools/import_legacy_data.gd` en génère `data/weapons/` (avec la fiche « detailed » et le ressenti visuel) et `data/kits/`
-- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (bonus de niveau chiffrés dans `level_perk_effects`), `abilities/` (21 capacités, générées), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
+- `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (bonus de niveau chiffrés dans `level_perk_effects`), `abilities/` (21 capacités, générées), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `factions/` (3 factions : vrai nom + notre nom), `weapon_mods/` (mods d'arme), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
 - `assets/` modèles, sons, textures
 
 ## Tester

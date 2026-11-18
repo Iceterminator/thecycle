@@ -12,3 +12,4 @@ color = Color(0.5, 1, 0.6, 1)
 points = 25
 resource_item = ExtResource("2_item")
 track = ExtResource("9_track")
+faction = 3

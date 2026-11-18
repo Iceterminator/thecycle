@@ -7,6 +7,8 @@ extends Resource
 @export var id: StringName
 @export var display_name: String
 @export var color: Color = Color(1, 0.85, 0.3)
+## Faction du contrat (WeaponData.Faction) : la Fame gagnée devient de la réputation (étape 9).
+@export var faction: int = 0
 
 @export_group("Interaction")
 @export var hold_time: float = 3.0              ## maintenir E (s)

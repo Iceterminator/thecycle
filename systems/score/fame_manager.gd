@@ -20,4 +20,4 @@ func _on_player_died(victim_id: int, killer_id: int) -> void:
 	if killer == null:
 		return
 	killer.score.add_rank_points(Config.PLAYER_KILL_FAME)
-	killer.score.notify.rpc_id(killer_id, "Joueur %d éliminé : +%d Fame" % [victim_id, Config.PLAYER_KILL_FAME], Color(1.0, 0.85, 0.3))
+	killer.score.notify.rpc_id(killer_id, "%s éliminé : +%d Fame" % [ProfileManager.name_of(victim_id), Config.PLAYER_KILL_FAME], Color(1.0, 0.85, 0.3))

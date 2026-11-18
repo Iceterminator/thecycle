@@ -89,7 +89,7 @@ func _find_downed_ally() -> Node3D:
 	forward.y = 0.0
 	for node in get_tree().get_nodes_in_group("downed_players"):
 		var other := node as Player
-		if other == null or other == player or not PactManager.allied(player.get_peer_id(), other.get_peer_id()):
+		if other == null or other == player or not Allies.can_revive(player.get_peer_id(), other.get_peer_id()):
 			continue
 		var to := other.global_position - player.global_position
 		to.y = 0.0
@@ -114,6 +114,8 @@ func request_hold_start(path: NodePath) -> void:
 func request_interact(path: NodePath) -> void:
 	if not multiplayer.is_server():
 		return
+	if MatchManager.is_lobby():
+		return  # pas de contrats ni de ramassage dans le lobby
 	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.health.is_downed or player.is_evacuated:
 		return
 	var target := get_node_or_null(path) as Node3D

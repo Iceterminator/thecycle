@@ -10,3 +10,4 @@ display_name = "Dard"
 kind = 0
 weapon = ExtResource("2_weapon")
 color = Color(0.95, 0.75, 0.3, 1)
+price = 150

@@ -14,3 +14,4 @@ points = 40
 count = 3
 radius = 7.0
 waves = Array[ExtResource("2_camp")]([ExtResource("3_w")])
+faction = 1

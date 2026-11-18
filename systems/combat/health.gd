@@ -74,12 +74,16 @@ func _init() -> void:
 
 ## Un allié vivant, debout et pas embarqué peut-il relever ce joueur ?
 func _has_ally_standing() -> bool:
-	if not Config.PACT_PARTNER_IS_ALLY:
-		return false
-	var partner := PactManager.partner_of(get_peer_id())
 	var players := get_parent().get_parent()
-	var ally := players.get_node_or_null(str(partner)) as Player if partner > 0 and players else null
-	return ally != null and not ally.health.is_dead and not ally.health.is_downed and not ally.is_evacuated
+	if players == null:
+		return false
+	for node in players.get_children():
+		var ally := node as Player
+		if ally == null or not Allies.can_revive(get_peer_id(), ally.get_peer_id()):
+			continue
+		if not ally.health.is_dead and not ally.health.is_downed and not ally.is_evacuated:
+			return true
+	return false
 
 
 ## Serveur : relevé par un allié (E maintenu).
@@ -143,8 +147,11 @@ func apply_damage(amount: float, attacker_id: int, shield_mult: float = 1.0, hea
 		return false
 	if is_dead or amount <= 0.0:
 		return false
-	# Pacte : deux partenaires ne peuvent pas se blesser.
-	if PactManager.allied(get_peer_id(), attacker_id):
+	# Lobby : personne ne peut être blessé.
+	if MatchManager.is_lobby() and attacker_id != Config.FALL_KILLER_ID:
+		return false
+	# Alliés (escouade, pacte) : ils ne peuvent pas se blesser.
+	if Allies.allied(get_peer_id(), attacker_id):
 		return false
 	# Défense du kit contre les créatures (bonus de niveau).
 	var kit := _kit()
