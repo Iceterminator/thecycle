@@ -91,7 +91,6 @@ const DEATH_CREDITS_LOSS := 0.5          # part des crédits perdue à la mort (
 # --- Monstres ---
 const MONSTER_KILLER_ID := -1            # killer_id quand un joueur est tué par un monstre
 const CAMP_RESPAWN_DELAY := 60.0         # un camp vidé réapparaît après ce délai (tests)
-const STORM_KILLER_ID := -2              # killer_id quand un joueur est tué par la tempête
 ## Niveau des monstres (1 au début) : il monte à ces temps de partie. Appliqué aux monstres qui
 ## apparaissent ensuite (camps repeuplés, vagues), pas à ceux déjà en vie. Index 0 = niveau 1.
 const MONSTER_LEVEL_TIMES := [5.0 * 60.0, 10.0 * 60.0]
@@ -101,10 +100,8 @@ const MONSTER_LEVEL_CREDITS_MULT := [1.0, 1.5, 2.0]
 ## À ce temps de partie, les cristaux pas encore commencés montent d'un niveau (le max reste max).
 const CRYSTAL_UPGRADE_TIME := 10.0 * 60.0
 
-# --- Tempête (façon zone qui se referme ; phases dans data/storm/) ---
-const STORM_START_RADIUS := 145.0        # zone sûre de départ : toute la carte (200 x 200 m)
-const STORM_TICK := 1.0                  # les dégâts tombent toutes les N s
-const STORM_MONSTER_MULT := 1.3          # monstres dans la tempête : détection et vitesse de course
+# --- Grande Marée (tempête globale ; data/storm/) ---
+const STORM_MONSTER_MULT := 1.3          # monstres pendant la tempête : détection et vitesse de course
 
 # --- Boutique et largages (valeurs provisoires) ---
 const DROP_POD_FALL_TIME := 3.0          # délai entre l'achat et l'atterrissage de la capsule (s)

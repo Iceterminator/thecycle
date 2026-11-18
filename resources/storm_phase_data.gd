@@ -1,13 +1,11 @@
 class_name StormPhaseData
 extends Resource
-## Une phase de la tempête (façon zone qui se referme). Un fichier .tres par phase dans
-## data/storm/, triées par start_time. Avant la première phase : pas de tempête.
-## À start_time - warning_time : annonce, la prochaine zone sûre apparaît.
-## À start_time : la zone se referme vers `radius` en shrink_duration s, et les joueurs
-## hors de la zone prennent damage_per_second (même à l'abri).
+## Une Grande Marée : tempête qui couvre toute la carte (pas de zone, pas de dégâts).
+## Un fichier .tres par tempête dans data/storm/, triées par start_time.
+## À start_time - warning_time : annonce. À start_time : le ciel s'assombrit en fade_time s
+## (pluie, éclairs, brouillard violet), puis la tempête dure `duration` s (0 = jusqu'à la fin).
 
-@export var start_time: float = 420.0          ## s depuis le début de la partie
-@export var warning_time: float = 60.0         ## annonce avant la fermeture (s)
-@export var shrink_duration: float = 60.0      ## durée de la fermeture (s)
-@export var radius: float = 90.0               ## rayon de la zone sûre à la fin de la phase (m)
-@export var damage_per_second: float = 1.0     ## hors de la zone, à partir de start_time
+@export var start_time: float = 600.0          ## s depuis le début de la partie
+@export var warning_time: float = 60.0         ## annonce avant le début (s)
+@export var fade_time: float = 20.0            ## durée de la transition ciel clair <-> tempête (s)
+@export var duration: float = 0.0              ## durée de la tempête (s) ; 0 = jusqu'à la fin de la partie

@@ -73,7 +73,6 @@ func _draw() -> void:
 	_draw_grid(map_rect)
 	_draw_terrain()
 	_draw_reveal_radius()
-	_draw_storm()
 	_draw_markers()
 	_draw_monsters()
 	_draw_revealed()
@@ -117,17 +116,6 @@ func _draw_reveal_radius() -> void:
 	var r := Config.MAP_REVEAL_RADIUS * _scale
 	draw_circle(p, r, Color(1, 1, 1, 0.05))
 	draw_arc(p, r, 0, TAU, 64, Color(1, 1, 1, 0.25), 1.0)
-
-
-## Zone sûre actuelle (violet) et prochaine zone annoncée (blanc).
-func _draw_storm() -> void:
-	var c := StormManager.map_circles()
-	if c.get("has_next", false):
-		var n: Vector2 = c["next_center"]
-		draw_arc(to_map(Vector3(n.x, 0, n.y)), c["next_radius"] * _scale, 0, TAU, 96, Color(1, 1, 1, 0.75), 2.0)
-	if c.get("active", false):
-		var a: Vector2 = c["center"]
-		draw_arc(to_map(Vector3(a.x, 0, a.y)), c["radius"] * _scale, 0, TAU, 128, StormManager.STORM_COLOR.lightened(0.2), 3.0)
 
 
 func _draw_markers() -> void:

@@ -146,7 +146,7 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 | Prime | Tuer un joueur désigné | 250 |
 
 ### 6. Fame et score
-- **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, Cœur stellaire (où qu'il soit), zones de tempête et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
+- **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, Cœur stellaire (où qu'il soit), et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
 - **Limites de la carte** : murs invisibles sur les bords (200 x 200 m) ; en dessous de y = -15, on meurt (« Tombé hors de la carte »), monstres compris.
 > **Codé (17/11/2026).** La Fame est le score général (anciens « points de classement », variable `rank_points`
 > dans le code). Tuer un joueur : **+50 Fame**. Mourir ne fait rien perdre. Les monstres ne donnent pas de Fame.
@@ -166,14 +166,11 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - Pour les tests, un camp vidé réapparaît après 60 s (`Config.CAMP_RESPAWN_DELAY`).
 
 ### 8. Tempête
-> **Codé (17/11/2026), façon zone qui se referme (remplace la description ci-dessous).** Phases dans
-> `data/storm/*.tres` : à **7:00** la zone sûre se referme (rayon 80 m), puis **12:00** (45 m), puis **18:00**
-> (18 m, centrée sur l'évac) ; chaque fermeture dure 60 s et est annoncée 60 s avant (mur de tempête visible,
-> prochaine zone en blanc). Hors de la zone : **1, puis 3, puis 10 PV/s**, même à l'abri. Brouillard violet et
-> éclairs quand on est dedans. Les monstres dans la tempête détectent et courent ×1,3.
-- Par vagues, avec un avertissement 60 s avant.
-- Pendant une vague : dégâts légers continus hors abri, brouillard, éclairs. Une partie de la carte, ou toute la carte en fin de partie.
-- Monstres plus agressifs pendant la tempête.
+> **Grande Marée (18/11/2026, d'après la vidéo de référence ; remplace la zone qui se referme).** Tempête
+> sur **toute la carte**, sans zone ni dégâts. `data/storm/phase_1.tres` : annoncée à **9:00** (bandeau vert
+> « La Grande Marée débute dans 60 s »), elle commence à **10:00** et dure jusqu'à la fin. Le ciel passe en 20 s
+> au bleu-gris violet : pluie, éclairs violets, brouillard, soleil faible. Les monstres détectent et courent ×1,3
+> pendant la tempête (`Config.STORM_MONSTER_MULT`). Une ressource d'orage à récolter arrive avec la checklist A2.
 
 ### 9. Évacuation
 - Le vaisseau se pose au centre à 15:00 et décolle à 20:00.

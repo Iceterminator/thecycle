@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("1_storm")
-start_time = 420.0
+start_time = 600.0
 warning_time = 60.0
-shrink_duration = 60.0
-radius = 80.0
-damage_per_second = 1.0
+fade_time = 20.0
+duration = 0.0

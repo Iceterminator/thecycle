@@ -421,8 +421,6 @@ func _killer_text() -> String:
 		return "Vous êtes mort"
 	if killer == Config.MONSTER_KILLER_ID:
 		return "Tué par un monstre"
-	if killer == Config.STORM_KILLER_ID:
-		return "Tué par la tempête"
 	if killer == Config.FALL_KILLER_ID:
 		return "Tombé hors de la carte"
 	if killer == _player.get_peer_id():
