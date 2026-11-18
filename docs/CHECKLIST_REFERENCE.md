@@ -50,7 +50,7 @@
   - `[test]` avancer le temps à 10:30 (via `Events.time_skip_requested`) : la tempête est active, et aucun joueur ne prend de dégâts de tempête.
   - `[capture]` `A1.png` à 10:30 : ciel sombre, pluie visible, bandeau ou indicateur de tempête.
   - Fait le 18/11/2026 : test réseau OK (10:30, coin (90, 90) : tempête active, 0 PV perdu), capture `docs/captures/A1.png`.
-    À tester en jeu : ressenti de la pluie et des éclairs, lisibilité dans la tempête. Note : erreur « Kit » au moment où un client rejoint (RPC reçu avant l'apparition du joueur), sans lien avec A1, à regarder à part.
+    À tester en jeu : ressenti de la pluie et des éclairs, lisibilité dans la tempête. (L'erreur « Kit » à la connexion est corrigée dans 1e65326.)
 - [x] **A2. Ressource d'orage pendant la tempête.** Décisions : D3. Dépend de A1.
   Ce qu'il faut : quand la tempête démarre, le serveur fait apparaître des cristaux d'orage (via le `MultiplayerSpawner`) et un contrat de collecte associé (`.tres` dans `data/contracts/`).
   - `[test]` à 10:30, au moins N cristaux d'orage existent (N lu dans les données) ; en récolter un augmente le contrat.
