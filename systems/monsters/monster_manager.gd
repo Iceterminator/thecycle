@@ -50,6 +50,13 @@ func _setup() -> void:
 ## (pas de leurs maillages de rendu : un serveur dédié n'a pas de rendu).
 func _bake_navmesh() -> void:
 	var source := NavigationMeshSourceGeometryData3D.new()
+	var navmesh := nav_region.navigation_mesh
+	# Décor (arbres, rochers de MapDecor) : ses collisions bloquent aussi les monstres.
+	# En premier : parse_source_geometry_data remet `source` à zéro.
+	var decor := map.get_node_or_null("Decor")
+	if decor:
+		navmesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+		NavigationServer3D.parse_source_geometry_data(navmesh, source, decor)
 	for node in map.find_children("*", "CSGShape3D"):
 		var csg := node as CSGShape3D
 		if not csg.is_root_shape() or not csg.use_collision:
@@ -57,7 +64,6 @@ func _bake_navmesh() -> void:
 		var shape := csg.bake_collision_shape() as ConcavePolygonShape3D
 		if shape:
 			source.add_faces(shape.get_faces(), csg.global_transform)
-	var navmesh := nav_region.navigation_mesh
 	NavigationServer3D.bake_from_source_geometry_data(navmesh, source)
 	NavigationServer3D.region_set_navigation_mesh(nav_region.get_rid(), navmesh)
 	print("[Monstres] Navmesh généré : %d polygones" % navmesh.get_polygon_count())

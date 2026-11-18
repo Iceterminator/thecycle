@@ -24,6 +24,9 @@ var evac_ship: EvacShip
 
 func _ready() -> void:
 	_build_border()
+	var decor := MapDecor.new()
+	decor.name = "Decor"
+	$Map.add_child(decor)
 	evac_ship = EVAC_SCRIPT.new()
 	evac_ship.name = "EvacShip"
 	evac_ship.players_root = players
