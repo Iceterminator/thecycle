@@ -5,3 +5,6 @@ export/
 graphify-out/
 # Textures extraites des modèles par Godot (recréées à l'import du .glb)
 assets/models/**/*.png
+# … sauf les textures des .gltf Quaternius, qui sont des fichiers sources
+!assets/models/weapons/quaternius/*.png
+!assets/models/nature/*.png
