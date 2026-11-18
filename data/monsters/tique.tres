@@ -1,5 +1,6 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="MonsterData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Enemy_Trilobite.gltf" id="1_cpik7"]
 [ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
 
 [resource]
@@ -21,3 +22,4 @@ credits = 2
 radius = 0.25
 height = 0.5
 color = Color(0.3, 0.75, 0.35, 1)
+model = ExtResource("1_cpik7")

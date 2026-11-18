@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="MonsterData" format=3]
 
 [ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Enemy_QuadShell.gltf" id="1_vxqdp"]
 
 [resource]
 script = ExtResource("1_monster")
@@ -22,3 +23,4 @@ biomass_drop = 3
 radius = 0.9
 height = 2.4
 color = Color(0.45, 0.2, 0.15, 1)
+model = ExtResource("1_vxqdp")

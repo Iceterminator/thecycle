@@ -103,6 +103,12 @@ func _ready() -> void:
 	held_weapon.name = "HeldWeapon"
 	head.add_child(held_weapon)
 	held_weapon.setup(self)
+	# Corps animé, pour les autres joueurs seulement (le joueur local ne voit pas son corps).
+	if not is_local and not Net.is_dedicated_server:
+		var avatar := PlayerAvatar.new()
+		avatar.name = "Avatar"
+		body_mesh.add_child(avatar)
+		avatar.setup(self, body_mesh)
 	if not is_local:
 		_build_beacon()
 	if is_local:

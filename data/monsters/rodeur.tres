@@ -1,24 +1,17 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="MonsterData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Enemy_Trilobite.gltf" id="1_0ydjw"]
 [ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
 
 [resource]
 script = ExtResource("1_monster")
 id = &"rodeur"
 display_name = "Rôdeur"
-max_health = 60.0
-walk_speed = 2.5
 run_speed = 7.0
 detection_radius = 18.0
 lose_radius = 30.0
 leash_radius = 35.0
-attack_range = 1.6
-attack_damage = 8.0
 attack_windup = 0.3
-attack_cooldown = 1.0
-post_hit_pause = 0.6
-credits = 10
 biomass_drop = 1
-radius = 0.35
-height = 0.9
 color = Color(0.55, 0.3, 0.65, 1)
+model = ExtResource("1_0ydjw")

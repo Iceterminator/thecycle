@@ -37,3 +37,9 @@ extends Resource
 @export var ranged: bool = false               ## true : tire des projectiles (attack_range = portée de tir)
 @export var projectile_speed: float = 22.0     ## m/s : assez lent pour être esquivé
 @export var min_range: float = 6.0             ## recule si un joueur s'approche plus près
+
+@export_group("Modèle 3D")
+## Modèle animé (animations Idle, Walk, Run, Attack, Hit si présentes) ; sans modèle : capsule colorée.
+@export var model: PackedScene
+@export var model_yaw_deg: float = 180.0       ## rotation pour que le modèle regarde vers -Z
+@export var model_height_mult: float = 1.0     ## hauteur du modèle = height × ce facteur
