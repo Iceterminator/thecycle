@@ -20,7 +20,7 @@ d'architecture : si la tâche en demande une, arrête-toi et pose la question.
 
 Vérification avant de rendre la main (ne renvoie que les erreurs) :
 `<godot> --headless --path . --import` si tu as ajouté une class_name, puis
-`<godot> --headless --path . --quit`.
+`<godot> --headless --path . -s tools/check_scripts.gd` (doit finir par « échecs : 0 »).
 
 Rapport final, en français, 10 lignes max : fichiers modifiés (avec leur nombre de lignes),
 résultat de la vérification, ce qui n'a pas été fait ou reste risqué. Ne commite pas, sauf si on te le demande.

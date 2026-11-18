@@ -41,8 +41,8 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 
 ## Commandes
 ```
-# Analyse rapide (erreurs de chargement)
-<godot> --headless --path . --quit
+# Compiler tous les scripts (n'affiche que les échecs)
+<godot> --headless --path . -s tools/check_scripts.gd
 # Après une nouvelle class_name ou de nouveaux assets
 <godot> --headless --path . --import
 # Serveur dédié (port 7777, --port=XXXX pour changer)
@@ -95,5 +95,8 @@ Tests scriptés réseau et captures : voir `docs/REPRISE.md`.
 - Ne lis pas un .tscn en entier si un grep suffit. Ne lis que les fichiers nécessaires à la tâche.
 - Avant d'explorer, consulte la table « mécanique → fichiers » et le docs/ concerné.
 - Après tout déplacement ou renommage : mets à jour les références res:// et les UID, puis lance un test en headless.
+- Après chaque changement de code : `-s tools/check_scripts.gd` sans échec (avant : `--import` seulement si une class_name ou un asset est nouveau), lancé par le chercheur, qui ne renvoie que les erreurs.
+- Changement réseau (RPC, synchro, spawn) : test à 2 instances (hôte + client headless, voir docs/REPRISE.md) avant de dire que c'est fini ; pas pour un changement purement local.
+- Changement visuel : une ou deux captures au plus (échelle réduite), puis « À tester en jeu : … » quand c'est le ressenti qui compte. Pas de capture pour du code sans effet visible.
 - Pour une tâche de plus de 3 fichiers : propose un plan court et attends mon accord.
 - Garde le CLAUDE.md et docs/ à jour quand tu ajoutes ou déplaces un système.
