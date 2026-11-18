@@ -97,6 +97,11 @@ func _ready() -> void:
 	abilities.name = "Abilities"
 	abilities.set_multiplayer_authority(1)
 	add_child(abilities)
+	# Arme tenue en main (modèle 3D), visible par tous : à la première personne pour le joueur local.
+	var held := WeaponModel.new()
+	held.name = "HeldWeapon"
+	head.add_child(held)
+	held.setup(self)
 	if not is_local:
 		_build_beacon()
 	if is_local:

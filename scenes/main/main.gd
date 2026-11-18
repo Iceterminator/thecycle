@@ -23,6 +23,7 @@ var _quick_queue: Array = []   # Partie rapide : adresses encore à essayer
 
 
 func _ready() -> void:
+	UiStyle.apply_fonts()  # police de toute l'interface (Barlow Condensed)
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	Net.hosting_started.connect(_load_world)

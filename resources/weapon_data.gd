@@ -110,6 +110,19 @@ enum GadgetKind { NONE, FRAG_GRENADE, HEAL_BEAM, RECALL }
 @export var impact_scale: float = 1.0
 @export var projectile_size: float = 0.04        ## projectile visible (m)
 @export var smoke_trail: bool = false            ## traînée de fumée (roquettes, obus)
+## Image de l'arme pour le HUD et les menus (facultative) ; sans image, WeaponIcon la dessine.
+@export var hud_icon: Texture2D
+
+@export_group("Modèle 3D")
+## Modèle de l'arme (.glb), tenu en main : vue à la première personne et par les autres
+## joueurs (WeaponModel). Sans modèle, rien n'est affiché en main.
+@export var model: PackedScene
+## Rotation pour mettre le canon vers l'avant (-Z) et le dessus vers le haut.
+@export var model_rotation_deg: Vector3 = Vector3.ZERO
+## Longueur de l'arme une fois mise à l'échelle (m) : le modèle est redimensionné et centré.
+@export var model_length: float = 0.25
+## Décalage de la position en main (m, repère de la tête : x droite, y haut, -z devant).
+@export var model_offset: Vector3 = Vector3.ZERO
 
 @export_group("Fiche (detailed)")
 ## Fiche de design de la référence : ce que l'arme doit faire ressentir.

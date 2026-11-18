@@ -30,6 +30,8 @@ enum MobilityType { NONE, JETPACK, DASH, SUPER_JUMP, JETBOOSTERS }
 @export var level_perk_effects: Array[Dictionary] = []
 ## Mods hors partie : [{ "id": ..., "effect": ... }].
 @export var mods: Array[Dictionary] = []
+## Image pour les menus (facultative) ; sans image, KitIcon la dessine.
+@export var hud_icon: Texture2D
 
 @export_group("Notes")
 @export var estimated_fields: PackedStringArray = []

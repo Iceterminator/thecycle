@@ -2,3 +2,6 @@
 *.import
 export/
 .DS_Store
+graphify-out/
+# Textures extraites des modèles par Godot (recréées à l'import du .glb)
+assets/models/**/*.png

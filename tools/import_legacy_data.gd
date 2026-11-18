@@ -271,7 +271,16 @@ func _save_kit(k: Dictionary) -> bool:
 	return _save(res, KITS_DIR + id + ".tres")
 
 
+## Champs ajoutés à la main dans l'éditeur (modèle 3D, image) : gardés à chaque réimport.
+const KEPT_FIELDS := ["model", "model_rotation_deg", "model_offset", "model_length", "hud_icon"]
+
+
 func _save(res: Resource, path: String) -> bool:
+	if ResourceLoader.exists(path):
+		var old := load(path)
+		for field: String in KEPT_FIELDS:
+			if old and field in old and field in res:
+				res.set(field, old.get(field))
 	var err := ResourceSaver.save(res, path)
 	if err != OK:
 		push_error("[Import] Échec d'écriture %s (%s)" % [path, error_string(err)])

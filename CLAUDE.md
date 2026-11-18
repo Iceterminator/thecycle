@@ -35,7 +35,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `scenes/main/` menu + conteneur du monde (`/root/Main/World`)
 - `scenes/world/` carte, points de largage, `PlayerSpawner`
 - `scenes/player/` joueur FPS
-- `systems/` un dossier par système : `combat/` (santé, arme, réapparition, HUD), `loot/` (objets au sol,
+- `systems/` un dossier par système : `combat/` (santé, arme, réapparition, `WeaponModel` = arme 3D en main d'après `WeaponData.model` (+ rotation, longueur, décalage ; modèles dans `assets/models/weapons/<id>/`), HUD : minimap ronde + rang + objectifs en haut à gauche, horloge en haut, classement en haut à droite, escouade / kit / crédits en bas à gauche, Q / F + barres en segments en bas au centre, armes en bas à droite), `loot/` (objets au sol,
   LootManager), `shop/` (boutique configurée dans le lobby : 4 armes + 4 gadgets / capacités ; arme possédée = boost ; interface, capsule de largage), `quests/` (cristal + foreuse, QuestManager), `score/` (Fame = `rank_points` + points d'objectif à paliers ; FameManager : +50 par joueur tué),
   `kits/` (KitController : kit, niveau, XP ; KitMovement : capacités de mouvement ; menu Équipement K),
   `pacts/` (PactManager : pactes, alliés ; menu P),
@@ -47,7 +47,7 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
   désactivable via `Config.ADMIN_MENU_ENABLED`) ;
   `match/` (minuteur de partie, fin, lobby entre les parties : `MatchManager`, créé par World),
   `profiles/` (ProfileManager : pseudo, réputation, équipement, JSON `user://profiles/`), `squads/` (SquadManager :
-  escouades du lobby ; `Allies` : qui est allié), `lobby/` (écran du lobby à onglets, `UiCard` = carte cliquable des menus), `evac/` (vaisseau, soute,
+  escouades du lobby ; `Allies` : qui est allié), `lobby/` (écran du lobby : barre d'onglets Décollage / Équipement / Arsenal / Factions / Escouade ; Équipement = `LoadoutPage` : vue d'ensemble (départ + boutique, cases avec ⇄) → fiche de l'objet → sélecteur « Choisissez votre … » → ÉQUIPER ; Arsenal = catégories, filtres, cartes débloquées puis verrouillées par niveau, fiche détaillée avec actions ; `UiCard` = carte cliquable avec icône et cadenas), `ui/` (`UiStyle` = DA « Nuit polaire » : palette bleu nuit / acier / cuivre, coins coupés, thème des boutons et listes, police Barlow Condensed dans `assets/fonts/` (OFL) ; éléments d'interface dessinés en code : `WeaponIcon` (armes, gadgets), `AbilityIcon` (capacités, par catégorie), `KitIcon` (kits, selon PV et mouvement) = visuels dessinés d'après les données, liseré de faction ; `ItemVisual.make(id)` choisit le bon ; champ `hud_icon` (armes, capacités, kits) = vraie image facultative, `SegmentBar` = barre PV / bouclier en segments, `LockIcon` = cadenas), `evac/` (vaisseau, soute,
   embarquement : `EvacShip`, créé par World) ; `storm/` (tempête en zone qui se referme : `StormManager`, phases dans `data/storm/`) ;
   `map/` (écran Tab : carte, quêtes, classement ; `MapView` sert aussi à la minimap du HUD ; un objet apparaît sur la carte s'il est dans le groupe
   `map_marker` et a `map_info() -> { text, color, kind, [position], [radius] }`). Nouvelle partie : `Events.match_reset_requested`,
@@ -56,7 +56,8 @@ Moteur : **Godot 4.7, GDScript**. Solo dev, l'IA écrit l'essentiel du code.
 - `data/reference/the_cycle_legacy_data.json` : chiffres des armes, kits, capacités et gadgets du jeu d'origine (référence) ;
   `tools/import_legacy_data.gd` en génère `data/weapons/` (avec la fiche « detailed » et le ressenti visuel) et `data/kits/`
 - `data/` valeurs d'équilibrage `.tres` : `weapons/`, `kits/` (bonus de niveau chiffrés dans `level_perk_effects`), `abilities/` (21 capacités, générées), `items/` (un objet ramassable = un fichier, `price` > 0 = vendu en boutique), `monsters/`, `camps/`, `quests/` (niveaux de cristal + `waves/`), `contracts/` (un .tres par contrat), `factions/` (3 factions : vrai nom + notre nom), `weapon_mods/` (mods d'arme), `objectives/` (paliers d'objectif -> classement ; le HUD montre le prochain palier et le gain/s)
-- `assets/` modèles, sons, textures
+- `tools/render_weapon_icons.gd` : icônes des armes qui ont un modèle 3D (rendu de profil → `assets/icons/weapons/<id>.png`, branché dans `hud_icon`) ; avec fenêtre, puis `--import`, puis `-- --assign`
+- `assets/` modèles, sons, textures ; `assets/ui/lobby_background.webp` = fond du lobby (sous un voile bleu nuit, `UiStyle.make_lobby_background`)
 
 ## Tester
 - Éditeur : Debug → Customize Run Instances → 2 instances. Héberger dans l'une, Rejoindre dans l'autre.

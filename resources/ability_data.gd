@@ -56,6 +56,8 @@ enum Category { GRENADE, STIM, DEPLOYABLE, BARRIER, CLOAK, STRIKE, FIELD, MOBILI
 @export_group("Fiche")
 @export_multiline var activation: String = ""
 @export var effects: PackedStringArray = []
+## Image pour le HUD et les menus (facultative) ; sans image, AbilityIcon la dessine.
+@export var hud_icon: Texture2D
 @export_multiline var visual: String = ""
 @export_multiline var counterplay: String = ""
 @export_multiline var behavior: String = ""

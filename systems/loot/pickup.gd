@@ -9,8 +9,10 @@ var item: ItemData
 var amount: int = 1
 var ammo: int = -1  ## chargeur restant pour une arme lâchée (-1 = plein)
 
+const GROUND_MODEL_SCALE := 1.6  ## modèle d'arme au sol, agrandi pour bien se voir
+
 var _taken: bool = false
-var _mesh: MeshInstance3D
+var _visual: Node3D  ## ce qui tourne : modèle 3D de l'arme, ou forme simple
 
 
 func setup(item_data: ItemData, item_amount: int, item_ammo: int) -> void:
@@ -35,14 +37,16 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_mesh.rotate_y(1.5 * delta)
+	_visual.rotate_y(1.5 * delta)
 
 
 func get_prompt(player: Player) -> String:
 	var inv := player.inventory
 	match item.kind:
 		ItemData.Kind.WEAPON:
-			if inv.slot_ids.has(""):
+			if item.weapon and item.weapon.gadget != WeaponData.GadgetKind.NONE:
+				return "E : Ramasser %s (puis Q ou F)" % item.display_name
+			if inv.slot_ids.slice(0, Inventory.WEAPON_SLOTS).has(""):
 				return "E : Ramasser %s" % item.display_name
 			return "E : Échanger contre %s" % item.display_name
 		ItemData.Kind.HEAL:
@@ -72,25 +76,40 @@ func server_interact(player: Player) -> void:
 		queue_free()
 
 
+## Arme avec un modèle 3D : le modèle (un peu agrandi pour bien se voir au sol, avec son
+## ombre). Sinon une forme simple de la couleur de l'objet.
 func _build_visual() -> void:
-	_mesh = MeshInstance3D.new()
+	if item.kind == ItemData.Kind.WEAPON and item.weapon and item.weapon.model:
+		_visual = WeaponModel.build(item.weapon)
+		_visual.scale = Vector3.ONE * GROUND_MODEL_SCALE
+		for node in _visual.find_children("*", "MeshInstance3D", true, false):
+			(node as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		_visual.position.y = 0.35
+		add_child(_visual)
+		_add_label()
+		return
+	var mesh := MeshInstance3D.new()
+	_visual = mesh
 	if item.kind == ItemData.Kind.WEAPON:
 		var box := BoxMesh.new()
 		box.size = Vector3(0.7, 0.18, 0.18)
-		_mesh.mesh = box
+		mesh.mesh = box
 	else:
 		var sphere := SphereMesh.new()
 		sphere.radius = 0.18
 		sphere.height = 0.36
-		_mesh.mesh = sphere
+		mesh.mesh = sphere
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = item.color
 	mat.emission_enabled = true
 	mat.emission = item.color * 0.4
-	_mesh.material_override = mat
-	_mesh.position.y = 0.3
-	add_child(_mesh)
+	mesh.material_override = mat
+	mesh.position.y = 0.3
+	add_child(mesh)
+	_add_label()
 
+
+func _add_label() -> void:
 	var label := Label3D.new()
 	label.text = "%d crédits" % amount if item.kind == ItemData.Kind.CREDITS else item.display_name
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED

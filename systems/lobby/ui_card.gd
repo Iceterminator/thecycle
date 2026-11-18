@@ -1,12 +1,19 @@
 class_name UiCard
 extends Button
-## Carte cliquable des menus (lobby, boutique) : un titre, une ligne de détail, une ligne
-## d'info (prix, verrou…) et un liseré de couleur (faction). Sélectionnée = bordure épaisse ;
-## verrouillée = grisée (mais cliquable si `allow_locked`, pour voir l'info).
+## Carte cliquable des menus (lobby, boutique) : un titre, une ligne de détail, une icône
+## d'arme facultative, une ligne d'info (prix, verrou…) et un liseré de couleur (faction).
+## Sélectionnée = bordure vert menthe ; verrouillée = assombrie, bordure rouge et cadenas
+## (reste cliquable pour voir sa fiche, sauf si `disabled`).
+
+const ACCENT := UiStyle.ACCENT
+const LOCKED := UiStyle.LOCKED
 
 var _title: Label
 var _sub: Label
 var _info: Label
+var _visual_slot: Control  ## emplacement du visuel (arme, capacité ou kit)
+var _visual: Control
+var _lock: LockIcon
 var _accent: Color = Color(0.6, 0.7, 0.8)
 var _selected: bool = false
 var _locked: bool = false
@@ -22,17 +29,34 @@ static func make(min_size: Vector2 = Vector2(190, 92)) -> UiCard:
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 10)
+	margin.add_theme_constant_override("margin_left", 14)
 	card.add_child(margin)
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var box := VBoxContainer.new()
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_theme_constant_override("separation", 2)
 	margin.add_child(box)
-	card._title = card._label(box, 18, Color.WHITE)
+	card._title = card._label(box, 19, Color.WHITE)
+	card._title.add_theme_font_override("font", UiStyle.font("SemiBold"))
 	card._sub = card._label(box, 13, Color(1, 1, 1, 0.65))
-	card._sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	card._sub.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	card._info = card._label(box, 14, Color(1, 0.85, 0.4))
+	# Une ligne (coupée par « … ») : le visuel garde toute la place libre.
+	card._sub.visible = false
+	card._visual_slot = Control.new()
+	card._visual_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card._visual_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card._visual_slot.custom_minimum_size = Vector2(0, 44)
+	card._visual_slot.visible = false
+	box.add_child(card._visual_slot)
+	card._info = card._label(box, 15, UiStyle.GOLD)
+	card._info.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	card._lock = LockIcon.new()
+	card._lock.visible = false
+	card.add_child(card._lock)
+	card._lock.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	card._lock.offset_left = -30
+	card._lock.offset_right = -10
+	card._lock.offset_top = 10
+	card._lock.offset_bottom = 34
 	card._restyle()
 	return card
 
@@ -50,14 +74,30 @@ func _label(box: VBoxContainer, font_size: int, color: Color) -> Label:
 func set_content(title: String, sub: String, info: String, accent: Color = Color(0.6, 0.7, 0.8)) -> void:
 	_title.text = title
 	_sub.text = sub
+	_sub.visible = sub != ""
 	_info.text = info
 	_accent = accent
 	_restyle()
 
 
-func set_info(info: String, color: Color = Color(1, 0.85, 0.4)) -> void:
+func set_info(info: String, color: Color = Color(1, 0.82, 0.4)) -> void:
 	_info.text = info
 	_info.add_theme_color_override("font_color", color)
+
+
+## Visuel de l'objet `id` (arme, gadget, capacité ou kit) dans la carte ; "" = aucun.
+func set_visual(id: String) -> void:
+	if _visual and _visual.get_meta("id", "") == id:
+		return
+	if _visual:
+		_visual.queue_free()
+	_visual = ItemVisual.make(id)
+	_visual_slot.visible = _visual != null
+	if _visual:
+		_visual.set_meta("id", id)
+		_visual_slot.add_child(_visual)
+		_visual.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		ItemVisual.set_colors(_visual, _locked)
 
 
 func set_state(selected: bool, locked: bool) -> void:
@@ -69,29 +109,28 @@ func set_state(selected: bool, locked: bool) -> void:
 
 
 func _restyle() -> void:
-	var base := Color(0.10, 0.11, 0.14, 0.95)
-	var border := _accent.darkened(0.35)
+	var base := UiStyle.CARD
+	var border := Color(_accent.darkened(0.15), 0.75)
 	if _selected:
-		base = Color(0.14, 0.18, 0.16, 0.98)
-		border = Color(0.55, 1.0, 0.6)
+		base = UiStyle.CARD_SELECTED
+		border = ACCENT
 	if _locked:
-		base = Color(0.07, 0.07, 0.08, 0.9)
-		border = Color(0.3, 0.3, 0.3)
+		base = UiStyle.CARD_LOCKED
+		border = LOCKED.darkened(0.25) if not _selected else ACCENT
 	add_theme_stylebox_override("normal", _style(base, border, 3 if _selected else 1))
-	add_theme_stylebox_override("hover", _style(base.lightened(0.08), border.lightened(0.25), 3 if _selected else 2))
+	add_theme_stylebox_override("hover", _style(UiStyle.CARD_HOVER if not (_selected or _locked) else base.lightened(0.08), border.lightened(0.25), 3 if _selected else 2))
 	add_theme_stylebox_override("pressed", _style(base.lightened(0.15), border.lightened(0.4), 3))
 	add_theme_stylebox_override("disabled", _style(Color(0.07, 0.07, 0.08, 0.9), Color(0.25, 0.25, 0.25), 1))
 	add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	if _title:
-		_title.modulate = Color(1, 1, 1, 0.4) if _locked else Color.WHITE
-		_sub.modulate = Color(1, 1, 1, 0.5) if _locked else Color.WHITE
+		_title.modulate = Color(1, 1, 1, 0.55) if _locked else Color.WHITE
+		_sub.modulate = Color(1, 1, 1, 0.55) if _locked else Color.WHITE
+		ItemVisual.set_colors(_visual, _locked)
+		_lock.visible = _locked
 
 
 func _style(bg: Color, border: Color, width: int) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg
-	s.border_color = border
-	s.set_border_width_all(width)
-	s.border_width_left = maxi(width, 5)  # liseré de couleur à gauche
-	s.set_corner_radius_all(6)
+	# Coins coupés ; le liseré du bas, plus épais, porte la couleur de la faction.
+	var s := UiStyle.chamfer_box(bg, border, width, UiStyle.CHAMFER)
+	s.border_width_bottom = maxi(width, 3)
 	return s

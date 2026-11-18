@@ -188,7 +188,6 @@ const REVIVE_HEALTH_RATIO := 0.5         # relevé avec cette part de ses PV max
 const REP_LEVELS := [100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500]
 const PREFERRED_FACTION_BONUS := 0.5     # +50 % de réputation avec la faction de prédilection
 const BOUNTY_FACTION := 3                 # la prime est un contrat de l'ICA
-const LOBBY_DURATION := 60.0              # lobby : la partie démarre après ce délai (ou quand tous sont prêts)
 const SQUAD_MAX := 4
 const QUICK_PLAY_ADDRESSES := ["127.0.0.1"]  # « Partie rapide » : essayés après le dernier serveur
 

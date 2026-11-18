@@ -82,7 +82,7 @@ func _refresh() -> void:
 		var verb: String = {"buy": "Acheter", "boost": "Améliorer", "upgrade": "Améliorer", "refill": "Recharger", "pending": "Acheter"}.get(o["action"], "")
 		var refusal: String = o["refusal"]
 		if refusal != "":
-			card.set_info(refusal, Color(1, 0.5, 0.45))
+			card.set_info(refusal, UiStyle.RED)
 		else:
 			card.set_info("%s — %d cr." % [verb, o["price"]])
 		card.tooltip_text = "%s\n%s" % [Shop.entry_description(id), o["text"]]
@@ -110,7 +110,7 @@ func _rebuild_if_needed() -> void:
 
 
 func _make_card(id: String) -> UiCard:
-	var card := UiCard.make(Vector2(200, 104))
+	var card := UiCard.make(Vector2(200, 126))
 	if id == "":
 		card.set_content("Case vide", "À configurer dans le lobby", "")
 		card.disabled = true
@@ -120,6 +120,7 @@ func _make_card(id: String) -> UiCard:
 	var sub: String = {Shop.Entry.WEAPON: "Arme", Shop.Entry.GADGET: "Gadget (Q / F)", Shop.Entry.ABILITY: "Capacité (Q / F)",
 			Shop.Entry.CONSUMABLE: "Consommable"}.get(kind, "")
 	card.set_content(Shop.entry_name(id), sub, "", FactionData.color_of(lock[0]))
+	card.set_visual(id)
 	card.pressed.connect(func() -> void: _shop.request_buy.rpc_id(1, id))
 	_cards.append({"id": id, "card": card})
 	return card
@@ -138,7 +139,7 @@ func _on_purchase_result(ok: bool, message: String) -> void:
 func _build() -> void:
 	# Fond assombri qui capte les clics (ils ne doivent pas atteindre le jeu).
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.55)
+	dim.color = Color(UiStyle.BG_TOP, 0.7)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -147,13 +148,11 @@ func _build() -> void:
 	add_child(center)
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.07, 0.09, 0.96)
-	style.border_color = Color(0.95, 0.6, 0.2)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	style.set_content_margin_all(22)
+	var style := UiStyle.panel_box()
+	style.bg_color = Color(UiStyle.PANEL, 0.97)
+	style.set_content_margin_all(24)
 	panel.add_theme_stylebox_override("panel", style)
+	panel.theme = UiStyle.theme()
 	center.add_child(panel)
 	var box := VBoxContainer.new()
 	box.custom_minimum_size = Vector2(900, 0)
@@ -164,12 +163,14 @@ func _build() -> void:
 	box.add_child(header)
 	var title := Label.new()
 	title.text = "BOUTIQUE"
-	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_font_override("font", UiStyle.font("Bold"))
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
 	_credits_label = Label.new()
 	_credits_label.add_theme_font_size_override("font_size", 24)
-	_credits_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3))
+	_credits_label.add_theme_color_override("font_color", UiStyle.GOLD)
+	_credits_label.add_theme_font_override("font", UiStyle.font("SemiBold"))
 	header.add_child(_credits_label)
 
 	box.add_child(_section("ARMES — largage en %d s ; arme déjà portée : palier de boost suivant" % int(Config.DROP_POD_FALL_TIME)))
@@ -194,7 +195,7 @@ func _build() -> void:
 		consumables.add_child(spacer)
 
 	_pending_label = Label.new()
-	_pending_label.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6))
+	_pending_label.add_theme_color_override("font_color", UiStyle.ACCENT)
 	_pending_label.add_theme_font_size_override("font_size", 18)
 	box.add_child(_pending_label)
 	_status_label = Label.new()
@@ -210,7 +211,7 @@ func _build() -> void:
 func _section(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
-	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
+	label.add_theme_color_override("font_color", UiStyle.DIM)
 	return label
 
 

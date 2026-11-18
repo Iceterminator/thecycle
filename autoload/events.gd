@@ -83,6 +83,6 @@ signal profile_loaded(peer_id: int)
 ## Client : équipement sauvegardé reçu (pré-remplit le lobby).
 signal local_loadout_received(loadout: Dictionary)
 ## Client : état du lobby (joueurs prêts, secondes avant le départ).
-signal lobby_synced(ready: Dictionary, left: float)
+signal lobby_synced(ready: Dictionary)
 
 @warning_ignore_restore("unused_signal")
