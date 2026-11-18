@@ -30,13 +30,13 @@
 
 | # | Question | Proposition par défaut | Réponse |
 | --- | --- | --- | --- |
-| D1 | Rendu : garder le low-poly stylisé ou viser un rendu riche (textures peintes, végétation dense) ? | Garder le low-poly, mais reprendre la palette, la brume et la lumière de la vidéo | à trancher |
-| D2 | Touches : passer à G (boutique), A / E (capacités), L (kit), T maintenu (pacte) ? E sert déjà à interagir. | Garder Q / F et E ; boutique T → G ; kit K → L | à trancher |
-| D3 | Noms propres au jeu pour : la tempête (« pic du Cycle »), les cristaux d'orage, l'uplink | « Grande Marée », « Éclats d'orage », garder « Relais » | à trancher |
-| D4 | Carte : agrandir (île entourée d'eau, biomes) ? Quelle taille ? | 400 × 400 m, 3 biomes (canyon ocre, prairie, zone industrielle) | à trancher |
-| D5 | Fame d'un kill de joueur | 10 (au lieu de 50) | à trancher |
-| D6 | Véhicule (moto volante) | Abandonner pour l'instant | à trancher |
-| D7 | Défis personnels en partie | Abandonner pour l'instant | à trancher |
+| D1 | Rendu : garder le low-poly stylisé ou viser un rendu riche (textures peintes, végétation dense) ? | Garder le low-poly, mais reprendre la palette, la brume et la lumière de la vidéo | Par défaut (validé le 18/11/2026) |
+| D2 | Touches : passer à G (boutique), A / E (capacités), L (kit), T maintenu (pacte) ? E sert déjà à interagir. | Garder Q / F et E ; boutique T → G ; kit K → L | Par défaut (validé le 18/11/2026) |
+| D3 | Noms propres au jeu pour : la tempête (« pic du Cycle »), les cristaux d'orage, l'uplink | « Grande Marée », « Éclats d'orage », garder « Relais » | Par défaut (validé le 18/11/2026) |
+| D4 | Carte : agrandir (île entourée d'eau, biomes) ? Quelle taille ? | 400 × 400 m, 3 biomes (canyon ocre, prairie, zone industrielle) | Par défaut (validé le 18/11/2026) |
+| D5 | Fame d'un kill de joueur | 10 (au lieu de 50) | Par défaut (validé le 18/11/2026) |
+| D6 | Véhicule (moto volante) | Abandonner pour l'instant | Par défaut (validé le 18/11/2026) |
+| D7 | Défis personnels en partie | Abandonner pour l'instant | Par défaut (validé le 18/11/2026) |
 
 ---
 
@@ -95,8 +95,8 @@
   - `[capture]` `B4.png` : boutique ouverte, 3 colonnes.
 - [ ] **B5. Fame d'un kill de joueur.** Décisions : D5.
   - `[code]` `Config.PLAYER_KILL_FAME` correspond à D5.
-- [ ] **B6. Véhicule.** Décisions : D6 (par défaut `[-]`).
-- [ ] **B7. Défis personnels.** Décisions : D7 (par défaut `[-]`).
+- [-] **B6. Véhicule.** Décisions : D6 (par défaut `[-]`).
+- [-] **B7. Défis personnels.** Décisions : D7 (par défaut `[-]`).
 
 ## Bloc C — Graphismes
 
