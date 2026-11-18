@@ -46,6 +46,9 @@ var _knockback := Vector3.ZERO
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 ## Synchronisé : le serveur doit connaître la hauteur de la capsule pour les tirs.
 var is_crouching: bool = false
+## En l'air (saut, chute, jetpack) : synchronisé pour l'animation vue par les autres.
+var is_airborne: bool = false
+var avatar: PlayerAvatar
 ## À bord de l'évac (décidé par le serveur, envoyé par set_evacuated) : spectateur
 ## intouchable, ne tire plus, n'interagit plus, vole librement.
 var is_evacuated: bool = false
@@ -105,7 +108,7 @@ func _ready() -> void:
 	held_weapon.setup(self)
 	# Corps animé, pour les autres joueurs seulement (le joueur local ne voit pas son corps).
 	if not is_local and not Net.is_dedicated_server:
-		var avatar := PlayerAvatar.new()
+		avatar = PlayerAvatar.new()
 		avatar.name = "Avatar"
 		body_mesh.add_child(avatar)
 		avatar.setup(self, body_mesh)
@@ -174,6 +177,7 @@ func _physics_process(delta: float) -> void:
 		_spectator_move(delta)
 		return
 	var on_floor := is_on_floor()
+	is_airborne = not on_floor
 	if not on_floor:
 		velocity.y -= gravity * delta
 
@@ -360,9 +364,9 @@ func _build_beacon() -> void:
 
 
 func _on_dead_changed(dead: bool) -> void:
-	# Un mort ne bloque pas les tirs et ne se voit pas.
+	# Un mort ne bloque pas les tirs ; son corps reste visible (animation de mort) jusqu'à la réapparition.
 	collision.set_deferred("disabled", dead)
-	body_mesh.visible = not dead and not is_multiplayer_authority()
+	body_mesh.visible = not is_multiplayer_authority()
 	if is_multiplayer_authority():
 		velocity = Vector3.ZERO
 		set_physics_process(not dead)

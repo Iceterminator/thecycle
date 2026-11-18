@@ -15,6 +15,7 @@ extends Node3D
 const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
 const AIM_SPEED := 12.0
+const HAND_SHIFT := Vector3(0.0, 0.04, -0.08)  ## arme des autres : un peu devant et au-dessus de la paume
 
 const KICK_BACK := 0.07          ## recul de l'arme vers l'arrière (m) à pleine force
 const KICK_UP_DEG := 8.0         ## canon qui se relève (degrés) à pleine force
@@ -94,7 +95,12 @@ func _process(delta: float) -> void:
 	visible = not player.health.is_dead and not player.is_evacuated and (local or player.body_mesh.visible)
 	var t := clampf(delta * AIM_SPEED, 0.0, 1.0)
 	if not local:
-		position = position.lerp(HIP_POSITION + _offset, t)
+		# Dans la main droite du personnage, orientée comme le regard (tête synchronisée).
+		if player.avatar and player.avatar.is_visible_in_tree():
+			rotation = Vector3.ZERO
+			global_position = player.avatar.hand_position() + player.head.global_basis * HAND_SHIFT
+		else:
+			position = position.lerp(HIP_POSITION + _offset, t)
 		return
 	var aiming := player.weapon.is_aiming
 	_base = _base.lerp((AIM_POSITION if aiming else HIP_POSITION) + _offset, t)

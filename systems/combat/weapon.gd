@@ -648,6 +648,8 @@ func _show_shot(origin: Vector3, end: Vector3, kind: int) -> void:
 		tracer.look_at(end, Vector3.UP if absf((end - from).normalized().y) < 0.99 else Vector3.RIGHT)
 	_muzzle_flash(world, from)
 	_spawn_impact(world, end, kind)
+	if player.avatar:
+		player.avatar.play_shot()
 
 
 func _muzzle_flash(world: Node3D, pos: Vector3) -> void:
@@ -688,6 +690,8 @@ func _show_projectile(id: int, origin: Vector3, dir: Vector3, speed: float, max_
 		bolt.add_child(_make_smoke())
 	_visual_projectiles[id] = bolt
 	_muzzle_flash(world, start)
+	if player.avatar:
+		player.avatar.play_shot()
 	var tween := bolt.create_tween()
 	tween.tween_property(bolt, "global_position", target, start.distance_to(target) / speed)
 	tween.finished.connect(_free_visual_projectile.bind(id))
