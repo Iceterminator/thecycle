@@ -8,8 +8,8 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 - **Godot 4.7.2**, GDScript, rendu Forward+.
   Exécutable (hors PATH, chemin relatif à la racine) :
   `../../../Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64_console.exe`
-- MCP : **godot-mcp** (lancer / inspecter le projet), **godot-prompter** (skills
-  `godot-prompter:*` avant tout nouveau système), **Blender MCP** (modèles 3D).
+- MCP : **godot-mcp** (lancer / inspecter le projet), **Blender MCP** (modèles 3D).
+  Plugins godot-prompter et ponytail désactivés pour ce projet (`.claude/settings.json`).
 - Python n'est pas installé : Bash (sed, awk) ou les outils d'édition.
 
 ## Règles du projet
@@ -94,6 +94,8 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 - Scripts .gd : moins de 150 lignes, une responsabilité, noms en snake_case explicites. Si un fichier dépasse, propose un découpage.
 - Données de jeu (stats, loot, prix) dans data/ en .tres ou JSON, jamais en dur dans le code.
 - Ne lis pas un .tscn en entier si un grep suffit. Ne lis que les fichiers nécessaires à la tâche.
+- Gros scripts (plus de 400 lignes : lobby_ui, hud, weapon, monster…) : grep d'abord, puis lis seulement les lignes utiles (offset / limit), jamais le fichier entier.
+- Ne lis pas `data/reference/the_cycle_legacy_data.json` (2 600 lignes) sauf si la tâche porte sur les chiffres d'origine, et alors avec grep.
 - Avant d'explorer, consulte la table « mécanique → fichiers » et le docs/ concerné.
 - Après tout déplacement ou renommage : mets à jour les références res:// et les UID, puis lance un test en headless.
 - Après chaque changement de code : `-s tools/check_scripts.gd` sans échec (avant : `--import` seulement si une class_name ou un asset est nouveau), lancé par le chercheur, qui ne renvoie que les erreurs.

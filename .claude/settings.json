@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "godot-prompter@skillsmith": false,
+    "ponytail@ponytail": false,
+    "agent-skills@addy-agent-skills": false
+  }
+}
