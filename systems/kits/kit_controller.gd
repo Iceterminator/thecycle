@@ -69,7 +69,8 @@ func _ready() -> void:
 		Events.player_died.connect(_on_player_died)
 		kit_id = String(Config.DEFAULT_KIT)
 		_server_apply_stats(true)
-		_open_change_window()
+		# Le client n'a pas encore ce joueur à cet instant : un RPC tout de suite serait perdu (erreur « Node not found »).
+		get_tree().create_timer(1.0).timeout.connect(_open_change_window)
 	if player.is_multiplayer_authority():
 		var ui: Node = EQUIPMENT_UI_SCRIPT.new()
 		add_child(ui)
