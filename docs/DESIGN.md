@@ -89,61 +89,16 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 > Sprint = marche x1,9, glissade (sprint + Accroupi) pour tous, contrôle en l'air 0,25. Capacités : Martinet
 > (jetpack, plongée), Furet (charges, double saut, esquive), Bastion (super saut, coup de poing chargé **V**),
 > Kit de prospecteur (propulseurs). Niveaux 1 à 6 en partie (XP : joueurs et monstres tués, Fame et points
-> d'objectif gagnés ; seuils dans `Config.KIT_LEVEL_XP`), bonus de la référence. Les améliorations de
+> d'objectif gagnés ; seuils dans `Config.economy.kit_level_xp`), bonus de la référence. Les améliorations de
 > bouclier ont quitté la boutique.
 - 100 PV + bouclier par palier : 25 au départ (palier 0), puis 50, 100, 150 (paliers 1 à 3), achetés en boutique. Le palier acheté est gardé à la mort.
 - Le bouclier absorbe d'abord. Il se recharge seul après 10 s sans dégâts, de 1/20 de son maximum par seconde. La santé remonte seule de 1 PV/s après 20 s sans dégâts, et plus vite avec des soins. *(valeurs du 17/11/2026, provisoires)*
 - Le niveau de bouclier s'améliore **pendant la partie** avec les crédits gagnés.
 
 ### 4. Loot et crédits en partie
-- Caisses, monstres tués et joueurs tués lâchent armes, munitions, soins, gadgets et ressources.
-- Les crédits gagnés pendant la partie servent aux améliorations sur place : terminaux d'achat ou **largage de ravitaillement** que le joueur appelle (arrive en 30 s, visible par tous).
-- Ressources récoltables (minerais, plantes) : à rapporter pour certains contrats.
+$3
 
-> **Boutique et largages (17/11/2026) — remplace les caisses.** Les caisses de loot sont supprimées.
-> Au largage, le joueur a seulement le pistolet **Dard** (K-28 de la référence) et **25 de bouclier**. Avec **T**, il ouvre la
-> **boutique** : armes (Guêpe 200, Trident 500, Faucon 500) et améliorations de bouclier (50 → 100 cr.,
-> 100 → 200 cr., 150 → 350 cr.), payées en crédits. L'achat fait tomber une **capsule de largage**
-> à 3 m devant le joueur, qui atterrit au bout de 3 s ; l'objet est dedans, au sol, et **n'importe quel
-> joueur peut le ramasser**. Prix dans `data/items/*.tres` (`price`), délais dans `Config`.
-> Soins et recharges de bouclier ne sont plus vendus ni trouvés pour l'instant (la vie et le bouclier
-> se régénèrent seuls).
-
-### 4 bis. Quête « cristal + foreuse » (17/11/2026, première quête codée)
-- Des **cristaux** sont posés sur la carte, en 3 difficultés : **facile** (1 vague de Rôdeurs, +100 pts de quête), **moyen** (2 vagues, la 2e avec un Colosse, +250 pts), **difficile** (2 vagues plus grosses, monstres +40 % PV et +30 % dégâts, +500 pts).
-- **Maintenir E 3 s** sur un cristal déploie une **foreuse**. Des vagues de monstres apparaissent à 16-22 m et attaquent la foreuse (elle a des PV). Ils ripostent si on leur tire dessus, puis retournent sur la foreuse.
-- Il faut **tuer tous les monstres de toutes les vagues**. Si la foreuse est détruite, la quête échoue et le cristal redevient utilisable 15 s plus tard.
-- Une fois les vagues finies, **maintenir E 5 s** sur la foreuse donne les **points de quête** à celui qui extrait (un autre joueur peut voler l'extraction).
-- Un cristal extrait est épuisé ; pour les tests, il réapparaît après 120 s. Valeurs dans `data/quests/*.tres` et `Config`.
-- Les points de quête sont affichés en haut à droite. Ils préparent la Fame et le classement de l'étape 5.
-
-### 4 ter. Contrats sur la carte (17/11/2026, codés, ouverts à tous sans tableau de contrats)
-Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `data/contracts/*.tres` et `Config`.
-- **Forage de cristal** : voir §4 bis.
-- **Relais satellite** : maintenir E 5 s pour le capturer ; +3 pts/s au propriétaire jusqu'à ce qu'un autre le reprenne. Capture annoncée à tous.
-- **Extracteur d'Ambrine** : maintenir E 4 s pour l'installer ou le reprendre. Son propriétaire reçoit directement des points d'objectif, sans y retourner, de plus en plus vite (+1 pt/s, +1,5 pt/s par minute tenue, remis à zéro quand il change de mains). Annoncé aux joueurs, pas aux monstres.
-- **Cœur stellaire** : objet unique au centre ; son porteur gagne +4 pts/s et sa position est visible par tous (balise). Il tombe au sol à sa mort.
-- **Chasse à la biomasse** : Rôdeurs (1) et Colosses (3) lâchent de la biomasse (20 max portés) ; dépôt au collecteur = 15 pts l'unité.
-- **Lumicèpes** : champignons qui repoussent sur 8 spots ; les porter attire des **Tiques**, de plus en plus souvent (24 s ÷ nombre porté) ; dépôt = 40 pts l'unité (10 max).
-- **Station de recherche** : 3 nœuds couverts de biomasse ; chaque activation (E 3 s) fait venir une vague qui attaque l'activateur ; puis l'ordinateur central = 300 pts.
-- **Drones en panne** : protéger 3 drones pendant 45 s contre 2 vagues, puis envoyer chaque survivant (E 1,5 s) = 120 pts × PV restants.
-- **Prime** : toutes les 90 s, prime sur le joueur qui a le plus de points (150 + 25 % de ses points), position visible ; son tueur la gagne, s'il survit 120 s il en touche la moitié.
-- **Évac** : codé à l'étape 6, voir §9.
-- Pas encore de tableau « 4 contrats proposés, 2 actifs » : tous les contrats sont ouverts à tous.
-> **Deux types de points (17/11/2026).** Les **points de classement** forment le score général. Les objectifs Forage, Relais, Ambrine, Cœur stellaire, Biomasse et Lumicèpes rapportent des **points d'objectif** propres à chacun ; chaque **palier** atteint donne des points de classement (par défaut +10, +15, +20, +25, puis +25 par palier supplémentaire). Paliers dans `data/objectives/*.tres`. La station (+40), les drones (+15 par drone × PV restants) et la prime (20 + 10 % du classement de la cible) donnent directement des points de classement. Les chiffres en « pts » des lignes ci-dessus sont des points d'objectif, sauf pour ces trois contrats.
-
-### 5. Contrats
-- 4 contrats proposés au largage, 2 actifs au maximum. On en reprend de nouveaux à chaque fin.
-- Chaque contrat appartient à une faction et rapporte de la Fame + des crédits + des points de réputation.
-
-| Type | Objectif | Fame de départ |
-| --- | --- | --- |
-| Livraison | Aller du point A au point B avec un objet | 100 |
-| Récolte | Ramasser X ressources et les déposer | 150 |
-| Chasse | Tuer X monstres d'un type | 150 |
-| Contrôle | Tenir une zone pendant 60 s (roi de la colline) | 200 |
-| Données | Pirater un terminal (interaction longue, vulnérable) | 150 |
-| Prime | Tuer un joueur désigné | 250 |
+$3
 
 ### 6. Fame et score
 - **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, Cœur stellaire (où qu'il soit), et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
@@ -156,34 +111,13 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - Classement en direct visible dans l'interface. Le score ne compte que si le joueur est à bord de l'évac.
 
 ### 7. Monstres (PvE)
-- 3 types de départ : petit rapide (meute), moyen à distance, gros tank. Plus tard, un boss pour les événements.
-- Patrouille par zones, IA simple : patrouille → poursuite → attaque → retour.
-- **Niveaux (codé 17/11/2026)** : niveau 1 au départ, **2 à 5:00, 3 à 10:00** (`Config.MONSTER_LEVEL_*`). Appliqué aux monstres qui apparaissent ensuite : PV ×1,25 / ×1,5, dégâts ×1,15 / ×1,3, **crédits ×1,5 / ×2**. Affiché au-dessus du monstre (« niv. 2 »).
-- **Cristaux à 10:00** : les cristaux pas encore commencés montent d'un niveau (le niveau max reste max) ; ceux en cours ou faits ne bougent pas.
-- **Cracheur (codé)** : monstre à distance (`data/monsters/cracheur.tres`) ; tire un projectile lent et esquivable à 20 m, recule si on l'approche à moins de 7 m. 1-2 par camp de niveau 1, 2-3 par camp de niveau 2.
-- **Camps (meutes)** : les monstres vivent en camps de 2 niveaux. Niveau 1 = 1 Colosse (tank) + 3 à 5 Rôdeurs (petits rapides). Niveau 2 = 2 à 3 Colosses + 7 à 10 Rôdeurs. Quand un monstre repère ou se fait attaquer par un joueur, toute la meute réagit.
-- **Récompenses** : pour l'instant, un monstre tué donne seulement des crédits, versés directement au tueur. À terme, **vider un camp rapportera des points de quête** (`Events.camp_cleared` est déjà émis). Il faudra aussi les autres types (à distance, boss).
-- Pour les tests, un camp vidé réapparaît après 60 s (`Config.CAMP_RESPAWN_DELAY`).
+$3
 
 ### 8. Tempête
-> **Grande Marée (18/11/2026, d'après la vidéo de référence ; remplace la zone qui se referme).** Tempête
-> sur **toute la carte**, sans zone ni dégâts. `data/storm/phase_1.tres` : annoncée à **9:00** (bandeau vert
-> « La Grande Marée débute dans 60 s »), elle commence à **10:00** et dure jusqu'à la fin. Le ciel passe en 20 s
-> au bleu-gris violet : pluie, éclairs violets, brouillard, soleil faible. Les monstres détectent et courent ×1,3
-> pendant la tempête (`Config.STORM_MONSTER_MULT`). Au début de la tempête : **12 Éclats d'orage** tombent au hasard sur la carte et un **Collecteur d'éclats d'orage** apparaît (30 pts d'objectif l'éclat, objectif « Éclats d'orage » à paliers) ; réglages dans `phase_1.tres`.
+$3
 
 ### 9. Évacuation
-- Le vaisseau est annoncé à 16:00 (`Config.EVAC_ANNOUNCE_TIME`) : un camp de monstres (`data/camps/evac_pad.tres`) apparaît sur la plateforme. Il arrive à 17:00 (`Config.EVAC_LANDING_TIME`, 3 min avant la fin) mais ne se pose qu'une fois la plateforme nettoyée (« NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME ») ; le tueur du dernier monstre gagne `Config.EVAC_PAD_CLEAR_FAME` (20). Décollage à 20:00.
-- Embarquement : rester 5 s dans la zone de la soute. Ensuite le joueur est en sécurité.
-- Places illimitées, mais une seule rampe d'accès : c'est le point chaud de la partie.
-- *(codé, 17/11/2026)* Une fois à bord : spectateur intouchable (vol libre, Espace / Ctrl), ne tire plus et
-  n'interagit plus ; s'il portait le Cœur stellaire, il le lâche ; une prime sur lui est annulée.
-- Classement : le **premier** embarqué gagne +50, les suivants +0 ; au décollage, ceux qui ne sont
-  pas à bord perdent **100** points de classement (`Config.EVAC_*`).
-- Après le décollage : écran de fin (classement) pendant 20 s, puis **nouvelle partie sur place** :
-  points, crédits, inventaire et bouclier remis à zéro, loot effacé, monstres, cristaux et contrats recréés.
-- Le vaisseau : soute surélevée, une porte et une rampe ; on passe sous le plancher accroupi
-  (le Cœur stellaire est au centre). Menu admin : « Aller à 14:50 » et « Aller à 19:50 » pour tester.
+$3
 
 ### 10. Pactes
 - Deux joueurs (solos ou escouades) peuvent proposer un pacte : Fame des contrats partagée, pas de dégâts entre eux.
@@ -195,17 +129,7 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 - Chaque faction débloque ses propres gadgets.
 
 ### 12. Factions et progression (hors partie)
-- 3 factions inventées (équivalents de Korolev, ICA, Osiris) : puissance lourde, équilibre, technologie.
-- Les contrats donnent de la réputation, qui débloque niveau par niveau des armes et gadgets.
-- Entre les parties : mods d'armes et gadgets (feu, électricité, poison, chargeurs étendus…).
-- Sauvegarde côté serveur (JSON par joueur au début, base de données plus tard).
-- **Codé à l'étape 9 (18/11/2026)** : Forge Brask (Korolev, id 1 : Forage, Ambrine, Station),
-  Lumen (Osiris, id 2 : Relais, Drones, Cœur stellaire), Consortium Vega (ICA, id 3 : collecteurs, Prime).
-  Les vrais noms s'affichent pour l'instant (même interrupteur que les armes), nos noms sont prêts dans
-  `data/factions/`. Réputation = Fame de contrat de la faction (+50 % pour la faction de prédilection),
-  10 niveaux (`Config.REP_LEVELS`). Déblocage par niveau seulement : kits, capacités, armes (boutique),
-  mods de kit (niveau du kit +2/+4/+6/+8), mods d'arme (chargeur étendu libre ; incendie Forge 3,
-  électrique Vega 3, toxine Lumen 3). Profil `user://profiles/<pseudo>.json` (réputation, équipement, stats).
+$3
 
 ## Feuille de route
 
@@ -221,7 +145,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
 - [x] **Étape 7 – Tempête et événements** — *(fait le 17/11/2026, validé par test automatisé à 2 instances, à vérifier en jeu)* : tempête en zone qui se referme, niveaux de monstres, cristaux qui montent de niveau à 10:00, Cracheur (monstre à distance). **Pas d'événements à 5 et 10 min pour l'instant, pas de largages de ravitaillement.**
 - [ ] **Étape 8 – Profondeur du combat** — familles d'armes, raretés, boucliers en partie, gadgets, pactes, escouades, état « à terre ». **+ kits** (voir ci-dessous).
   Découpage (référence : `data/reference/the_cycle_legacy_data.json`, nouvelle version avec capacités et gadgets) :
-  **8a armes (fait le 17/11/2026)** ; **8b kits (fait le 17/11/2026)** ; **8c capacités (fait le 17/11/2026)** : 21 capacités (Q / F), choix dans le menu K, 2 améliorations à 100 cr. en boutique, bonus / malus synchronisés (BuffController) ; **8d gadgets (fait le 17/11/2026)** : Grenade à fragmentation, Rayon vital, Balise de rappel (boutique), Scanner directionnel (alarme à 25 m + carte) ; **8e (fait le 17/11/2026)** : pas de raretés, à la place 3 paliers de boost par arme achetés en boutique (+10 % dégâts, +10 % portée, +10 % cadence ; `WeaponData.boosts`, prix `Config.WEAPON_BOOST_PRICES`) ; pactes (P) : pas de dégâts entre partenaires, Fame des contrats moitié / moitié, trahison annoncée ; état « à terre » 30 s (relevé E 5 s, achevable, kill pour qui l'a mis à terre) — en attendant les escouades, le partenaire de pacte compte comme coéquipier (`Config.PACT_PARTNER_IS_ALLY`). **Escouades : reportées à l'étape 9.**
+  **8a armes (fait le 17/11/2026)** ; **8b kits (fait le 17/11/2026)** ; **8c capacités (fait le 17/11/2026)** : 21 capacités (Q / F), choix dans le menu K, 2 améliorations à 100 cr. en boutique, bonus / malus synchronisés (BuffController) ; **8d gadgets (fait le 17/11/2026)** : Grenade à fragmentation, Rayon vital, Balise de rappel (boutique), Scanner directionnel (alarme à 25 m + carte) ; **8e (fait le 17/11/2026)** : pas de raretés, à la place 3 paliers de boost par arme achetés en boutique (+10 % dégâts, +10 % portée, +10 % cadence ; `WeaponData.boosts`, prix `Config.economy.weapon_boost_prices`) ; pactes (P) : pas de dégâts entre partenaires, Fame des contrats moitié / moitié, trahison annoncée ; état « à terre » 30 s (relevé E 5 s, achevable, kill pour qui l'a mis à terre) — en attendant les escouades, le partenaire de pacte compte comme coéquipier (`Config.PACT_PARTNER_IS_ALLY`). **Escouades : reportées à l'étape 9.**
   > **Kits, reportés à l'étape 8 (demandé le 17/11/2026).** Données déjà prêtes : `KitData`
   > (`resources/kit_data.gd`) et 5 kits dans `data/kits/` (Martinet, Furet, Bastion, Kit de prospecteur,
   > Kit nu), générés depuis `data/reference/the_cycle_legacy_data.json`.
@@ -241,7 +165,7 @@ Onze étapes (0 à 10). La boucle complète est jouable à la fin de l'étape 6.
   >    armes importées sont réglées), contre 100 PV + 25 de bouclier aujourd'hui. Soit le kit remplace
   >    tout et les améliorations de bouclier quittent la boutique, soit le kit donne la base et la
   >    boutique ajoute du bouclier en plus.
-- [x] **Étape 9 – Méta et lobby (fait le 18/11/2026)** — **9a** pseudo + profil JSON côté serveur, menu principal (pseudo, serveurs récents, partie rapide `Config.QUICK_PLAY_ADDRESSES`, `--name=`) ; **9b** factions, réputation, déblocages, boutique élargie (toutes les armes, verrouillées selon la réputation) ; **9c** lobby entre les parties (`MatchManager.Phase.LOBBY`, départ seulement quand tous les joueurs sont prêts, sans minuteur ; pas de dégâts ni d'interactions ; écran : joueurs, escouades, faction de prédilection, kit, mod de kit, capacités, mods d'arme ; admin : « Lancer la partie ») ; **9d** escouades jusqu'à 4 formées dans le lobby (largage ensemble, pas de tirs entre eux, carte, relève à terre ; `Allies`) ; **9e** mods de kit (10, chiffres du JSON) et mods d'arme (`data/weapon_mods/`). **9f (18/11/2026)** : arme de départ au choix parmi les secondaires débloquées ; boutique configurée dans le lobby (4 cases d'armes + 4 cases gadgets / capacités, au choix) ; en partie, une arme déjà portée s'améliore (palier de boost) ; Q / F vides au départ : capacité ou gadget acheté (capacité `Config.ABILITY_PRICE`) puis assigné avec Q ou F (remplace), racheté = amélioration / recharge, perdu à la mort ; gadget sur Q / F = pris en main avec la touche ; lobby à onglets (Équipement, Boutique, Progression des factions, Escouade).
+- [x] **Étape 9 – Méta et lobby (fait le 18/11/2026)** — **9a** pseudo + profil JSON côté serveur, menu principal (pseudo, serveurs récents, partie rapide `Config.QUICK_PLAY_ADDRESSES`, `--name=`) ; **9b** factions, réputation, déblocages, boutique élargie (toutes les armes, verrouillées selon la réputation) ; **9c** lobby entre les parties (`MatchManager.Phase.LOBBY`, départ seulement quand tous les joueurs sont prêts, sans minuteur ; pas de dégâts ni d'interactions ; écran : joueurs, escouades, faction de prédilection, kit, mod de kit, capacités, mods d'arme ; admin : « Lancer la partie ») ; **9d** escouades jusqu'à 4 formées dans le lobby (largage ensemble, pas de tirs entre eux, carte, relève à terre ; `Allies`) ; **9e** mods de kit (10, chiffres du JSON) et mods d'arme (`data/weapon_mods/`). **9f (18/11/2026)** : arme de départ au choix parmi les secondaires débloquées ; boutique configurée dans le lobby (4 cases d'armes + 4 cases gadgets / capacités, au choix) ; en partie, une arme déjà portée s'améliore (palier de boost) ; Q / F vides au départ : capacité ou gadget acheté (capacité `Config.economy.ability_price`) puis assigné avec Q ou F (remplace), racheté = amélioration / recharge, perdu à la mort ; gadget sur Q / F = pris en main avec la touche ; lobby à onglets (Équipement, Boutique, Progression des factions, Escouade).
 - [ ] **Étape 10 – En ligne** — serveur dédié hébergé (VPS), tests à 10-20 joueurs, optimisation réseau.
 
 ## Architecture Godot

@@ -17,3 +17,19 @@ Code : `systems/inventory/inventory.gd`, `systems/shop/`, `systems/loot/` · Don
 - Boutique en 3 colonnes, lâcher des crédits au sol.
 
 ## Règles du jeu original : à compléter
+
+## Conception détaillée (déplacé de DESIGN.md)
+
+### 4. Loot et crédits en partie
+- Caisses, monstres tués et joueurs tués lâchent armes, munitions, soins, gadgets et ressources.
+- Les crédits gagnés pendant la partie servent aux améliorations sur place : terminaux d'achat ou **largage de ravitaillement** que le joueur appelle (arrive en 30 s, visible par tous).
+- Ressources récoltables (minerais, plantes) : à rapporter pour certains contrats.
+
+> **Boutique et largages (17/11/2026) — remplace les caisses.** Les caisses de loot sont supprimées.
+> Au largage, le joueur a seulement le pistolet **Dard** (K-28 de la référence) et **25 de bouclier**. Avec **T**, il ouvre la
+> **boutique** : armes (Guêpe 200, Trident 500, Faucon 500) et améliorations de bouclier (50 → 100 cr.,
+> 100 → 200 cr., 150 → 350 cr.), payées en crédits. L'achat fait tomber une **capsule de largage**
+> à 3 m devant le joueur, qui atterrit au bout de 3 s ; l'objet est dedans, au sol, et **n'importe quel
+> joueur peut le ramasser**. Prix dans `data/items/*.tres` (`price`), délais dans `Config`.
+> Soins et recharges de bouclier ne sont plus vendus ni trouvés pour l'instant (la vie et le bouclier
+> se régénèrent seuls).

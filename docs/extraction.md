@@ -16,3 +16,18 @@ Code : `systems/evac/evac_ship.gd`, `systems/match/match_manager.gd` · Données
 - Ressenti à vérifier en jeu : difficulté du camp de la plateforme, temps d'embarquement.
 
 ## Règles du jeu original : à compléter
+
+## Conception détaillée (déplacé de DESIGN.md)
+
+### 9. Évacuation
+- Le vaisseau est annoncé à 16:00 (`Config.match_rules.evac_announce_time`) : un camp de monstres (`data/camps/evac_pad.tres`) apparaît sur la plateforme. Il arrive à 17:00 (`Config.match_rules.evac_landing_time`, 3 min avant la fin) mais ne se pose qu'une fois la plateforme nettoyée (« NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME ») ; le tueur du dernier monstre gagne `Config.economy.evac_pad_clear_fame` (20). Décollage à 20:00.
+- Embarquement : rester 5 s dans la zone de la soute. Ensuite le joueur est en sécurité.
+- Places illimitées, mais une seule rampe d'accès : c'est le point chaud de la partie.
+- *(codé, 17/11/2026)* Une fois à bord : spectateur intouchable (vol libre, Espace / Ctrl), ne tire plus et
+  n'interagit plus ; s'il portait le Cœur stellaire, il le lâche ; une prime sur lui est annulée.
+- Classement : le **premier** embarqué gagne +50, les suivants +0 ; au décollage, ceux qui ne sont
+  pas à bord perdent **100** points de classement (`Config.economy.evac_*`).
+- Après le décollage : écran de fin (classement) pendant 20 s, puis **nouvelle partie sur place** :
+  points, crédits, inventaire et bouclier remis à zéro, loot effacé, monstres, cristaux et contrats recréés.
+- Le vaisseau : soute surélevée, une porte et une rampe ; on passe sous le plancher accroupi
+  (le Cœur stellaire est au centre). Menu admin : « Aller à 14:50 » et « Aller à 19:50 » pour tester.
