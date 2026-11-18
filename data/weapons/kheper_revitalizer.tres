@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_11t02"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_HealthPack_Tube.gltf" id="1_073b4"]
 
 [resource]
 script = ExtResource("1_11t02")
@@ -21,6 +22,8 @@ spawn_cost_credits = 250
 tracer_color = Color(0.4, 1, 0.55, 1)
 tracer_width = 0.06
 tracer_time = 0.25
+model = ExtResource("1_073b4")
+model_length = 0.18
 role = "Viser un allié et maintenir le tir : rayon de soin continu. Clic secondaire (estimé) : se soigner soi-même."
 strengths = PackedStringArray()
 weaknesses = PackedStringArray()

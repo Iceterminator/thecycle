@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Sniper.gltf" id="1_l373e"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_t0mh4"]
 
 [resource]
@@ -36,6 +37,10 @@ tracer_time = 0.12
 muzzle_flash_scale = 2.5
 impact_scale = 2.5
 projectile_size = 0.05
+model = ExtResource("1_l373e")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.46399999999999997
+model_offset = Vector3(0, -0.02, -0.12)
 role = "DMR de Korolev : tir semi-auto précis à moyenne/longue portée, plus rapide qu'un sniper."
 shot_feel = "Coups secs et puissants à cadence rapide pour un fusil à lunette."
 projectile_visual = "Balles-projectiles rapides avec fine traînée."

@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Sniper.gltf" id="1_cohbd"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_jog4y"]
 
 [resource]
@@ -35,6 +36,10 @@ tracer_time = 0.25
 muzzle_flash_scale = 2.5
 impact_scale = 2.5
 projectile_size = 0.05
+model = ExtResource("1_cohbd")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.48
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Sniper à verrou de départ : un tir puissant puis réarmement ; idéal pour ouvrir un combat à distance."
 shot_feel = "Gros 'boum' lourd, recul franc, puis animation de culasse (1.3 s) pendant laquelle on est vulnérable."
 projectile_visual = "Balle-projectile rapide avec une fine traînée lumineuse visible par la cible."

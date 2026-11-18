@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_h2gum"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_usaf2"]
 
 [resource]
 script = ExtResource("1_h2gum")
@@ -28,6 +29,10 @@ tracer_width = 0.015
 muzzle_flash_scale = 0.725
 impact_scale = 0.7
 projectile_size = 0.05
+model = ExtResource("1_usaf2")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.30400000000000005
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Arme de corps à corps rapproché pour débutant ; nettoie les petits monstres et gagne les duels à moins de 15 m."
 shot_feel = "Crépitement léger et très rapide ; l'arme tremble peu par balle mais la dispersion s'ouvre vite en tir prolongé."
 projectile_visual = "Aucune balle visible (hitscan) ; petits traçants fins et flash de canon discret."

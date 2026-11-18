@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_2adkb"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_3gg72"]
 
 [resource]
 script = ExtResource("1_2adkb")
@@ -31,6 +32,10 @@ tracer_time = 0.12
 muzzle_flash_scale = 1.75
 impact_scale = 1.5555555555555556
 projectile_size = 0.05
+model = ExtResource("1_3gg72")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.36000000000000004
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Fusil semi-auto d'ICA à gros dégâts par tir."
 shot_feel = "Coups secs et puissants au clic, rythme rapide pour un semi-auto."
 projectile_visual = "Hitscan, traçant net."

@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Pistol.gltf" id="1_phk4c"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_yx3qa"]
 
 [resource]
@@ -36,6 +37,9 @@ tracer_width = 0.015
 muzzle_flash_scale = 2.5
 impact_scale = 2.5
 projectile_size = 0.05
+model = ExtResource("1_phk4c")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.24
 role = "Pistolet-fusil à pompe d'ICA à 2 coups : finisher de corps à corps."
 shot_feel = "Deux gros coups rapides puis rechargement."
 projectile_visual = "Hitscan en gerbe de 7 plombs."

@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_1okhi"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_f0dig"]
 
 [resource]
@@ -26,6 +27,10 @@ tracer_color = Color(1, 0.55, 0.2, 1)
 muzzle_flash_scale = 0.85
 impact_scale = 0.7555555555555555
 projectile_size = 0.05
+model = ExtResource("1_1okhi")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.376
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Fusil d'assaut 'qui tape fort' de Korolev ; récompense les joueurs qui contrôlent le recul."
 shot_feel = "Tir automatique lourd et lent, chaque balle donne un coup ; arme massive (bullpup industriel)."
 projectile_visual = "Hitscan ; gros flash de canon orange, traçants épais."

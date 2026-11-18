@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_hr11q"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_sf0q0"]
 
 [resource]
 script = ExtResource("1_hr11q")
@@ -37,6 +38,10 @@ tracer_width = 0.012
 muzzle_flash_scale = 3.75
 impact_scale = 2.5
 projectile_size = 0.05
+model = ExtResource("1_sf0q0")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.36000000000000004
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Fusil à pompe à levier d'ICA : un tir énorme, très fort contre la santé."
 shot_feel = "Gros tir lourd puis action du levier (1.27 s) ; chaque coup secoue l'écran."
 projectile_visual = "Hitscan en gerbe de 10 plombs avec flash bleu."

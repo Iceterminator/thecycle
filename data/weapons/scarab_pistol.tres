@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_3h6li"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Pistol.gltf" id="1_w4mk1"]
 
 [resource]
 script = ExtResource("1_3h6li")
@@ -36,6 +37,9 @@ tracer_width = 0.015
 muzzle_flash_scale = 0.95
 impact_scale = 0.8444444444444444
 projectile_size = 0.05
+model = ExtResource("1_w4mk1")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.22
 role = "Pistolet à phase d'Osiris en rafale de 3."
 shot_feel = "Rafale de 3 tirs légers par clic."
 projectile_visual = "Hitscan, petits traits d'énergie verts."

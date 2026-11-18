@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_10ypw"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_xo6dn"]
 
 [resource]
@@ -22,8 +23,12 @@ spawn_cost_credits = 500
 unlock_cost = 8000
 tracer_color = Color(0.45, 0.75, 1, 1)
 muzzle_flash_scale = 1.025
-impact_scale = 0.9111111111111111
+impact_scale = 0.9111111111111112
 projectile_size = 0.05
+model = ExtResource("1_10ypw")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.36000000000000004
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Fusil d'assaut rapide d'ICA, solide à moyenne portée."
 shot_feel = "Automatique rapide et régulier."
 projectile_visual = "Hitscan, traçants bleutés."

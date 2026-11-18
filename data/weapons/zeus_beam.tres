@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_4chwe"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_utfyy"]
 
 [resource]
 script = ExtResource("1_4chwe")
@@ -36,6 +37,10 @@ tracer_time = 0.0925
 muzzle_flash_scale = 0.6
 impact_scale = 0.7
 projectile_size = 0.05
+model = ExtResource("1_utfyy")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.41600000000000004
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Arme lourde ultime d'Osiris : rayon d'énergie continu qui fond boucliers et santé."
 shot_feel = "Maintenir : l'arme monte en régime 1.15 s (bourdonnement croissant), puis rayon continu tant qu'on tient."
 projectile_visual = "Rayon d'énergie épais et lumineux (bleu-blanc) du canon jusqu'à la cible, avec distorsion."

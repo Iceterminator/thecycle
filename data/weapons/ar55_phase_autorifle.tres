@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_1q6me"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Gun_Rifle.gltf" id="1_jxyaf"]
 
 [resource]
 script = ExtResource("1_1q6me")
@@ -22,6 +23,10 @@ unlock_cost = 0
 tracer_color = Color(1, 0.85, 0.45, 1)
 muzzle_flash_scale = 1.125
 projectile_size = 0.05
+model = ExtResource("1_jxyaf")
+model_rotation_deg = Vector3(0, -90, 0)
+model_length = 0.36000000000000004
+model_offset = Vector3(0, -0.02, -0.12)
 role = "Fusil polyvalent de départ, à l'aise de 10 à 50 m."
 shot_feel = "Tir automatique régulier et contrôlable, chaque balle 'compte' davantage que la SMG."
 projectile_visual = "Hitscan ; traçant à effet de phase (léger scintillement) une balle sur trois."

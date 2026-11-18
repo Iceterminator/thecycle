@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/models/weapons/quaternius/Prop_Grenade.gltf" id="1_dbox3"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_my1ap"]
 
 [resource]
@@ -20,6 +21,8 @@ gadget = 1
 consumable = true
 fuse_s = 2.5
 spawn_cost_credits = 100
+model = ExtResource("1_dbox3")
+model_length = 0.12
 role = "Lancer en arc ; n'explose pas au contact d'une cible, mais après son délai."
 strengths = PackedStringArray()
 weaknesses = PackedStringArray()
