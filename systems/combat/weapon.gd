@@ -285,6 +285,9 @@ func _apply_recoil() -> void:
 		kick *= player.buffs.get_mult("recoil_mult")  # Pied ferme : balancement réduit
 	head.rotation.x = clampf(head.rotation.x + kick, deg_to_rad(-89), deg_to_rad(89))
 	player.rotate_y(randf_range(-0.3, 0.3) * kick)
+	# Recul visuel de l'arme en main : ~1 pour une arme qui recule de 2° par tir.
+	if player.held_weapon:
+		player.held_weapon.kick(clampf(rad_to_deg(kick) / 2.0, 0.3, 1.2))
 
 
 func _emit_ammo() -> void:
@@ -652,6 +655,14 @@ func _muzzle_flash(world: Node3D, pos: Vector3) -> void:
 	sphere.radius = 0.05 * data.muzzle_flash_scale
 	sphere.height = sphere.radius * 2.0
 	_spawn_mesh(world, sphere, data.tracer_color.lightened(0.4), pos, 0.05)
+	# Éclair de lumière bref : éclaire l'arme et les murs proches.
+	var light := OmniLight3D.new()
+	light.light_color = data.tracer_color.lightened(0.5)
+	light.light_energy = 2.5 * data.muzzle_flash_scale
+	light.omni_range = 4.0
+	world.add_child(light)
+	light.global_position = pos
+	get_tree().create_timer(0.06).timeout.connect(light.queue_free)
 
 
 ## Projectile visible : il avance seul à la vitesse donnée ; le serveur annonce sa fin.
@@ -728,6 +739,26 @@ func _spawn_impact(world: Node3D, point: Vector3, kind: int) -> void:
 	sphere.height = sphere.radius * 2.0
 	var color := Color(1.0, 0.15, 0.1) if kind == HitKind.TARGET else data.tracer_color
 	_spawn_mesh(world, sphere, color, point, 0.15)
+	# Éclats qui jaillissent puis retombent.
+	var sparks := CPUParticles3D.new()
+	sparks.one_shot = true
+	sparks.explosiveness = 1.0
+	sparks.amount = 10
+	sparks.lifetime = 0.35
+	var chip := BoxMesh.new()
+	chip.size = Vector3.ONE * 0.025 * data.impact_scale
+	sparks.mesh = chip
+	sparks.material_override = _mat(color.lightened(0.2))
+	sparks.direction = Vector3.UP
+	sparks.spread = 80.0
+	sparks.initial_velocity_min = 2.0
+	sparks.initial_velocity_max = 5.0
+	sparks.scale_amount_min = 0.5
+	sparks.scale_amount_max = 1.5
+	sparks.finished.connect(sparks.queue_free)
+	world.add_child(sparks)
+	sparks.global_position = point
+	sparks.emitting = true
 
 
 ## Explosion : boule de feu qui gonfle jusqu'au rayon de la zone puis s'efface.
@@ -752,6 +783,7 @@ func _show_explosion(point: Vector3, radius: float) -> void:
 	world.add_child(ball)
 	ball.global_position = point
 	ball.scale = Vector3.ONE * 0.2
+	Events.camera_shake_requested.emit(point, 0.9, radius * 4.0)
 	var tween := ball.create_tween().set_parallel()
 	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
 	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)

@@ -413,6 +413,7 @@ func _on_hit_confirmed(headshot: bool, killed: bool) -> void:
 
 func _flash_damage() -> void:
 	_damage_flash.color.a = 0.25
+	Events.camera_shake_requested.emit(_player.camera.global_position, 0.35, 1.0)
 	if _flash_tween:
 		_flash_tween.kill()
 	_flash_tween = create_tween()

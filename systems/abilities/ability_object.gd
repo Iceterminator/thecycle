@@ -486,6 +486,7 @@ func _show_boom(point: Vector3, radius: float) -> void:
 	get_parent().get_parent().add_child(ball)
 	ball.global_position = point
 	ball.scale = Vector3.ONE * 0.2
+	Events.camera_shake_requested.emit(point, 0.9, radius * 4.0)
 	var tween := ball.create_tween().set_parallel()
 	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
 	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)

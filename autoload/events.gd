@@ -12,6 +12,9 @@ signal player_left(peer_id: int)
 # Combat (étape 2)
 signal player_damaged(peer_id: int, amount: float, attacker_id: int)
 signal player_died(victim_id: int, killer_id: int)
+## Client (local) : secouer la caméra du joueur local (explosion, dégâts reçus).
+## strength 0 à 1 au point ; nul au-delà de `reach` mètres.
+signal camera_shake_requested(point: Vector3, strength: float, reach: float)
 
 # Loot et inventaire (étape 3) — émis côté serveur
 ## Demande au LootManager de poser un objet au sol (caisse ouverte, arme remplacée, mort).

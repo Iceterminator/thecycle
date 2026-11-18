@@ -39,6 +39,7 @@ var movement: KitMovement
 ## Bonus / malus temporaires et capacités Q / F (étape 8c, autorité serveur).
 var buffs: BuffController
 var abilities: AbilityController
+var held_weapon: WeaponModel
 ## Recul subi (coup de poing chargé), qui s'estompe.
 var _knockback := Vector3.ZERO
 
@@ -98,10 +99,10 @@ func _ready() -> void:
 	abilities.set_multiplayer_authority(1)
 	add_child(abilities)
 	# Arme tenue en main (modèle 3D), visible par tous : à la première personne pour le joueur local.
-	var held := WeaponModel.new()
-	held.name = "HeldWeapon"
-	head.add_child(held)
-	held.setup(self)
+	held_weapon = WeaponModel.new()
+	held_weapon.name = "HeldWeapon"
+	head.add_child(held_weapon)
+	held_weapon.setup(self)
 	if not is_local:
 		_build_beacon()
 	if is_local:
