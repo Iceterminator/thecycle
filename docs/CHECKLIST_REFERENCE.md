@@ -56,10 +56,12 @@
   - `[test]` à 10:30, au moins N cristaux d'orage existent (N lu dans les données) ; en récolter un augmente le contrat.
   - Fait le 18/11/2026 : test réseau OK (12 éclats + 1 collecteur créés à 10:00 et vus par le client ; ramasser puis déposer un éclat : objectif 0 → 30). Erreur « Kit » à la connexion corrigée au passage.
     À tester en jeu : nombre d'éclats et place du collecteur (30, 0, 30).
-- [ ] **A3. Calendrier de l'évac.**
+- [x] **A3. Calendrier de l'évac.**
   Ce qu'il faut : annonce à 16:10 (bandeau rouge « La navette arrivera dans … »), atterrissage à 19:10, décollage à 20:00.
   - `[code]` `Config.EVAC_LANDING_TIME == 19 * 60 + 10`, avec une constante pour l'annonce à 16:10.
   - `[test]` à 16:15, l'annonce a été émise ; à 19:15, la navette est posée.
+  - Fait le 18/11/2026 : test réseau OK (annonce rouge « arrivera dans 180 secondes » reçue par le client, phase EVAC à 19:15). Aussi : avertissement de décollage à 19:30 (au lieu de 19:00, avant l'atterrissage) et raccourcis du menu admin mis à jour.
+    À tester en jeu : 50 s pour embarquer, est-ce jouable ?
 - [ ] **A4. Plateforme d'évac bloquée par des monstres.** Dépend de A3.
   Ce qu'il faut : à l'annonce, un camp de monstres apparaît sur la plateforme (réutiliser `data/camps/`) ;
   le message « NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME » s'affiche ; le contrat « Nettoyer la plateforme » est actif.

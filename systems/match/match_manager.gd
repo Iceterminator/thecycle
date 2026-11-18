@@ -1,7 +1,7 @@
 class_name MatchManager
 extends Node
 ## Déroulé d'une partie (étape 6), décidé par le SERVEUR :
-##   0:00 -> 15:00 : prospection ; 15:00 : l'évac se pose ; 20:00 : décollage, fin de partie ;
+##   0:00 -> 19:10 : prospection (annonce de l'évac à 16:10) ; 19:10 : l'évac se pose ; 20:00 : décollage, fin de partie ;
 ##   écran de fin pendant Config.MATCH_RESTART_DELAY, puis nouvelle partie sur place.
 ## Créé en code par World sur tous les peers (même chemin partout, pour les RPC).
 ## Les clients reçoivent l'horloge (temps écoulé + phase) au début, à chaque changement
@@ -18,6 +18,7 @@ static var _current: MatchManager
 
 const ANNOUNCE_COLOR := Color(0.6, 0.85, 1.0)
 const MONSTER_COLOR := Color(1.0, 0.5, 0.35)
+const EVAC_COLOR := Color(1.0, 0.42, 0.38)  ## annonces de l'évac (bandeau rouge)
 
 @onready var world: World = get_parent()
 
@@ -68,14 +69,15 @@ func _process(delta: float) -> void:
 		elapsed = minf(elapsed + delta, Config.MATCH_DURATION)
 
 
-## Annonces : [temps (s), texte]. Déclenchées quand l'horloge franchit le temps.
+## Annonces : [temps (s), texte, couleur]. Déclenchées quand l'horloge franchit le temps.
 func _announces() -> Array:
 	var land := Config.EVAC_LANDING_TIME
 	var end := Config.MATCH_DURATION
 	return [
-		[land - 60.0, "L'évac arrive dans 1 minute, au centre de la carte !"],
-		[end - 60.0, "Décollage de l'évac dans 1 minute !"],
-		[end - 10.0, "Décollage dans 10 secondes !"],
+		[Config.EVAC_ANNOUNCE_TIME, "La navette d'évacuation arrivera dans %d secondes, au centre de la carte !" % roundi(land - Config.EVAC_ANNOUNCE_TIME), EVAC_COLOR],
+		[land - 60.0, "L'évac arrive dans 1 minute, au centre de la carte !", EVAC_COLOR],
+		[end - 30.0, "Décollage de l'évac dans 30 secondes !", EVAC_COLOR],
+		[end - 10.0, "Décollage dans 10 secondes !", EVAC_COLOR],
 	]
 
 
@@ -85,7 +87,7 @@ func _advance(to: float) -> void:
 	elapsed = minf(to, Config.MATCH_DURATION)
 	for entry: Array in _announces():
 		if before < entry[0] and elapsed >= entry[0]:
-			Events.announce_requested.emit(entry[1], ANNOUNCE_COLOR)
+			Events.announce_requested.emit(entry[1], entry[2])
 	if phase == Phase.PLAYING and elapsed >= Config.EVAC_LANDING_TIME:
 		phase = Phase.EVAC
 		Events.evac_landed.emit()

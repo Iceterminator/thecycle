@@ -38,10 +38,10 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 
 1. **Lobby et loadout (hors partie).** Le joueur choisit arme, gadgets et faction de prédilection, puis rejoint une file.
 2. **0:00 – Largage.** Chaque joueur tombe en capsule à un point de son choix sur la carte. 4 contrats sont proposés ; il en accepte jusqu'à 2 à la fois.
-3. **0:00 – 15:00 – Prospection.** Contrats, loot, monstres, gains de crédits en partie. Le joueur améliore boucliers et armes en cours de partie (terminal d'achat ou largage de ravitaillement).
+3. **0:00 – 19:10 – Prospection.** Contrats, loot, monstres, gains de crédits en partie. Le joueur améliore boucliers et armes en cours de partie (terminal d'achat ou largage de ravitaillement).
 4. **~5:00 et ~10:00 – Événements.** Contrats spéciaux pour tous (roi de la colline, boss, zone de ressources). Les monstres montent d'un palier de difficulté.
 5. **Tempête.** Elle arrive par vagues : un avertissement, puis elle balaie une partie de la carte (dégâts, visibilité réduite).
-6. **15:00 – Le vaisseau d'évac se pose** au centre. Annonce à tous les joueurs ; c'est le moment des embuscades.
+6. **19:10 – Le vaisseau d'évac se pose** au centre (annoncé à 16:10 par un bandeau rouge) ; moins d'une minute pour embarquer ; c'est le moment des embuscades.
 7. **20:00 – Décollage.** Les joueurs à bord gardent leur Fame. Les autres finissent à 0 pour le classement.
 8. **Écran de fin.** Classement, récompenses de faction, retour au lobby.
 
@@ -173,7 +173,7 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 > pendant la tempête (`Config.STORM_MONSTER_MULT`). Au début de la tempête : **12 Éclats d'orage** tombent au hasard sur la carte et un **Collecteur d'éclats d'orage** apparaît (30 pts d'objectif l'éclat, objectif « Éclats d'orage » à paliers) ; réglages dans `phase_1.tres`.
 
 ### 9. Évacuation
-- Le vaisseau se pose au centre à 15:00 et décolle à 20:00.
+- Le vaisseau est annoncé à 16:10 (`Config.EVAC_ANNOUNCE_TIME`), se pose au centre à 19:10 (`Config.EVAC_LANDING_TIME`) et décolle à 20:00 (d'après la vidéo de référence).
 - Embarquement : rester 5 s dans la zone de la soute. Ensuite le joueur est en sécurité.
 - Places illimitées, mais une seule rampe d'accès : c'est le point chaud de la partie.
 - *(codé, 17/11/2026)* Une fois à bord : spectateur intouchable (vol libre, Espace / Ctrl), ne tire plus et
