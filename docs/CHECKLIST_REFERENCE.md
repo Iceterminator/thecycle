@@ -51,9 +51,11 @@
   - `[capture]` `A1.png` à 10:30 : ciel sombre, pluie visible, bandeau ou indicateur de tempête.
   - Fait le 18/11/2026 : test réseau OK (10:30, coin (90, 90) : tempête active, 0 PV perdu), capture `docs/captures/A1.png`.
     À tester en jeu : ressenti de la pluie et des éclairs, lisibilité dans la tempête. Note : erreur « Kit » au moment où un client rejoint (RPC reçu avant l'apparition du joueur), sans lien avec A1, à regarder à part.
-- [ ] **A2. Ressource d'orage pendant la tempête.** Décisions : D3. Dépend de A1.
+- [x] **A2. Ressource d'orage pendant la tempête.** Décisions : D3. Dépend de A1.
   Ce qu'il faut : quand la tempête démarre, le serveur fait apparaître des cristaux d'orage (via le `MultiplayerSpawner`) et un contrat de collecte associé (`.tres` dans `data/contracts/`).
   - `[test]` à 10:30, au moins N cristaux d'orage existent (N lu dans les données) ; en récolter un augmente le contrat.
+  - Fait le 18/11/2026 : test réseau OK (12 éclats + 1 collecteur créés à 10:00 et vus par le client ; ramasser puis déposer un éclat : objectif 0 → 30). Erreur « Kit » à la connexion corrigée au passage.
+    À tester en jeu : nombre d'éclats et place du collecteur (30, 0, 30).
 - [ ] **A3. Calendrier de l'évac.**
   Ce qu'il faut : annonce à 16:10 (bandeau rouge « La navette arrivera dans … »), atterrissage à 19:10, décollage à 20:00.
   - `[code]` `Config.EVAC_LANDING_TIME == 19 * 60 + 10`, avec une constante pour l'annonce à 16:10.

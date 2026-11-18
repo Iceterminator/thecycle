@@ -51,6 +51,8 @@ signal evac_departed()
 signal match_ended()
 ## Serveur, menu admin : avancer le temps de partie de `seconds` (MatchManager).
 signal time_skip_requested(seconds: float)
+## Serveur : créer un contrat en cours de partie (ex. collecteur de la Grande Marée). `kind` = clé de QuestManager.CONTRACT_SCRIPTS.
+signal contract_spawn_requested(kind: StringName, data_path: String, position: Vector3)
 ## Serveur, menu admin : aller directement à ce temps de partie (s depuis le début).
 signal match_time_set_requested(seconds: float)
 ## Serveur : un joueur vient d'embarquer dans l'évac (EvacShip -> MatchManager).

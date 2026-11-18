@@ -39,6 +39,9 @@ func _ready() -> void:
 		return
 	Events.announce_requested.connect(func(text: String, color: Color) -> void: _announce.rpc(text, color))
 	Events.crystal_spawn_requested.connect(_on_crystal_spawn_requested)
+	Events.contract_spawn_requested.connect(func(kind: StringName, data_path: String, position: Vector3) -> void:
+		if CONTRACT_SCRIPTS.has(kind):
+			_spawn({"kind": kind, "data": data_path, "pos": position}))
 	Events.match_reset_requested.connect(_on_match_reset)
 	Events.crystal_upgrade_requested.connect(_on_crystal_upgrade)
 	_spawn_all.call_deferred()

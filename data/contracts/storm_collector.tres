@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ContractData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
+[ext_resource type="Resource" path="res://data/items/storm_shard.tres" id="2_item"]
+[ext_resource type="Resource" path="res://data/objectives/eclats_orage.tres" id="3_track"]
+
+[resource]
+script = ExtResource("1_c")
+id = &"storm_collector"
+display_name = "Collecteur d'éclats d'orage"
+color = Color(0.75, 0.45, 1, 1)
+points = 30
+resource_item = ExtResource("2_item")
+track = ExtResource("3_track")
+faction = 3

@@ -170,7 +170,7 @@ Inspirés des contrats du jeu d'origine, avec nos propres noms. Réglages dans `
 > sur **toute la carte**, sans zone ni dégâts. `data/storm/phase_1.tres` : annoncée à **9:00** (bandeau vert
 > « La Grande Marée débute dans 60 s »), elle commence à **10:00** et dure jusqu'à la fin. Le ciel passe en 20 s
 > au bleu-gris violet : pluie, éclairs violets, brouillard, soleil faible. Les monstres détectent et courent ×1,3
-> pendant la tempête (`Config.STORM_MONSTER_MULT`). Une ressource d'orage à récolter arrive avec la checklist A2.
+> pendant la tempête (`Config.STORM_MONSTER_MULT`). Au début de la tempête : **12 Éclats d'orage** tombent au hasard sur la carte et un **Collecteur d'éclats d'orage** apparaît (30 pts d'objectif l'éclat, objectif « Éclats d'orage » à paliers) ; réglages dans `phase_1.tres`.
 
 ### 9. Évacuation
 - Le vaisseau se pose au centre à 15:00 et décolle à 20:00.
