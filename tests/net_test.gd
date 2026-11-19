@@ -185,7 +185,11 @@ func start_match() -> bool:
 	match_manager().request_lobby_ready.rpc_id(1, true)
 	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.PLAYING, 30.0, "début de partie"):
 		return false
-	return await wait_until(func() -> bool: return not local_player().is_dropping(), 15.0, "fin du largage")
+	# L'horloge (PLAYING) peut arriver avant le début de la capsule : on attend aussi que le
+	# temps de chute + ouverture soit écoulé, sinon la capsule replace le joueur ensuite.
+	var rules: MatchRules = config.match_rules
+	var drop_time := rules.drop_pod_fall_time + rules.drop_pod_open_delay
+	return await wait_until(func() -> bool: return match_manager().elapsed >= drop_time and not local_player().is_dropping(), 15.0, "fin du largage")
 
 
 ## Hôte : place un joueur à une position (le client décide de son déplacement : on passe

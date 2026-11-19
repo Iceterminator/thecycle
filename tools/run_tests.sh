@@ -58,7 +58,10 @@ for test in tests/test_*.gd; do
 	host_code=$?
 	stop_process $host_pid
 	took=$(( $(date +%s) - start ))
-	if [ $host_code -eq 0 ] && [ $client_code -eq 0 ] && grep -q "TEST OK" "$host_log" && grep -q "TEST OK" "$client_log"; then
+	# Une erreur de script dans un test arrête sa coroutine sans échec explicite : on la compte.
+	test_error=0
+	grep -h -A1 "SCRIPT ERROR" "$host_log" "$client_log" | grep -q "res://tests/" && test_error=1
+	if [ $test_error -eq 0 ] && [ $host_code -eq 0 ] && [ $client_code -eq 0 ] && grep -q "TEST OK" "$host_log" && grep -q "TEST OK" "$client_log"; then
 		echo "OK     $name (${took} s)"
 		passed=$((passed + 1))
 	else
