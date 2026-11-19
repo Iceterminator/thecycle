@@ -10,3 +10,4 @@ assets/models/**/*.png
 !assets/models/nature/*.png
 !assets/models/monsters/*.png
 !assets/models/characters/*.png
+.test_logs/
