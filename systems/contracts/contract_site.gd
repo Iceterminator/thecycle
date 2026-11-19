@@ -6,6 +6,8 @@ extends StaticBody3D
 ## et leur visuel via _build_visual(). Interface d'interaction : get_prompt, get_hold_time,
 ## server_interact (voir Interactor).
 
+const ContractSiteBuild := preload("res://systems/contracts/contract_site_build.gd")
+
 var data: ContractData
 var _label: Label3D
 var _points_acc: Dictionary = {}  # peer_id -> fraction de point en attente (gains continus)
@@ -15,27 +17,9 @@ var _points_acc: Dictionary = {}  # peer_id -> fraction de point en attente (gai
 func setup(contract_data: ContractData) -> void:
 	data = contract_data
 	_build_visual()
-	_label = Label3D.new()
-	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	# Visible de loin et à travers le décor : les joueurs doivent repérer les contrats.
-	_label.no_depth_test = true
-	_label.fixed_size = true
-	_label.pixel_size = 0.0009
-	_label.font_size = 30
-	_label.outline_size = 8
-	_label.modulate = data.color
-	_label.position.y = _label_height()
+	_label = ContractSiteBuild.make_label(self)
 	add_child(_label)
-	var config := SceneReplicationConfig.new()
-	for key: String in _sync_props():
-		var path := NodePath(".:" + key)
-		config.add_property(path)
-		config.property_set_spawn(path, true)
-		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE)
-	var sync := MultiplayerSynchronizer.new()
-	sync.name = "ContractSync"
-	sync.replication_config = config
-	add_child(sync)
+	ContractSiteBuild.add_sync(self)
 
 
 func _ready() -> void:

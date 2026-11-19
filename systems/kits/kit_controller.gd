@@ -9,10 +9,14 @@ extends Node
 ## kit_id, level et xp sont envoyés à tous (KitSync) : chaque peer calcule les mêmes bonus.
 ## Bonus de niveau : KitData.level_perk_effects[0 .. level-1] (index 0 = niveau 1, actif
 ## dès le départ). Tout est remis à zéro à chaque partie.
+## Les calculs sont dans kit_controller_effects.gd, la logique serveur dans
+## kit_controller_server.gd.
 
 signal changed
 signal leveled_up(level: int)
 
+const KitControllerEffects := preload("res://systems/kits/kit_controller_effects.gd")
+const KitControllerServer := preload("res://systems/kits/kit_controller_server.gd")
 const KITS_DIR := "res://data/kits/"
 
 ## Synchronisés (serveur -> tous).
@@ -39,9 +43,13 @@ var mod_id: String = "":
 
 var player: Player
 var _kit: KitData
+var _fx: KitControllerEffects
+var _srv: KitControllerServer
 
 
 func _init() -> void:
+	_fx = KitControllerEffects.new(self)
+	_srv = KitControllerServer.new(self)
 	var config := SceneReplicationConfig.new()
 	for key in ["kit_id", "level", "xp", "mod_id"]:
 		var path := NodePath(".:" + key)
@@ -62,7 +70,7 @@ func _ready() -> void:
 		Events.monster_killed.connect(_on_monster_killed)
 		Events.player_died.connect(_on_player_died)
 		kit_id = String(Config.start_loadout.default_kit)
-		_server_apply_stats(true)
+		_srv.apply_stats(true)
 
 
 ## Kit actuel (celui par défaut tant que rien n'est reçu).
@@ -85,31 +93,13 @@ static func list_kits() -> Array[KitData]:
 
 ## Somme d'un effet sur les bonus débloqués (niveaux 1 à `level`).
 func get_effect(effect: String) -> float:
-	var kit := get_kit()
-	var total := 0.0
-	if kit == null:
-		return total
-	for i in mini(level, kit.level_perk_effects.size()):
-		total += float(kit.level_perk_effects[i].get(effect, 0.0))
-	# Mod équipé.
-	var mod := get_mod()
-	if not mod.is_empty():
-		total += float(mod.get("effects", {}).get(effect, 0.0))
-	return total
+	return _fx.get_effect(effect)
 
 
 ## Paramètre d'une capacité de mouvement (KitData.movement). Sans `default`, la valeur
 ## doit être dans les données du kit (sinon 0 et un avertissement).
 func move_param(ability: String, key: String, default: float = NAN) -> float:
-	var kit := get_kit()
-	var block: Dictionary = kit.movement.get(ability, {}) if kit else {}
-	if block.has(key):
-		return float(block[key])
-	if is_nan(default):
-		if not block.is_empty():
-			push_warning("[Kit] %s.%s absent des données du kit" % [ability, key])
-		return 0.0
-	return default
+	return _fx.move_param(ability, key, default)
 
 
 func get_display_name() -> String:
@@ -126,34 +116,25 @@ static func kit_name(kit: KitData) -> String:
 
 
 func max_health() -> float:
-	var kit := get_kit()
-	var base := kit.health if kit and kit.health > 0.0 else Config.combat.kit_default_health
-	return base + get_effect("max_health_add")
+	return _fx.max_health()
 
 
 func max_shield() -> float:
-	var kit := get_kit()
-	var base := kit.shield if kit and kit.shield > 0.0 else Config.combat.kit_default_shield
-	return base + get_effect("max_shield_add")
+	return _fx.max_shield()
 
 
 ## Vitesse de marche (m/s) ; le sprint la multiplie par Config.combat.sprint_multiplier.
 func move_speed() -> float:
-	var kit := get_kit()
-	var base := kit.move_speed_mps if kit and kit.move_speed_mps > 0.0 else Config.combat.kit_default_speed
-	base += get_effect("move_speed_add")
-	return base * (1.0 + get_effect("move_speed_mult"))
+	return _fx.move_speed()
 
 
 ## Régénération des PV : délai et vitesse (le Bastion a la sienne, plus rapide).
 func health_regen_delay() -> float:
-	var delay := move_param("fast_health_regen", "health_regen_delay_s", Config.combat.health_regen_delay)
-	return delay * (1.0 + get_effect("health_regen_delay_mult"))
+	return _fx.health_regen_delay()
 
 
 func health_regen_rate() -> float:
-	var rate := move_param("fast_health_regen", "health_regen_per_s", Config.combat.health_regen_rate)
-	return rate * (1.0 + get_effect("health_regen_mult"))
+	return _fx.health_regen_rate()
 
 
 ## XP manquante pour le niveau suivant (-1 au niveau max).
@@ -169,42 +150,17 @@ func xp_for_next_level() -> int:
 
 ## Change de kit (menu admin) : niveau 1, PV et bouclier pleins.
 func server_set_kit(id: String) -> bool:
-	if not ResourceLoader.exists(KITS_DIR + id + ".tres") or (load(KITS_DIR + id + ".tres") as KitData) == null:
-		return false
-	kit_id = id
-	mod_id = ""
-	level = 1
-	xp = 0
-	_server_apply_stats(true)
-	print("[Kit] Joueur %d : %s" % [player.get_peer_id(), get_display_name()])
-	return true
+	return _srv.set_kit(id)
 
 
 func server_add_xp(amount: int) -> void:
-	if not multiplayer.is_server() or amount <= 0 or player.is_evacuated:
-		return
-	xp += amount
-	while xp_for_next_level() > 0 and xp >= xp_for_next_level():
-		level += 1
-		_server_apply_stats(false)
-		var perk := ""
-		var kit := get_kit()
-		if kit and level - 1 < kit.level_perks.size():
-			perk = " : " + kit.level_perks[level - 1]
-		player.score.notify.rpc_id(player.get_peer_id(), "%s niveau %d%s" % [get_display_name(), level, perk], Color(0.6, 1.0, 0.7))
-		leveled_up.emit(level)
-
-
-## PV / bouclier max du kit sur la Health. `refill` : tout plein ; sinon le gain de max
-## s'ajoute aux valeurs actuelles.
-func _server_apply_stats(refill: bool) -> void:
-	player.health.server_apply_kit(max_health(), max_shield(), refill)
+	_srv.add_xp(amount)
 
 
 func _server_on_match_reset() -> void:
 	level = 1
 	xp = 0
-	_server_apply_stats(true)
+	_srv.apply_stats(true)
 
 
 func _on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
@@ -223,31 +179,15 @@ func _on_player_died(victim_id: int, killer_id: int) -> void:
 
 ## Mod équipé : { id, effect, effects, unlock_level }, ou {}.
 func get_mod() -> Dictionary:
-	var kit := get_kit()
-	if kit == null or mod_id == "":
-		return {}
-	for m: Dictionary in kit.mods:
-		if String(m.get("id", "")) == mod_id:
-			return m
-	return {}
+	return _fx.get_mod()
 
 
 ## Le mod `id` de ce kit est-il débloqué pour ce joueur (réputation de la faction du kit) ?
 static func mod_unlocked(peer: int, kit: KitData, id: String) -> bool:
-	if kit == null:
-		return false
-	for m: Dictionary in kit.mods:
-		if String(m.get("id", "")) == id:
-			return ProfileManager.is_unlocked(peer, kit.faction, int(m.get("unlock_level", 0)))
-	return false
+	return KitControllerEffects.mod_unlocked(peer, kit, id)
 
 
 ## Serveur : équipe un mod du kit actuel ("" = aucun), s'il est débloqué. PV / bouclier
 ## recalculés (ex. +200 bouclier).
 func server_set_mod(id: String) -> void:
-	if id != "" and not mod_unlocked(player.get_peer_id(), get_kit(), id):
-		id = ""
-	if id == mod_id:
-		return
-	mod_id = id
-	_server_apply_stats(false)
+	_srv.set_mod(id)

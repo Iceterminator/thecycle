@@ -12,6 +12,7 @@ extends ContractSite
 enum State { IDLE, DEFENSE, SEND, DONE }
 
 const PART_SCRIPT := preload("res://systems/contracts/contract_part.gd")
+const DroneSiteVisual := preload("res://systems/contracts/drone_site_visual.gd")
 
 var state: int = State.IDLE           ## synchronisé
 var time_left: float = 0.0            ## synchronisé
@@ -28,49 +29,7 @@ func _sync_props() -> Array[String]:
 
 
 func _build_visual() -> void:
-	add_cylinder_collision(0.4, 2.5)
-	var pole := CylinderMesh.new()
-	pole.top_radius = 0.1
-	pole.bottom_radius = 0.3
-	pole.height = 2.5
-	var p := make_mesh(pole, Color(0.6, 0.6, 0.65))
-	p.position.y = 1.25
-	add_child(p)
-	var lamp := make_mesh(SphereMesh.new(), data.color, true)
-	lamp.scale = Vector3.ONE * 0.5
-	lamp.position.y = 2.7
-	add_child(lamp)
-	drone_hp.resize(data.count)
-	for i in data.count:
-		drone_hp[i] = data.target_health
-		var part: ContractPart = PART_SCRIPT.new()
-		part.name = "Drone%d" % i
-		part.site = self
-		part.index = i
-		part.hit_radius = 0.9
-		var a := TAU * i / data.count + 0.4
-		part.position = Vector3(cos(a), 0, sin(a)) * data.radius
-		part.rotation.y = randf() * TAU
-		var shape := CollisionShape3D.new()
-		var box := BoxShape3D.new()
-		box.size = Vector3(1.6, 0.7, 1.6)
-		shape.shape = box
-		shape.position.y = 0.35
-		part.add_child(shape)
-		var body := BoxMesh.new()
-		body.size = Vector3(0.9, 0.5, 0.9)
-		var b := make_mesh(body, Color(0.75, 0.75, 0.8))
-		b.position.y = 0.35
-		part.add_child(b)
-		for k in 4:
-			var arm := BoxMesh.new()
-			arm.size = Vector3(0.7, 0.08, 0.1)
-			var m := make_mesh(arm, Color(0.3, 0.3, 0.35))
-			m.rotation.y = TAU * k / 4.0
-			m.position = Vector3(cos(TAU * k / 4.0) * 0.6, 0.55, -sin(TAU * k / 4.0) * 0.6)
-			part.add_child(m)
-		add_child(part)
-		_parts.append(part)
+	_parts = DroneSiteVisual.build(self)
 
 
 func _refresh() -> void:
