@@ -1,65 +1,69 @@
 class_name DropPodVisual
 extends Node3D
-## Capsule de largage transparente (visuel seulement, enfant du joueur) : verre bleuté,
-## deux anneaux lumineux, poussière à l'atterrissage, fondu à l'ouverture.
+## Capsule de largage (visuel seulement, créée comme enfant du joueur) : modèle 3D avec
+## hublots, intérieur éclairé, propulseurs allumés pendant la chute, poussière à l'atterrissage,
+## porte qui s'abaisse en rampe à l'ouverture, puis la capsule s'enfonce dans le sol.
+## Suit la position du joueur mais pas sa rotation (la souris tourne le joueur, pas la capsule).
 ## Piloté par DropPodRide : land() au sol, open() à l'ouverture.
 
-const GLASS_COLOR := Color(0.45, 0.75, 1.0, 0.22)
-const RING_COLOR := Color(0.4, 0.85, 1.0)
-const POD_RADIUS := 1.15
-const POD_HEIGHT := 2.7
-const FADE_TIME := 1.2
+const MODEL: PackedScene = preload("res://assets/models/props/capsule_largage.gltf")
+const DOOR_ANGLE := -110.0   ## porte pivotant vers l'extérieur sur sa charnière (degrés autour de Y)
+const DOOR_TIME := 0.9       ## durée de l'ouverture de la porte (s)
+const LINGER_TIME := 12.0    ## capsule ouverte laissée au sol avant de disparaître (s)
+const SINK_DEPTH := 5.0      ## profondeur d'enfoncement à la disparition (m)
+const SINK_TIME := 2.5       ## durée de l'enfoncement (s)
 
-var _glass: StandardMaterial3D
-var _ring: StandardMaterial3D
-var _dust: CPUParticles3D
+var _door: Node3D
+var _thrust_light: OmniLight3D
+var _following := true
 
 
 func _ready() -> void:
-	_glass = StandardMaterial3D.new()
-	_glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_glass.albedo_color = GLASS_COLOR
-	_glass.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_glass.roughness = 0.05
-	_glass.metallic_specular = 1.0
-	_ring = StandardMaterial3D.new()
-	_ring.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_ring.albedo_color = RING_COLOR
-	_ring.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var body := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = POD_RADIUS
-	capsule.height = POD_HEIGHT
-	body.mesh = capsule
-	body.material_override = _glass
-	body.position.y = POD_HEIGHT / 2.0
-	add_child(body)
-	for y in [0.15, POD_HEIGHT - 0.15]:
-		var torus := MeshInstance3D.new()
-		var mesh := TorusMesh.new()
-		mesh.inner_radius = POD_RADIUS - 0.03
-		mesh.outer_radius = POD_RADIUS + 0.07
-		torus.mesh = mesh
-		torus.material_override = _ring
-		torus.position.y = y
-		torus.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(torus)
+	top_level = true
+	var host := get_parent() as Node3D
+	if host:
+		# Porte face au regard du joueur au moment du largage.
+		global_transform = Transform3D(Basis(Vector3.UP, host.global_rotation.y), host.global_position)
+	add_child(MODEL.instantiate())
+	_door = find_child("Porte", true, false) as Node3D
+	var cabin := OmniLight3D.new()   # éclairage intérieur
+	cabin.light_color = Color(0.75, 0.92, 1.0)
+	cabin.light_energy = 0.9
+	cabin.omni_range = 2.8
+	cabin.position.y = 2.9
+	add_child(cabin)
+	_thrust_light = OmniLight3D.new()   # lueur des propulseurs sous la capsule
+	_thrust_light.light_color = Color(1.0, 0.5, 0.15)
+	_thrust_light.light_energy = 3.0
+	_thrust_light.omni_range = 3.0
+	_thrust_light.position.y = -2.6   # assez bas pour ne pas teinter l'intérieur
+	add_child(_thrust_light)
 
 
-## Capsule posée : un nuage de poussière.
+func _process(_delta: float) -> void:
+	if not _following:
+		return
+	var host := get_parent() as Node3D
+	if host:
+		global_position = host.global_position
+
+
+## Capsule posée : propulseurs coupés, nuage de poussière.
 func land() -> void:
-	_dust = CPUParticles3D.new()
-	_dust.one_shot = true
-	_dust.amount = 40
-	_dust.lifetime = 1.6
-	_dust.explosiveness = 1.0
-	_dust.direction = Vector3.UP
-	_dust.spread = 80.0
-	_dust.initial_velocity_min = 3.0
-	_dust.initial_velocity_max = 7.0
-	_dust.gravity = Vector3(0, -2, 0)
-	_dust.scale_amount_min = 0.5
-	_dust.scale_amount_max = 1.2
+	if _thrust_light:
+		create_tween().tween_property(_thrust_light, "light_energy", 0.0, 0.6)
+	var dust := CPUParticles3D.new()
+	dust.one_shot = true
+	dust.amount = 40
+	dust.lifetime = 1.6
+	dust.explosiveness = 1.0
+	dust.direction = Vector3.UP
+	dust.spread = 80.0
+	dust.initial_velocity_min = 3.0
+	dust.initial_velocity_max = 7.0
+	dust.gravity = Vector3(0, -2, 0)
+	dust.scale_amount_min = 0.5
+	dust.scale_amount_max = 1.2
 	var puff := SphereMesh.new()
 	puff.radius = 0.35
 	puff.height = 0.7
@@ -67,16 +71,20 @@ func land() -> void:
 	puff_material.albedo_color = Color(0.7, 0.65, 0.55, 0.5)
 	puff_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	puff.material = puff_material
-	_dust.mesh = puff
-	_dust.top_level = true
-	add_child(_dust)
-	_dust.global_position = global_position
-	_dust.emitting = true
+	dust.mesh = puff
+	add_child(dust)
+	dust.emitting = true
 
 
-## Ouverture : le verre et les anneaux disparaissent en fondu, puis la capsule disparaît.
+## Ouverture : la porte s'abaisse en rampe ; la capsule reste au sol puis s'enfonce et disparaît.
+## Détachée du joueur : elle ne le suit plus (il sort par la porte).
 func open() -> void:
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(_glass, "albedo_color:a", 0.0, FADE_TIME)
-	tween.tween_property(_ring, "albedo_color:a", 0.0, FADE_TIME)
-	tween.chain().tween_callback(queue_free)
+	_following = false
+	var tween := create_tween()
+	if _door:
+		tween.tween_property(_door, "rotation:y", deg_to_rad(DOOR_ANGLE), DOOR_TIME) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(LINGER_TIME)
+	tween.tween_property(self, "global_position:y", global_position.y - SINK_DEPTH, SINK_TIME) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(queue_free)
