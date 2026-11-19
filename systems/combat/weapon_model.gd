@@ -5,15 +5,14 @@ extends Node3D
 ## quand il vise), les autres joueurs la voient devant lui, orientée comme son regard
 ## (rotation de la tête synchronisée). Suit l'arme en main (Inventory.active_weapon_changed).
 ## Sans modèle pour l'arme en main, rien n'est affiché.
-## Le modèle est tourné (model_rotation_deg), mis à l'échelle (model_length) et son repère Poignee (scène du modèle) posé sur l'origine.
-##
-## Ressenti (joueur local seulement) : recul à chaque tir (kick), balancement qui suit la
-## vue, balancement de marche, pose de sprint, arme qui remonte quand on la sort, et
-## secousse de la caméra (Events.camera_shake_requested : explosions, dégâts reçus).
-## La secousse passe par h_offset / v_offset / roulis : la direction du tir ne change pas.
+## Le modèle est tourné (model_rotation_deg), mis à l'échelle (model_length), repère Poignee posé sur l'origine.
+## Ressenti (joueur local seulement) : recul à chaque tir (kick), balancement de la vue et de marche,
+## pose de sprint, remontée à la sortie, secousse de caméra (Events.camera_shake_requested,
+## weapon_model_shake.gd) ; animations dans weapon_model_motion.gd.
 
 const WeaponModelBuilder := preload("res://systems/combat/weapon_model_builder.gd")
 const WeaponModelMotion := preload("res://systems/combat/weapon_model_motion.gd")
+const WeaponModelShake := preload("res://systems/combat/weapon_model_shake.gd")
 
 const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
@@ -45,8 +44,7 @@ var _current: WeaponData
 var _offset: Vector3 = Vector3.ZERO
 var _base: Vector3 = HIP_POSITION
 var _motion: WeaponModelMotion
-var _trauma := 0.0
-var _shake_time := 0.0
+var _shake := WeaponModelShake.new()
 var _model: Node3D
 var _arms: FirstPersonArms  ## joueur local seulement
 var tune_offset := Vector3.ZERO  ## réglage en jeu (GripTuner) : décalage de l'arme (m, repère de l'arme)
@@ -86,7 +84,7 @@ func _refresh() -> void:
 ## Un tir du joueur local : strength ≈ 1 pour une arme qui recule fort.
 func kick(strength: float) -> void:
 	_motion.add_kick(strength)
-	_trauma = minf(_trauma + strength * 0.12, 1.0)
+	_shake.add(strength * 0.12)
 	if _arms:
 		_arms.play_shot()
 
@@ -94,9 +92,7 @@ func kick(strength: float) -> void:
 func _on_camera_shake_requested(point: Vector3, strength: float, reach: float) -> void:
 	if player == null or not player.is_multiplayer_authority():
 		return
-	var falloff := 1.0 - player.camera.global_position.distance_to(point) / maxf(reach, 0.01)
-	if falloff > 0.0:
-		_trauma = minf(_trauma + strength * falloff, 1.0)
+	_shake.add_from_point(player.camera, point, strength, reach)
 
 
 func _process(delta: float) -> void:
@@ -137,17 +133,8 @@ func _process(delta: float) -> void:
 		_model.scale = Vector3.ONE * tune_scale
 	if _arms:
 		_arms.set_left_target(left_hand_target())
-	_shake_camera(delta)
+	_shake.update(delta, player.camera)
 
-
-func _shake_camera(delta: float) -> void:
-	_trauma = maxf(_trauma - delta * SHAKE_DECAY, 0.0)
-	_shake_time += delta * 30.0
-	var s := _trauma * _trauma
-	var cam := player.camera
-	cam.h_offset = sin(_shake_time * 1.3) * SHAKE_OFFSET * s
-	cam.v_offset = sin(_shake_time * 1.7 + 1.0) * SHAKE_OFFSET * s
-	cam.rotation.z = sin(_shake_time * 1.1 + 2.0) * deg_to_rad(SHAKE_ROLL_DEG) * s
 
 
 ## Modèle de l'arme prêt à poser : tourné, mis à l'échelle, poignée sur l'origine, sans ombre.

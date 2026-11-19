@@ -50,3 +50,13 @@ func set_mod(id: String) -> void:
 		return
 	_c.mod_id = id
 	apply_stats(false)
+
+
+func on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
+	if killer_id == _c.player.get_peer_id():
+		add_xp(Config.economy.kit_xp_monster_kill)
+
+
+func on_player_died(victim_id: int, killer_id: int) -> void:
+	if killer_id == _c.player.get_peer_id() and victim_id != killer_id:
+		add_xp(Config.economy.kit_xp_player_kill)

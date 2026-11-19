@@ -12,6 +12,7 @@ extends Node
 
 const HealthDamage := preload("res://systems/combat/health_damage.gd")
 const HealthRegen := preload("res://systems/combat/health_regen.gd")
+const HealthServer := preload("res://systems/combat/health_server.gd")
 
 signal changed
 signal dead_changed(dead: bool)
@@ -77,28 +78,12 @@ func _init() -> void:
 
 ## Un allié vivant, debout et pas embarqué peut-il relever ce joueur ?
 func _has_ally_standing() -> bool:
-	var players := get_parent().get_parent()
-	if players == null:
-		return false
-	for node in players.get_children():
-		var ally := node as Player
-		if ally == null or not Allies.can_revive(get_peer_id(), ally.get_peer_id()):
-			continue
-		if not ally.health.is_dead and not ally.health.is_downed and not ally.is_evacuated:
-			return true
-	return false
+	return HealthServer.has_ally_standing(self)
 
 
 ## Serveur : relevé par un allié (E maintenu).
 func server_revive_downed(by_id: int) -> void:
-	if not is_downed or is_dead:
-		return
-	is_downed = false
-	downed_by = 0
-	health = get_max_health() * Config.combat.revive_health_ratio
-	shield = 0.0
-	_since_damage = 0.0
-	Events.player_revived.emit(get_peer_id(), by_id)
+	HealthServer.revive_downed(self, by_id)
 
 
 func _ready() -> void:
@@ -130,16 +115,7 @@ func get_max_health() -> float:
 
 ## Serveur : nouveau kit ou niveau. `refill` : tout plein ; sinon le gain de max s'ajoute.
 func server_apply_kit(new_max_health: float, new_max_shield: float, refill: bool) -> void:
-	if refill or is_dead:
-		health = new_max_health
-		max_shield = new_max_shield
-		shield = new_max_shield
-	else:
-		health = clampf(health + new_max_health - _applied_max_health, 1.0, new_max_health)
-		var gain := new_max_shield - max_shield
-		max_shield = new_max_shield
-		shield = clampf(shield + gain, 0.0, new_max_shield)
-	_applied_max_health = new_max_health
+	HealthServer.apply_kit(self, new_max_health, new_max_shield, refill)
 
 
 ## Serveur uniquement. Le bouclier absorbe d'abord, le reste passe sur les PV.
@@ -162,18 +138,7 @@ func restore_shield(amount: float) -> void:
 
 ## Serveur uniquement : remet le joueur sur pied (réapparition), PV et bouclier du kit pleins.
 func revive() -> void:
-	is_downed = false
-	downed_by = 0
-	var kit := _kit()
-	if kit:
-		max_shield = kit.max_shield()
-	health = get_max_health()
-	_applied_max_health = health
-	shield = max_shield
-	killer_id = 0
-	_since_damage = 0.0
-	is_dead = false
-
+	HealthServer.revive(self)
 
 
 func _physics_process(delta: float) -> void:

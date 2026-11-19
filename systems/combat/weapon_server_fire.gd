@@ -16,14 +16,14 @@ func handle_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	var player := _w.player
 	var now := Time.get_ticks_msec()
 	# Changement d'arme en cours ?
-	if now < _w._srv_switch_until_ms:
+	if now < _w._srv.switch_until_ms:
 		return
 	# Rechargement en cours ?
-	if _w._srv_reload_end_ms > 0:
-		if now < _w._srv_reload_end_ms:
+	if _w._srv.reload_end_ms > 0:
+		if now < _w._srv.reload_end_ms:
 			return
 		inventory.set_active_ammo(player.magazine_for(data))
-		_w._srv_reload_end_ms = 0
+		_w._srv.reload_end_ms = 0
 	if inventory.get_active_ammo() <= 0:
 		_w._sync_ammo.rpc_id(player.get_peer_id(), 0)
 		return
@@ -34,11 +34,11 @@ func handle_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	# Cadence : seau de jetons. Il se remplit au rythme moyen de l'arme (une rafale
 	# compte pour burst_count tirs par fire_interval_s) ; on tolère quelques tirs d'avance
 	# (gigue réseau, rafale entière) mais sur la durée on ne peut pas tirer plus vite.
-	_w._srv_tokens = minf(_w._srv_tokens + (now - _w._srv_last_ms) / 1000.0 / _shot_interval(), token_capacity())
-	_w._srv_last_ms = now
-	if _w._srv_tokens < 1.0:
+	_w._srv.tokens = minf(_w._srv.tokens + (now - _w._srv.last_ms) / 1000.0 / _shot_interval(), token_capacity())
+	_w._srv.last_ms = now
+	if _w._srv.tokens < 1.0:
 		return
-	_w._srv_tokens -= 1.0
+	_w._srv.tokens -= 1.0
 
 	# L'origine doit être proche des yeux du joueur tels que le serveur les voit.
 	if origin.distance_to(_w.camera.global_position) > Config.SHOT_ORIGIN_TOLERANCE:
@@ -68,7 +68,7 @@ func _trigger_ready(now: int) -> bool:
 	var delay := _w._gadgets.trigger_delay()
 	if delay <= 0.0:
 		return true
-	return _w._srv_trigger_ms > 0 and now - _w._srv_trigger_ms >= int(delay * 900.0)
+	return _w._srv.trigger_ms > 0 and now - _w._srv.trigger_ms >= int(delay * 900.0)
 
 
 ## Charge simple : une charge = un tir. Charge + rafale : une charge = une rafale.
@@ -76,11 +76,11 @@ func _trigger_ready(now: int) -> bool:
 func _after_trigger_shot() -> void:
 	match _w.data.fire_mode:
 		WeaponData.FireMode.CHARGE:
-			_w._srv_trigger_ms = 0
+			_w._srv.trigger_ms = 0
 		WeaponData.FireMode.CHARGE_BURST:
-			_w._srv_trigger_shots += 1
-			if _w._srv_trigger_shots >= _w.data.burst_count:
-				_w._srv_trigger_ms = 0
+			_w._srv.trigger_shots += 1
+			if _w._srv.trigger_shots >= _w.data.burst_count:
+				_w._srv.trigger_ms = 0
 
 
 func _shot_interval() -> float:

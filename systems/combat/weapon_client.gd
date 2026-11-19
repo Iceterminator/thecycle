@@ -4,14 +4,18 @@ extends RefCounted
 ## espacés de burst_interval_s), CHARGE (maintenir charge_time_s, relâcher avant = pas de tir ;
 ## CHARGE_BURST : puis une rafale), BEAM (après spin_up_s, un tick par fire_interval_s,
 ## 1 munition par tick). Types : HITSCAN, PROJECTILE, EXPLOSIVE_PROJECTILE.
+## rafale, rechargement, recul. L'état (ammo, _fire_cooldown…) reste dans Weapon ; charge et rayon
+## sont dans weapon_client_hold.gd.
 
-## rafale, rechargement, recul. L'état (ammo, _fire_cooldown…) reste dans Weapon.
+const WeaponClientHold := preload("res://systems/combat/weapon_client_hold.gd")
 
 var _w: Weapon
+var _hold: WeaponClientHold
 
 
 func _init(weapon: Weapon) -> void:
 	_w = weapon
+	_hold = WeaponClientHold.new(weapon, self)
 
 
 ## Appelé à chaque image par Weapon._process (client propriétaire).
@@ -59,9 +63,9 @@ func update(delta: float) -> void:
 		return
 	match data.fire_mode:
 		WeaponData.FireMode.CHARGE, WeaponData.FireMode.CHARGE_BURST:
-			_process_charge(delta)
+			_hold.process_charge(delta)
 		WeaponData.FireMode.BEAM:
-			_process_beam(delta)
+			_hold.process_beam(delta)
 		WeaponData.FireMode.AUTO:
 			if Input.is_action_pressed("fire") and _w._fire_cooldown <= 0.0:
 				_try_pull_trigger()
@@ -74,11 +78,11 @@ func _try_pull_trigger() -> void:
 	if _w.ammo <= 0:
 		start_reload()
 	else:
-		_pull_trigger()
+		pull_trigger()
 
 
 ## Un appui de gâchette : un tir, ou le début d'une rafale.
-func _pull_trigger() -> void:
+func pull_trigger() -> void:
 	_w._fire_cooldown += _w.data.get_fire_interval() / _w._boost("fire_rate")
 	fire_one()
 	if _w.data.is_burst():
@@ -86,69 +90,8 @@ func _pull_trigger() -> void:
 		_w._burst_timer = _w.data.burst_interval_s
 
 
-## Charge : appuyer démarre la charge (le serveur est prévenu) ; le tir part tout seul
-## quand elle est pleine ; relâcher avant annule.
-func _process_charge(delta: float) -> void:
-	if not _w._holding:
-		if Input.is_action_just_pressed("fire") and _w._fire_cooldown <= 0.0:
-			if _w.ammo <= 0:
-				start_reload()
-				return
-			_start_holding()
-		return
-	if not Input.is_action_pressed("fire"):
-		stop_holding()  # relâché trop tôt : pas de tir
-		return
-	# Balise de rappel : des dégâts pendant la charge l'interrompent.
-	if _w.data.gadget == WeaponData.GadgetKind.RECALL and _w.health.health + _w.health.shield < _w._hold_hp - 0.5:
-		stop_holding()
-		return
-	_w._hold_time += delta
-	var delay := _w._gadgets.trigger_delay()
-	_w.charge_changed.emit(clampf(_w._hold_time / maxf(delay, 0.01), 0.0, 1.0))
-	if _w._hold_time >= delay:
-		# Charge pleine : pas de « relâché » envoyé au serveur (il arriverait avant le tir et
-		# l'annulerait) ; le serveur remet lui-même la charge à zéro après le tir / la rafale.
-		_w._holding = false
-		_w._hold_time = 0.0
-		_w.charge_changed.emit(0.0)
-		_pull_trigger()
-
-
-## Rayon : maintenir ; après la montée en régime, un tick à chaque intervalle.
-func _process_beam(delta: float) -> void:
-	if not Input.is_action_pressed("fire"):
-		stop_holding()
-		return
-	if _w.ammo <= 0:
-		stop_holding()
-		start_reload()
-		return
-	if not _w._holding:
-		_start_holding()
-	_w._hold_time += delta
-	var delay := _w._gadgets.trigger_delay()
-	_w.charge_changed.emit(clampf(_w._hold_time / maxf(delay, 0.01), 0.0, 1.0) if _w._hold_time < delay else 0.0)
-	if _w._hold_time >= delay and _w._fire_cooldown <= 0.0:
-		_w._fire_cooldown += _w.data.get_fire_interval() / _w._boost("fire_rate")
-		fire_one()
-
-
-func _start_holding() -> void:
-	_w._holding = true
-	_w._hold_time = 0.0
-	_w._hold_hp = _w.health.health + _w.health.shield
-	_w.request_trigger.rpc_id(1, true)
-
-
 func stop_holding() -> void:
-	if not _w._holding:
-		return
-	_w._holding = false
-	_w._hold_time = 0.0
-	_w.charge_changed.emit(0.0)
-	if _w.is_inside_tree() and _w.multiplayer.has_multiplayer_peer():
-		_w.request_trigger.rpc_id(1, false)
+	_hold.stop_holding()
 
 
 func fire_one() -> void:

@@ -67,8 +67,8 @@ func _ready() -> void:
 	player = get_parent() as Player
 	if multiplayer.is_server():
 		Events.match_reset_requested.connect(_server_on_match_reset)
-		Events.monster_killed.connect(_on_monster_killed)
-		Events.player_died.connect(_on_player_died)
+		Events.monster_killed.connect(_srv.on_monster_killed)
+		Events.player_died.connect(_srv.on_player_died)
 		kit_id = String(Config.start_loadout.default_kit)
 		_srv.apply_stats(true)
 
@@ -144,10 +144,6 @@ func xp_for_next_level() -> int:
 	return Config.economy.kit_level_xp[level - 1]
 
 
-# =========================================================================
-# Serveur
-# =========================================================================
-
 ## Change de kit (menu admin) : niveau 1, PV et bouclier pleins.
 func server_set_kit(id: String) -> bool:
 	return _srv.set_kit(id)
@@ -162,20 +158,6 @@ func _server_on_match_reset() -> void:
 	xp = 0
 	_srv.apply_stats(true)
 
-
-func _on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
-	if killer_id == player.get_peer_id():
-		server_add_xp(Config.economy.kit_xp_monster_kill)
-
-
-func _on_player_died(victim_id: int, killer_id: int) -> void:
-	if killer_id == player.get_peer_id() and victim_id != killer_id:
-		server_add_xp(Config.economy.kit_xp_player_kill)
-
-
-# =========================================================================
-# Mods de kit (étape 9)
-# =========================================================================
 
 ## Mod équipé : { id, effect, effects, unlock_level }, ou {}.
 func get_mod() -> Dictionary:

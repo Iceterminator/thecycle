@@ -53,7 +53,7 @@ func server_gadget(origin: Vector3, dir: Vector3) -> void:
 			if beacon == null:
 				Events.ability_object_requested.emit({"kind": "beacon", "owner": peer,
 						"pos": player.global_position, "health": data.beacon_health})
-				_w._srv_trigger_ms = 0
+				_w._srv.trigger_ms = 0
 				return
 			var dest := beacon.global_position + Vector3.UP * 0.3
 			beacon.queue_free()
@@ -76,10 +76,12 @@ func _check_consumed() -> void:
 ## Rayon vital, clic droit (après validation dans Weapon.request_gadget_alt) :
 ## se soigner coûte Config.combat.heal_beam_self_cost charges.
 func self_heal() -> void:
-	var now := Time.get_ticks_msec()
-	if now < _w._srv_self_heal_ready_ms:
+	if _w.data.gadget != WeaponData.GadgetKind.HEAL_BEAM or _w.inventory.get_active_ammo() < Config.combat.heal_beam_self_cost:
 		return
-	_w._srv_self_heal_ready_ms = now + int(Config.combat.heal_beam_self_cooldown * 1000.0)
+	var now := Time.get_ticks_msec()
+	if now < _w._srv.self_heal_ready_ms:
+		return
+	_w._srv.self_heal_ready_ms = now + int(Config.combat.heal_beam_self_cooldown * 1000.0)
 	use_ammo(Config.combat.heal_beam_self_cost)
 	_w.health.heal(_w.data.self_heal)
 	_w._sync_ammo.rpc_id(_w.player.get_peer_id(), _w.inventory.get_active_ammo())

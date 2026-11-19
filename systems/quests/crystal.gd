@@ -59,7 +59,7 @@ func setup(crystal_data: CrystalData) -> void:
 	shape.shape = cylinder
 	shape.position.y = 1.3
 	add_child(shape)
-	_build_visual()
+	_visual.build()
 	_build_sync()
 
 
@@ -78,9 +78,7 @@ func _process(delta: float) -> void:
 			_update_label()
 
 
-# =========================================================================
-# Interaction (Interactor)
-# =========================================================================
+# --- Interaction (Interactor) ---
 
 func get_prompt(_player: Player) -> String:
 	match state:
@@ -112,9 +110,7 @@ func server_interact(player: Player) -> void:
 			_server.complete(player)
 
 
-# =========================================================================
-# Cible des monstres de vague (Monster.objective)
-# =========================================================================
+# --- Cible des monstres de vague (Monster.objective) ---
 
 func can_be_hit() -> bool:
 	return state == State.DEFENSE and drill_health > 0.0
@@ -122,7 +118,6 @@ func can_be_hit() -> bool:
 
 func get_hit_radius() -> float:
 	return HIT_RADIUS
-
 
 
 ## Serveur : un monstre frappe la foreuse.
@@ -148,10 +143,6 @@ func _physics_process(delta: float) -> void:
 	_server.physics_step(delta)
 
 
-# =========================================================================
-# Construction : synchro et visuels
-# =========================================================================
-
 func _build_sync() -> void:
 	var config := SceneReplicationConfig.new()
 	for key in [".:state", ".:drill_health", ".:wave_index", ".:monsters_left", ".:next_wave_in"]:
@@ -165,20 +156,12 @@ func _build_sync() -> void:
 	add_child(sync)
 
 
-func _build_visual() -> void:
-	_visual.build()
-
-
 func _update_look() -> void:
-	if _visual == null:
-		return
-	_visual.update_look()
+	if _visual: _visual.update_look()
 
 
 func _update_label() -> void:
-	if _visual == null:
-		return
-	_visual.update_label()
+	if _visual: _visual.update_label()
 
 
 ## Écran Tab : état du cristal (même texte que le texte flottant).

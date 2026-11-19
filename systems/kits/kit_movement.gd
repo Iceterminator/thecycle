@@ -22,6 +22,7 @@ const KitMovementJet := preload("res://systems/kits/kit_movement_jet.gd")
 const KitMovementDash := preload("res://systems/kits/kit_movement_dash.gd")
 const KitMovementBastion := preload("res://systems/kits/kit_movement_bastion.gd")
 const KitMovementServer := preload("res://systems/kits/kit_movement_server.gd")
+const KitMovementStatus := preload("res://systems/kits/kit_movement_status.gd")
 
 const DODGE_ACTIVATION_HOLD := 0.2   ## jetpack : Saut maintenu avant la poussée (s)
 const SUPER_JUMP_TAP := 0.15         ## super saut : en dessous, c'est un saut normal (s)
@@ -64,11 +65,7 @@ func mobility() -> int:
 	return data.mobility_type if data else KitData.MobilityType.NONE
 
 
-# =========================================================================
-# Client propriétaire : appelé par Player._physics_process
-# =========================================================================
-
-## Avant le déplacement : recharges, saut et capacités. Peut changer player.velocity.
+## Client propriétaire, appelé par Player._physics_process. Avant le déplacement : recharges, saut et capacités. Peut changer player.velocity.
 func pre_physics(delta: float, input_dir: Vector2) -> void:
 	if kit.kit_id != _last_kit_id:
 		_reset_for_kit()
@@ -146,20 +143,7 @@ func _basic_jump(on_floor: bool) -> void:
 
 ## Texte du HUD : ressource et recharges de la capacité du kit.
 func status_text() -> String:
-	match mobility():
-		KitData.MobilityType.JETPACK:
-			var dive := "prête (Accroupi en l'air)" if _jet.dive_cd <= 0.0 else "%d s" % ceili(_jet.dive_cd)
-			return "Jetpack %d %%  —  Plongée %s" % [roundi(100.0 * fuel / maxf(_jet.fuel_max(), 1.0)), dive]
-		KitData.MobilityType.JETBOOSTERS:
-			return "Propulseurs %d %%" % roundi(100.0 * fuel / maxf(_jet.fuel_max(), 1.0))
-		KitData.MobilityType.DASH:
-			var full := int(charges)
-			return "Énergie %s" % ("■".repeat(full) + "□".repeat(maxi(int(_dash.charges_max()) - full, 0)))
-		KitData.MobilityType.SUPER_JUMP:
-			var jump := "prêt (maintenir Saut)" if _bastion.super_cd <= 0.0 else "%d s" % ceili(_bastion.super_cd)
-			var punch := "prêt (V)" if _bastion.punch_cd <= 0.0 else "%d s" % ceili(_bastion.punch_cd)
-			return "Super saut %s  —  Coup de poing %s" % [jump, punch]
-	return ""
+	return KitMovementStatus.text(self)
 
 
 func _on_health_changed() -> void:
@@ -169,10 +153,6 @@ func _on_health_changed() -> void:
 		charges = maxf(charges - 1.0, 0.0)
 	_last_hp = hp
 
-
-# =========================================================================
-# Serveur : les RPC restent ici (chemin du nœud), la logique est dans le helper
-# =========================================================================
 
 ## Atterrissage d'une plongée : dégâts de zone autour du point (pas sur soi).
 @rpc("any_peer", "call_local", "reliable")

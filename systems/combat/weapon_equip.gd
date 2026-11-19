@@ -21,10 +21,10 @@ func on_active_weapon_changed() -> void:
 	_w._client.stop_holding()
 	_w._fire_cooldown = _equip_time()
 	if _w.multiplayer.is_server():
-		_w._srv_reload_end_ms = 0
-		_w._srv_trigger_ms = 0
-		_w._srv_switch_until_ms = Time.get_ticks_msec() + int(_equip_time() * 900.0)
-		_w._srv_tokens = minf(_w._srv_tokens, _w._server_fire.token_capacity())
+		_w._srv.reload_end_ms = 0
+		_w._srv.trigger_ms = 0
+		_w._srv.switch_until_ms = Time.get_ticks_msec() + int(_equip_time() * 900.0)
+		_w._srv.tokens = minf(_w._srv.tokens, _w._server_fire.token_capacity())
 		# Le client peut ne pas voir le changement (même modèle d'arme échangé) :
 		# on lui renvoie le bon chargeur.
 		_w._sync_ammo.rpc_id(_w.player.get_peer_id(), _w.ammo)
@@ -45,9 +45,17 @@ func _equip_time() -> float:
 
 ## Réapparition (serveur) : repart d'un état propre.
 func server_refill() -> void:
-	_w._srv_reload_end_ms = 0
-	_w._srv_switch_until_ms = 0
-	_w._srv_trigger_ms = 0
-	_w._srv_tokens = _w._server_fire.token_capacity()
-	_w._srv_last_ms = Time.get_ticks_msec()
+	_w._srv.reload_end_ms = 0
+	_w._srv.switch_until_ms = 0
+	_w._srv.trigger_ms = 0
+	_w._srv.tokens = _w._server_fire.token_capacity()
+	_w._srv.last_ms = Time.get_ticks_msec()
 	_w._sync_ammo.rpc_id(_w.player.get_peer_id(), _w.inventory.get_active_ammo())
+
+
+## Début d'un rechargement (serveur, demande déjà validée).
+func server_start_reload() -> void:
+	_w._srv.trigger_ms = 0
+	# 10 % de marge : la demande de rechargement et les tirs suivants n'arrivent
+	# pas forcément avec le même délai.
+	_w._srv.reload_end_ms = Time.get_ticks_msec() + int(_w.data.reload_s * 900.0)

@@ -1,6 +1,6 @@
 extends RefCounted
 ## Serveur : projectiles simulés (création, avancée par image, impact ou fin de portée).
-## La liste des projectiles en vol est dans Weapon (_srv_projectiles).
+## La liste des projectiles en vol est dans Weapon (_srv.projectiles).
 
 var _w: Weapon
 
@@ -11,9 +11,9 @@ func _init(weapon: Weapon) -> void:
 
 func launch(origin: Vector3, dir: Vector3) -> void:
 	var data := _w.data
-	_w._srv_next_projectile_id += 1
-	_w._srv_projectiles.append({
-		"id": _w._srv_next_projectile_id,
+	_w._srv.next_projectile_id += 1
+	_w._srv.projectiles.append({
+		"id": _w._srv.next_projectile_id,
 		"pos": origin,
 		"dir": dir,
 		"speed": data.projectile_speed_mps,
@@ -23,13 +23,13 @@ func launch(origin: Vector3, dir: Vector3) -> void:
 		"dmg_mult": _w._boost("damage"),
 		"data": data,  # l'arme peut changer pendant le vol
 	})
-	_w._show_projectile.rpc(_w._srv_next_projectile_id, origin, dir, data.projectile_speed_mps, data.get_max_range() * _w._boost("range"))
+	_w._show_projectile.rpc(_w._srv.next_projectile_id, origin, dir, data.projectile_speed_mps, data.get_max_range() * _w._boost("range"))
 
 
 ## Fait avancer les projectiles (serveur uniquement) : un raycast par image sur le
 ## segment parcouru, en ligne droite (pas de chute pour l'instant).
 func update(delta: float) -> void:
-	var projectiles := _w._srv_projectiles
+	var projectiles := _w._srv.projectiles
 	for i in range(projectiles.size() - 1, -1, -1):
 		var p := projectiles[i]
 		var step := minf(p["speed"] * delta, p["max_dist"] - p["travelled"])
