@@ -38,4 +38,4 @@ func on_evac_pad_cleared(killer_id: int) -> void:
 		Events.announce_requested.emit("%s a nettoyé la plateforme d'évac ! (+%d)" % [ProfileManager.name_of(killer_id), Config.economy.evac_pad_clear_fame], MatchManager.EVAC_COLOR)
 	else:
 		Events.announce_requested.emit("La plateforme d'évac est dégagée !", MatchManager.EVAC_COLOR)
-	_m._advance(_m.elapsed)  # se pose tout de suite si l'heure est passée
+	_m._clock.advance(_m.elapsed)  # se pose tout de suite si l'heure est passée

@@ -49,4 +49,4 @@ func advance(to: float) -> void:
 	if before < Config.match_rules.crystal_upgrade_time and elapsed >= Config.match_rules.crystal_upgrade_time:
 		Events.crystal_upgrade_requested.emit()
 	if elapsed >= Config.match_rules.match_duration:
-		_m._end_match()
+		_m._cycle.end_match()

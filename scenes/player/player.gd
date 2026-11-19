@@ -1,16 +1,15 @@
 class_name Player
 extends CharacterBody3D
-## Joueur FPS répliqué en réseau.
-## - Le nom du nœud = l'id réseau du joueur (donné par world.gd).
-## - Ce client a l'autorité sur SON joueur : il lit les touches et bouge.
-## - Le Synchronizer envoie position/rotation/accroupi aux autres.
-## - Santé/bouclier/mort (Health) et inventaire (Inventory) sont décidés par le
-##   SERVEUR : ces nœuds et leurs synchronizers gardent l'autorité 1.
+## Joueur FPS répliqué en réseau. Le nom du nœud = l'id réseau du joueur (donné par world.gd).
+## - Ce client a l'autorité sur SON joueur (touches, déplacement) ; le Synchronizer envoie
+##   position / rotation / accroupi aux autres.
+## - Santé, bouclier, mort (Health), inventaire et score sont décidés par le SERVEUR (autorité 1).
 ## - L'arme (Weapon) et l'interaction (Interactor) DEMANDENT au serveur.
 ## - Couches : le joueur est sur la couche 2 (« joueurs ») et collisionne avec 1 et 2.
 
 const PlayerSetup := preload("res://scenes/player/player_setup.gd")
 const PlayerMotion := preload("res://scenes/player/player_motion.gd")
+const PlayerState := preload("res://scenes/player/player_state.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -24,13 +23,11 @@ const PlayerMotion := preload("res://scenes/player/player_motion.gd")
 @onready var shop: Shop = $Shop
 @onready var score: Score = $Score
 
-## Menu admin (touche 0) : créé en code sur tous les peers, même chemin partout (RPC).
+## Menu admin (touche 0), kit (PV, bouclier, vitesse, niveau ; autorité serveur), capacités de
+## mouvement, buffs et capacités Q / F : créés en code sur tous les peers, même chemin (RPC).
 var admin: Admin
-## Kit (PV, bouclier, vitesse, niveau ; autorité serveur) et capacités de mouvement :
-## créés en code sur tous les peers (nœuds « Kit » et « Movement »).
 var kit: KitController
 var movement: KitMovement
-## Bonus / malus temporaires et capacités Q / F (étape 8c, autorité serveur).
 var buffs: BuffController
 var abilities: AbilityController
 var drop: DropPodRide  ## largage en capsule (serveur autoritaire, voir DropPodRide)
@@ -50,10 +47,7 @@ var avatar: PlayerAvatar
 var is_evacuated: bool = false
 
 signal evacuated_changed(evacuated: bool)
-
-## Hauteur ajoutée quand on passe spectateur (vue d'ensemble de la carte).
-const SPECTATOR_LIFT := 20.0
-
+const SPECTATOR_LIFT := 20.0  ## hauteur ajoutée en spectateur (vue d'ensemble)
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.1
 const HEAD_OFFSET := 0.2  # distance entre le haut de la capsule et les yeux
@@ -61,7 +55,6 @@ const HEAD_OFFSET := 0.2  # distance entre le haut de la capsule et les yeux
 
 func _enter_tree() -> void:
 	set_multiplayer_authority(name.to_int())
-	# Santé et inventaire restent au serveur (récursif : leurs synchronizers aussi).
 	$Health.set_multiplayer_authority(1)
 	$Inventory.set_multiplayer_authority(1)
 	$Score.set_multiplayer_authority(1)
@@ -75,21 +68,19 @@ func _ready() -> void:
 	var is_local := is_multiplayer_authority()
 	print("[Player] Joueur %s apparu chez le peer %d (local : %s)" % [name, multiplayer.get_unique_id(), is_local])
 	camera.current = is_local
-	# On ne voit pas son propre corps (évite que la capsule bouche la vue).
 	body_mesh.visible = not is_local
-	health.dead_changed.connect(_on_dead_changed)
+	health.dead_changed.connect(PlayerState.on_dead_changed.bind(self))
 	add_to_group("damageable")
 	_motion = PlayerMotion.new(self)
 	PlayerSetup.build_components(self, is_local)
 	if is_local:
 		PlayerSetup.build_local_ui(self)
-	health.downed_changed.connect(_on_downed_changed)
+	health.downed_changed.connect(PlayerState.on_downed_changed.bind(self))
 	set_physics_process(is_local)
-	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
 	set_process(not is_local)
 	# Joueur déjà mort au moment où on le reçoit (connexion en cours de partie).
 	if health.is_dead:
-		_on_dead_changed(true)
+		PlayerState.on_dead_changed(true, self)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -100,21 +91,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	_motion.apply_crouch_shape(delta)
-	# Camouflage vu par les autres : le corps devient transparent.
-	if buffs and body_mesh.visible:
-		var speed := Vector2(velocity.x, velocity.z).length()
-		body_mesh.transparency = buffs.get_cloak(speed)
-
+	_motion.apply_cloak()
 
 func _physics_process(delta: float) -> void:
-	# Largage (écran de départ ou capsule) : figé, la trajectoire vient de DropPodRide.
+	# Largage (écran de départ ou capsule) : figé, trajectoire de DropPodRide.
 	if is_dropping():
 		drop.step()
 		return
 	if is_evacuated:
 		_motion.spectator_move(delta)
 		return
-	# Vol admin (local, menu admin) : remplace tout le déplacement.
 	if admin != null and admin.fly.active and is_multiplayer_authority():
 		admin.fly.step(self, delta)
 		return
@@ -123,9 +109,7 @@ func _physics_process(delta: float) -> void:
 
 ## Mod d'arme choisi par ce joueur pour cette arme (lobby, étape 9), ou null.
 func weapon_mod(wdata: WeaponData) -> WeaponModData:
-	if wdata == null:
-		return null
-	return WeaponModData.get_mod(String(ProfileManager.weapon_mods(get_peer_id()).get(String(wdata.id), "")))
+	return PlayerState.weapon_mod(self, wdata)
 
 
 ## Arme de départ (profil, choisie dans le lobby) ; Config.start_loadout.base_weapon sinon.
@@ -135,27 +119,12 @@ func start_weapon_id() -> StringName:
 
 ## Taille de chargeur de cette arme pour ce joueur (mod « chargeur étendu » compris).
 func magazine_for(wdata: WeaponData) -> int:
-	if wdata == null:
-		return 0
-	var mod := weapon_mod(wdata)
-	return maxi(roundi(wdata.magazine * (mod.magazine_mult if mod else 1.0)), 1)
-
-
-## À terre : un allié peut nous relever (interaction E maintenue) ; tous les peers.
-func _on_downed_changed(downed: bool) -> void:
-	if downed:
-		add_to_group("downed_players")
-		add_to_group("interactable")
-	else:
-		remove_from_group("downed_players")
-		remove_from_group("interactable")
+	return PlayerState.magazine_for(self, wdata)
 
 
 ## Interaction (relever) : seulement pour un allié, et seulement si on est à terre.
 func get_prompt(viewer: Player) -> String:
-	if not health.is_downed or viewer == self or not Allies.can_revive(viewer.get_peer_id(), get_peer_id()):
-		return ""
-	return "Maintenir E : relever %s" % ProfileManager.name_of(get_peer_id())
+	return PlayerState.revive_prompt(self, viewer)
 
 
 func get_hold_time(_viewer: Player) -> float:
@@ -163,8 +132,7 @@ func get_hold_time(_viewer: Player) -> float:
 
 
 func server_interact(viewer: Player) -> void:
-	if health.is_downed and Allies.can_revive(viewer.get_peer_id(), get_peer_id()) and not viewer.health.is_downed:
-		health.server_revive_downed(viewer.get_peer_id())
+	PlayerState.revive(self, viewer)
 
 
 ## Serveur -> joueur touché : recul (coup de poing chargé).
@@ -180,15 +148,7 @@ func apply_knockback(impulse: Vector3) -> void:
 func set_evacuated(value: bool) -> void:
 	if multiplayer.get_remote_sender_id() != 1 or value == is_evacuated:
 		return
-	is_evacuated = value
-	collision.set_deferred("disabled", value or health.is_dead)
-	body_mesh.visible = not value and not health.is_dead and not is_multiplayer_authority()
-	if is_multiplayer_authority():
-		velocity = Vector3.ZERO
-		is_crouching = false
-		if value:
-			global_position += Vector3.UP * SPECTATOR_LIFT
-	evacuated_changed.emit(value)
+	PlayerState.apply_evacuated(self, value)
 
 
 ## Interface « damageable » (armes, monstres) — côté serveur.
@@ -210,15 +170,6 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 func is_headshot(point: Vector3) -> bool:
 	var top := global_position.y + (collision.shape as CapsuleShape3D).height
 	return point.y >= top - Config.HEAD_ZONE_HEIGHT
-
-
-func _on_dead_changed(dead: bool) -> void:
-	# Un mort ne bloque pas les tirs ; son corps reste visible (animation de mort) jusqu'à la réapparition.
-	collision.set_deferred("disabled", dead)
-	body_mesh.visible = not is_multiplayer_authority()
-	if is_multiplayer_authority():
-		velocity = Vector3.ZERO
-		set_physics_process(not dead)
 
 
 ## Envoyé par le serveur au propriétaire pour la réapparition

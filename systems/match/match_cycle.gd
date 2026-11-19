@@ -150,3 +150,24 @@ func server_lobby(delta: float) -> void:
 	if all_ready:
 		print("[Partie] Départ : les %d joueurs sont prêts" % count)
 		restart()
+
+
+## Pas de physique serveur : minuteur de la phase en cours, ou avancée de l'horloge de partie.
+func server_tick(delta: float) -> void:
+	if _m.phase == MatchManager.Phase.LOBBY:
+		server_lobby(delta)
+		return
+	if _m.phase == MatchManager.Phase.DROP:
+		_m._drop_left -= delta
+		if _m._drop_left <= 0.0:
+			begin_drop()
+		return
+	if _m.phase == MatchManager.Phase.ENDED:
+		_m._restart_left -= delta
+		if _m._restart_left <= 0.0:
+			enter_lobby()
+		return
+	_m._clock.advance(_m.elapsed + delta)
+	_m._resync_left -= delta
+	if _m._resync_left <= 0.0:
+		_m._broadcast_clock()

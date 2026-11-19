@@ -109,3 +109,10 @@ func handle_input(event: InputEvent) -> void:
 		# Un vrai clic recapture la souris ; pas la molette (sinon, défiler dans un menu
 		# ouvert recapturait la souris par-dessus le menu).
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+## Camouflage vu par les autres : le corps devient transparent.
+func apply_cloak() -> void:
+	if _p.buffs and _p.body_mesh.visible:
+		var speed := Vector2(_p.velocity.x, _p.velocity.z).length()
+		_p.body_mesh.transparency = _p.buffs.get_cloak(speed)
