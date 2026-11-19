@@ -12,6 +12,9 @@ extends Node3D
 ## secousse de la caméra (Events.camera_shake_requested : explosions, dégâts reçus).
 ## La secousse passe par h_offset / v_offset / roulis : la direction du tir ne change pas.
 
+const WeaponModelBuilder := preload("res://systems/combat/weapon_model_builder.gd")
+const WeaponModelMotion := preload("res://systems/combat/weapon_model_motion.gd")
+
 const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
 const AIM_SPEED := 12.0
@@ -41,13 +44,7 @@ var player: Player
 var _current: WeaponData
 var _offset: Vector3 = Vector3.ZERO
 var _base: Vector3 = HIP_POSITION
-var _kick := 0.0
-var _sway := Vector2.ZERO
-var _last_look := Vector2.ZERO
-var _bob_time := 0.0
-var _bob_amp := 0.0
-var _sprint := 0.0
-var _raise := 0.0
+var _motion: WeaponModelMotion
 var _trauma := 0.0
 var _shake_time := 0.0
 var _model: Node3D
@@ -56,22 +53,10 @@ var tune_offset := Vector3.ZERO  ## réglage en jeu (GripTuner) : décalage de l
 var tune_scale := 1.0  ## réglage en jeu : facteur de taille
 var tune_left := Vector3.ZERO  ## réglage en jeu : décalage de la main gauche (m, repère de l'arme)
 
-## Matériaux teintés partagés (matériau d'origine + teinte → copie) : une copie par arme
-## libérée avec elle provoquait des erreurs du moteur (« material is null »).
-static var _tint_cache: Dictionary = {}
-
-
-static func _tinted(source: BaseMaterial3D, tint: Color) -> BaseMaterial3D:
-	var key := [source, tint]
-	if not _tint_cache.has(key):
-		var mat := source.duplicate() as BaseMaterial3D
-		mat.albedo_color *= tint
-		_tint_cache[key] = mat
-	return _tint_cache[key]
-
 
 func setup(owner_player: Player) -> void:
 	player = owner_player
+	_motion = WeaponModelMotion.new(player)
 	position = HIP_POSITION
 	player.inventory.active_weapon_changed.connect(_refresh)
 	Events.camera_shake_requested.connect(_on_camera_shake_requested)
@@ -95,14 +80,12 @@ func _refresh() -> void:
 		_offset = weapon.model_offset
 		_model = build(weapon)
 		add_child(_model)
-		_raise = 1.0
+		_motion.raise_amount = 1.0
 
 
 ## Un tir du joueur local : strength ≈ 1 pour une arme qui recule fort.
 func kick(strength: float) -> void:
-	_kick = minf(_kick + strength, KICK_MAX)
-	# Le recul vient de tourner la vue : ne pas le compter comme un mouvement de souris.
-	_last_look = Vector2(player.rotation.y, player.head.rotation.x)
+	_motion.add_kick(strength)
 	_trauma = minf(_trauma + strength * 0.12, 1.0)
 	if _arms:
 		_arms.play_shot()
@@ -135,40 +118,9 @@ func _process(delta: float) -> void:
 	# Avec les bras, la visée ne déplace presque pas le corps (la pose tient déjà l'arme au centre).
 	var aim_pos := HIP_POSITION + ARMS_AIM_SHIFT if _arms else AIM_POSITION
 	_base = _base.lerp((aim_pos if aiming else HIP_POSITION) + _offset, t)
-	_kick = lerpf(_kick, 0.0, clampf(delta * KICK_RECOVER, 0.0, 1.0))
-	_raise = maxf(_raise - delta * RAISE_SPEED, 0.0)
-	var raise := _raise * _raise  # remontée rapide au début, douce à la fin
-
-	# Balancement : l'arme traîne derrière les mouvements de la vue.
-	var look := Vector2(player.rotation.y, player.head.rotation.x)
-	var look_speed := Vector2.ZERO
-	if delta > 0.0:
-		look_speed = Vector2(wrapf(look.x - _last_look.x, -PI, PI), look.y - _last_look.y) / delta
-	_last_look = look
-	var max_sway := deg_to_rad(SWAY_MAX_DEG)
-	var sway_target := (look_speed * SWAY_PER_SPEED).clampf(-max_sway, max_sway) * (0.3 if aiming else 1.0)
-	_sway = _sway.lerp(sway_target, clampf(delta * SWAY_SPEED, 0.0, 1.0))
-
-	# Balancement de marche, au rythme des pas.
-	var speed := Vector2(player.velocity.x, player.velocity.z).length()
-	var grounded := player.is_on_floor()
-	_bob_time += delta * speed * BOB_FREQ * TAU / 2.0 if grounded else 0.0
-	var bob_target := clampf(speed / 5.0, 0.0, 1.6) if grounded and speed > 0.5 else 0.0
-	_bob_amp = lerpf(_bob_amp, bob_target * (0.2 if aiming else 1.0), clampf(delta * 8.0, 0.0, 1.0))
-	var bob := Vector3(sin(_bob_time) * BOB_AMP, -absf(cos(_bob_time)) * BOB_AMP, 0.0) * _bob_amp
-
-	# Pose de sprint (arme baissée et tournée), annulée dès qu'on vise ou qu'on tire.
-	var sprinting := grounded and not aiming and _kick < 0.05 and speed > SPRINT_MIN_SPEED \
-			and Input.is_action_pressed("sprint")
-	_sprint = lerpf(_sprint, 1.0 if sprinting else 0.0, clampf(delta * 10.0, 0.0, 1.0))
-
-	var pos := _base + bob + SPRINT_OFFSET * _sprint \
-			+ Vector3(0.0, _kick * 0.015 - raise * RAISE_DROP, _kick * KICK_BACK)
-	var rot := Vector3(
-		deg_to_rad(KICK_UP_DEG) * _kick - _sway.y - deg_to_rad(RAISE_TILT_DEG) * raise,
-		-_sway.x,
-		sin(_bob_time) * 0.015 * _bob_amp,
-	) + SPRINT_ROT_DEG * (PI / 180.0) * _sprint
+	_motion.update(delta, aiming, _base)
+	var pos := _motion.pos
+	var rot := _motion.rot
 	if _arms:
 		# Rotation autour de la caméra (pas de l'arme) : la tête du corps reste sur la caméra.
 		transform = Transform3D(Basis.from_euler(rot), Vector3.ZERO) * Transform3D(Basis(), pos)
@@ -200,52 +152,7 @@ func _shake_camera(delta: float) -> void:
 
 ## Modèle de l'arme prêt à poser : tourné, mis à l'échelle, poignée sur l'origine, sans ombre.
 static func build(weapon: WeaponData) -> Node3D:
-	var pivot := Node3D.new()
-	pivot.name = "Model"
-	var instance := weapon.model.instantiate() as Node3D
-	pivot.add_child(instance)
-	instance.rotation_degrees = weapon.model_rotation_deg
-	# Boîte englobante de tous les maillages, dans le repère du pivot (avant mise à l'échelle).
-	var box := AABB()
-	var first := true
-	for node in instance.find_children("*", "MeshInstance3D", true, false):
-		var mesh := node as MeshInstance3D
-		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		if weapon.model_tint != Color.WHITE:
-			for s in mesh.mesh.get_surface_count():
-				var mat := mesh.get_active_material(s) as BaseMaterial3D
-				if mat:
-					mesh.set_surface_override_material(s, _tinted(mat, weapon.model_tint))
-		var xf := Transform3D.IDENTITY
-		var n: Node = mesh
-		while n != pivot:
-			xf = (n as Node3D).transform * xf
-			n = n.get_parent()
-		var part := xf * mesh.get_aabb()
-		box = part if first else box.merge(part)
-		first = false
-	if first:
-		return pivot
-	var longest := maxf(box.size.x, maxf(box.size.y, box.size.z))
-	var scale_factor := weapon.model_length / maxf(longest, 0.001)
-	instance.scale = Vector3.ONE * scale_factor
-	# Le repère Poignee de la scène du modèle sur l'origine : c'est lui qui est posé dans la main.
-	var marker := instance.find_child("Poignee", true, false) as Node3D
-	var grip := box.get_center()
-	if marker:
-		grip = Basis.from_euler(instance.rotation) * _local_in(instance, marker)
-	instance.position = -grip * scale_factor
-	return pivot
-
-
-## Position de `node` dans le repère de `ancestor` (exclu : sa propre transformation n'est pas comptée).
-static func _local_in(ancestor: Node3D, node: Node3D) -> Vector3:
-	var xf := Transform3D.IDENTITY
-	var n: Node = node
-	while n != ancestor:
-		xf = (n as Node3D).transform * xf
-		n = n.get_parent()
-	return xf.origin
+	return WeaponModelBuilder.build(weapon)
 
 
 ## Position globale du bout du canon (repère « Bouche » du modèle en main) ; sans repère, celle de l'arme.
