@@ -38,6 +38,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
   `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/` ; `reference/` = chiffres du jeu d'origine
 - `assets/` : modèles (Quaternius, CC0), polices, icônes ; `tools/` : scripts d'outillage
 - `docs/` : design, fiches par mécanique, captures
+- `tests/` : tests réseau automatisés (hôte + client headless), lancés par `tools/run_tests.sh`
 
 ## Commandes
 ```
@@ -56,8 +57,14 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --headless --path . -s tools/make_held_scenes.gd
 ```
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
-Test réseau scripté : hôte `-- --host` + client `--headless -s mon_test.gd` (script `extends SceneTree`
-qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ; arrêt par `timeout` + `taskkill`.
+Tests réseau automatisés (9 tests, ~4 min ; port 7777 : un seul lancement à la fois) :
+```
+bash tools/run_tests.sh            # tous ; OK / ÉCHEC par test, journaux dans .test_logs/
+bash tools/run_tests.sh 03 09      # seulement les tests dont le nom contient 03 ou 09
+```
+Nouveau test : `tests/test_NN_nom.gd`, `extends "res://tests/net_test_aides.gd"`, avec `run_host()` (serveur :
+vérité du jeu, prépare la scène) et `run_client()` (agit par les vrais RPC `request_*`). Le même script tourne
+des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les autoloads : la logique est dans un Node).
 
 ## Mécanique → fichiers
 | Mécanique | Code | Données | Doc |
@@ -79,6 +86,7 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 | Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` | `assets/models/nature/` | — |
 | Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |
+| Tests réseau | `tests/` (`net_test.gd`, `net_test_aides.gd`, `runner.gd`, `test_NN_*.gd`), `tools/run_tests.sh` | — | ci-dessus (Commandes) |
 
 ## Pièges connus
 - L'éditeur Godot réécrit `project.godot` : nouvelles touches dans `Config.CODE_KEY_ACTIONS`.
@@ -93,15 +101,17 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 
 ## Règles de travail
 - Réponses courtes : pas de récap au-delà de 5 lignes, pas d'explication si on ne la demande pas.
-- Scripts .gd : moins de 150 lignes, une responsabilité, noms en snake_case explicites. Si un fichier dépasse, propose un découpage.
+- Scripts .gd : moins de 150 lignes (180 toléré), une responsabilité, noms en snake_case explicites. Si un fichier dépasse, propose un découpage.
+  Découpage d'un gros script : helpers `<script>_<rôle>.gd` à côté (RefCounted ou statiques, chargés par `preload`) ;
+  les `@rpc`, propriétés synchronisées et l'API publique restent sur le nœud d'origine.
 - Données de jeu (stats, loot, prix) dans data/ en .tres ou JSON, jamais en dur dans le code.
 - Ne lis pas un .tscn en entier si un grep suffit. Ne lis que les fichiers nécessaires à la tâche.
-- Gros scripts (plus de 400 lignes : lobby_ui, hud, weapon, monster…) : grep d'abord, puis lis seulement les lignes utiles (offset / limit), jamais le fichier entier.
+- Gros scripts découpés en helpers `<script>_<rôle>.gd` (ex. `weapon.gd` + `weapon_damage.gd`…) : grep le dossier pour trouver le bon helper. `tools/import_legacy_data.gd` (445 lignes) : grep puis offset / limit.
 - Ne lis pas `data/reference/the_cycle_legacy_data.json` (2 600 lignes) sauf si la tâche porte sur les chiffres d'origine, et alors avec grep.
 - Avant d'explorer, consulte la table « mécanique → fichiers » et le docs/ concerné.
 - Après tout déplacement ou renommage : mets à jour les références res:// et les UID, puis lance un test en headless.
 - Après chaque changement de code : `-s tools/check_scripts.gd` sans échec (avant : `--import` seulement si une class_name ou un asset est nouveau), lancé par le chercheur, qui ne renvoie que les erreurs.
-- Changement réseau (RPC, synchro, spawn) : test à 2 instances (hôte + client headless, voir Commandes) avant de dire que c'est fini ; pas pour un changement purement local.
+- Changement réseau (RPC, synchro, spawn) : `bash tools/run_tests.sh` (au moins les tests concernés) avant de dire que c'est fini ; pas pour un changement purement local.
 - Changement visuel : une ou deux captures au plus (échelle réduite), puis « À tester en jeu : … » quand c'est le ressenti qui compte. Pas de capture pour du code sans effet visible.
 - Pour une tâche de plus de 3 fichiers : propose un plan court et attends mon accord.
 - Garde le CLAUDE.md et docs/ à jour quand tu ajoutes ou déplaces un système.
