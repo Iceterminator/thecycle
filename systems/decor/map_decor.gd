@@ -21,6 +21,13 @@ const ROCK_MIN_HEIGHT := 8.0
 const SMALL_CLEAR_PARENTS := ["LumicepSpots"]  ## repères à petit rayon dégagé
 const SMALL_CLEAR_RADIUS := 3.0
 
+## Portées de visibilité (m) : au-delà, le décor est masqué (brume dense, gain GPU). 0 = illimitée.
+const TREE_RANGE := 150.0       ## arbres dans la carte (la forêt extérieure reste visible : elle ferme l'horizon)
+const ROCK_RANGE := 110.0
+const BUSH_RANGE := 100.0
+const GRASS_RANGE := 60.0
+const SMALL_RANGE := 50.0
+
 const TREE_COUNT := 250
 const ROCK_COUNT := 100
 const BUSH_COUNT := 580
@@ -44,13 +51,13 @@ func _ready() -> void:
 	for i in TREE_COUNT:
 		var pos := _free_spot(half - EDGE_MARGIN, TREE_MAX_SLOPE)
 		if pos != Vector3.INF:
-			_place_solid(_pick(DecorModels.TREES), pos, _rng.randf_range(0.8, 1.4), true)
+			_place_solid(_pick(DecorModels.TREES), pos, _rng.randf_range(0.8, 1.4), true, TREE_RANGE)
 	for i in ROCK_COUNT:
 		var pos := _rock_spot(half - EDGE_MARGIN)
 		if pos != Vector3.INF:
 			var s := _rng.randf_range(0.7, 2.2)
 			pos.y -= 0.15 * s  # légèrement enfoncé dans la pente
-			_place_solid(_pick(DecorModels.ROCKS), pos, s, false)
+			_place_solid(_pick(DecorModels.ROCKS), pos, s, false, ROCK_RANGE)
 	# Forêt dense hors des murs : ferme l'horizon (pas de collision, on ne peut pas y aller).
 	var outer := half + OUTSIDE_RING
 	for i in OUTSIDE_TREE_COUNT:
@@ -61,9 +68,9 @@ func _ready() -> void:
 		var big := _rng.randf() < 0.12
 		_place_visual(_pick(DecorModels.BIG_TREES if big else DecorModels.TREES),
 				Vector3(x, MapTerrain.height_at(x, z), z), _rng.randf_range(0.9, 1.6))
-	_scatter_multimesh(DecorModels.BUSHES, BUSH_COUNT, half, Vector2(0.7, 1.4), true)
-	_scatter_multimesh(DecorModels.GRASS, GRASS_COUNT, half, Vector2(0.35, 0.7), false)
-	_scatter_multimesh(DecorModels.SMALL, SMALL_COUNT, half, Vector2(0.6, 1.5), false)
+	_scatter_multimesh(DecorModels.BUSHES, BUSH_COUNT, half, Vector2(0.7, 1.4), true, BUSH_RANGE)
+	_scatter_multimesh(DecorModels.GRASS, GRASS_COUNT, half, Vector2(0.35, 0.7), false, GRASS_RANGE)
+	_scatter_multimesh(DecorModels.SMALL, SMALL_COUNT, half, Vector2(0.6, 1.5), false, SMALL_RANGE)
 
 
 func _pick(list: Array) -> String:
@@ -110,12 +117,14 @@ func _place_visual(model: String, pos: Vector3, s: float) -> Node3D:
 	return inst
 
 
-func _place_solid(model: String, pos: Vector3, s: float, is_tree: bool) -> void:
-	DecorModels.add_collision(_place_visual(model, pos, s), is_tree)
+func _place_solid(model: String, pos: Vector3, s: float, is_tree: bool, view_range: float) -> void:
+	var inst := _place_visual(model, pos, s)
+	DecorModels.add_collision(inst, is_tree)
+	DecorModels.set_range_end(inst, view_range)
 
 
-## Petites plantes sans collision, regroupées par maillage (un MultiMesh par maillage).
-func _scatter_multimesh(models: Array, count: int, half: float, scale_range: Vector2, avoid: bool) -> void:
+## Petites plantes sans collision, regroupées par maillage et par case (MultiMesh, voir DecorModels).
+func _scatter_multimesh(models: Array, count: int, half: float, scale_range: Vector2, avoid: bool, view_range: float) -> void:
 	var by_model: Dictionary = {}
 	for model: String in models:
 		by_model[model] = []
@@ -127,7 +136,7 @@ func _scatter_multimesh(models: Array, count: int, half: float, scale_range: Vec
 		(by_model[_pick(models)] as Array).append(Transform3D(basis, pos))
 	for model: String in by_model:
 		if not (by_model[model] as Array).is_empty():
-			DecorModels.add_multimeshes(self, model, by_model[model])
+			DecorModels.add_multimeshes(self, model, by_model[model], view_range)
 
 
 func _random_spot(half: float) -> Vector3:

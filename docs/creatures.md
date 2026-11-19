@@ -8,6 +8,7 @@ Code : `systems/monsters/` (`monster.gd`, `monster_manager.gd`, `monster_camp.gd
 - Camps de niveau 1 et 2, repeuplés après `camp_respawn_delay` ; navmesh généré depuis les collisions (décor compris).
 - Niveaux 1 à 3 selon le temps de partie (PV, dégâts, crédits) ; plus forts pendant la Grande Marée.
 - Modèles animés Quaternius (robots du Sci-Fi Essentials Kit) ; sans modèle : capsule colorée.
+- Performance (MonsterLod) : `move_and_slide` coûtait ~0,17 ms par monstre (105 monstres = serveur à 8 FPS). Un monstre en patrouille à plus de 50 m de tout joueur avance sans collision, posé sur le relief ; à l'arrêt au sol il ne calcule plus rien ; dès qu'un joueur approche (détection max 31 m), physique normale.
 
 ## Reste à faire
 - Animation de mort des monstres (ils disparaissent aujourd'hui).

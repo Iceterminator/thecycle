@@ -65,6 +65,9 @@ var _repath_left: float = 0.0
 var _state_left: float = 0.0
 var _pause_left: float = 0.0  ## pause après un coup réussi (recule un peu, ne colle pas)
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _far: bool = false           ## loin de tout joueur (MonsterLod)
+var _far_check_left: float = 0.0
+var _force_slide: bool = true    ## un move_and_slide est nécessaire (reprise après le mode loin)
 
 # --- Visuels ---
 var _mat: StandardMaterial3D
@@ -198,10 +201,28 @@ func _physics_process(delta: float) -> void:
 				state = State.CHASE
 		State.RETURN:
 			_do_return()
-	move_and_slide()
+	_move_body(delta)
 	if not _projectiles.is_empty():
 		_step_projectiles(delta)
 	_tick_dots(delta)
+
+
+## Déplacement physique, allégé (MonsterLod) : sans collision en patrouille loin des joueurs,
+## aucun calcul à l'arrêt au sol, move_and_slide sinon.
+func _move_body(delta: float) -> void:
+	_far_check_left -= delta
+	if _far_check_left <= 0.0:
+		_far_check_left = MonsterLod.CHECK_INTERVAL
+		_far = MonsterLod.is_far(self, players_root)
+	if _far and state == State.PATROL:
+		MonsterLod.step_far(self, delta)
+		_force_slide = true
+		return
+	var at_rest := velocity.length_squared() < 0.0001 and is_on_floor()
+	if at_rest and not _force_slide:
+		return
+	_force_slide = false
+	move_and_slide()
 
 
 ## Monstres plus agressifs dans la tempête.

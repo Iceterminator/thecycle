@@ -527,6 +527,9 @@ func _build_top_left() -> void:
 	_fame_label = _make_label("★ 0", 30)
 	_fame_label.add_theme_color_override("font_color", GOLD)
 	info.add_child(_fame_label)
+	var fps_counter := FpsCounter.new()
+	fps_counter.position = Vector2(36 + MAP_SIZE, 74)
+	add_child(fps_counter)
 
 	_objectives_box = _vbox(6)
 	_objectives_box.position = Vector2(24, 36 + MAP_SIZE)
