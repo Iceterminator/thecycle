@@ -94,6 +94,7 @@ func setup(player: Player) -> void:
 	player.inventory.changed.connect(_on_inventory_changed)
 	player.interactor.prompt_changed.connect(func(text: String) -> void: _prompt_label.text = text)
 	player.interactor.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
+	player.weapon_pickup.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
 	player.weapon.charge_changed.connect(func(ratio: float) -> void: _charge_ratio = ratio)
 	player.score.changed.connect(_on_score_changed)
 	_on_score_changed()
@@ -126,14 +127,9 @@ func _process(delta: float) -> void:
 		_respawn_left = maxf(_respawn_left - delta, 0.0)
 		_death_label.text = "%s\nRéapparition dans %d s" % [_killer_text(), ceili(_respawn_left)]
 	_crosshair.visible = not _player.weapon.is_aiming and not _player.health.is_dead
-	var inv := _player.inventory
 	var bar_ratio := maxf(_hold_ratio, _charge_ratio)
-	_use_bar.visible = inv.using_item != "" or bar_ratio > 0.0
-	if bar_ratio > 0.0:
-		_use_bar.value = bar_ratio
-	elif _use_bar.visible:
-		var duration := maxf(inv.get_use_duration(), 0.01)
-		_use_bar.value = clampf((Time.get_ticks_msec() - inv.use_started_ms) / 1000.0 / duration, 0.0, 1.0)
+	_use_bar.visible = bar_ratio > 0.0
+	_use_bar.value = bar_ratio
 
 
 # =========================================================================
@@ -164,7 +160,7 @@ func _update_clock(delta: float) -> void:
 		_storm_label.text = ""
 		_status_label.text = ""
 		return
-	_clock_elapsed = minf(_clock_elapsed + delta, Config.match_rules.match_duration)
+	_clock_elapsed = 0.0 if _clock_phase == MatchManager.Phase.DROP else minf(_clock_elapsed + delta, Config.match_rules.match_duration)
 	_storm_label.text = StormManager.hud_text(_player.global_position).replace("\n", "  —  ") + _scanner_text()
 	_update_downed()
 	if _clock_phase == MatchManager.Phase.EVAC:
@@ -268,7 +264,7 @@ func _update_bottom() -> void:
 	var kit := _player.kit
 	if kit:
 		var next := kit.xp_for_next_level()
-		_kit_label.text = "%s — niv. %d%s" % [kit.get_display_name(), kit.level, "   [K] changer de kit" if kit.can_change_kit_now() else ""]
+		_kit_label.text = "%s — niv. %d" % [kit.get_display_name(), kit.level]
 		_xp_bar.max_value = maxf(next, 1.0) if next > 0 else 1.0
 		_xp_bar.value = kit.xp if next > 0 else 1.0
 	_move_label.text = _player.movement.status_text() if _player.movement else ""
@@ -370,11 +366,11 @@ func _on_inventory_changed() -> void:
 		(row["row"] as Control).visible = item != null
 	var active_item := Items.get_item(inv.get_active_id())
 	_weapon_name.text = active_item.display_name if active_item else ""
-	var text := "[3] Soins ×%d    [4] Recharges ×%d" % [inv.medkits, inv.shield_cells]
+	var text := ""
 	for res_id: String in inv.carried:
 		var res := Items.get_item(StringName(res_id))
 		text += "\n%s ×%d" % [res.display_name if res else res_id, inv.carried[res_id]]
-	_items_label.text = text
+	_items_label.text = text.strip_edges()
 	_credits_label.text = "¢ %d   [T] boutique" % inv.credits
 
 

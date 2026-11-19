@@ -20,7 +20,7 @@ signal camera_shake_requested(point: Vector3, strength: float, reach: float)
 ## Demande au LootManager de poser un objet au sol (caisse ouverte, arme remplacée, mort).
 ## ammo = -1 : chargeur plein. scatter = éparpiller autour de la position.
 signal loot_drop_requested(item_id: StringName, amount: int, ammo: int, position: Vector3, scatter: bool)
-signal drop_pod_requested(item_id: StringName, position: Vector3)
+signal drop_pod_requested(item_id: StringName, position: Vector3, amount: int)
 signal item_purchased(peer_id: int, item_id: StringName, price: int)
 signal item_picked_up(peer_id: int, item_id: StringName, amount: int)
 signal credits_changed(peer_id: int, credits: int)
@@ -79,6 +79,8 @@ signal match_results_received(results: Array, restart_in: float)
 signal monster_level_changed(level: int)
 ## Serveur : les cristaux pas encore commencés montent d'un niveau (QuestManager).
 signal crystal_upgrade_requested()
+## Serveur : la Grande Marée commence (shard_count = éclats d'orage à poser) ; QuestManager fait apparaître les collecteurs.
+signal storm_started(shard_count: int)
 ## Serveur : une capacité veut poser un objet (grenade, tourelle, mur, frappe, portail, balise).
 signal ability_object_requested(data: Dictionary)
 ## Client : une balise d'écoute a repéré ces joueurs (positions) pour la carte du propriétaire.
@@ -92,5 +94,7 @@ signal profile_loaded(peer_id: int)
 signal local_loadout_received(loadout: Dictionary)
 ## Client : état du lobby (joueurs prêts, secondes avant le départ).
 signal lobby_synced(ready: Dictionary)
+## Client : début de la phase de largage (points [peer, position] visibles, secondes de l'écran).
+signal drop_phase_started(points: Array, seconds: float)
 
 @warning_ignore_restore("unused_signal")

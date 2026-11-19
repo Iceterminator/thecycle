@@ -8,7 +8,6 @@ const CODE_KEY_ACTIONS := {
 	&"open_shop": KEY_T,
 	&"admin_menu": KEY_0,
 	&"show_map": KEY_TAB,           # maintenir : carte, quêtes, classement
-	&"equipment": KEY_K,           # menu Équipement (choix du kit)
 	&"melee": KEY_V,               # mêlée (coup de poing chargé du Bastion)
 	&"ability_1": KEY_Q,           # capacité 1 (étape 8c)
 	&"ability_2": KEY_F,           # capacité 2
@@ -93,7 +92,7 @@ const MAP_REVEAL_RADIUS := 40.0          # quêtes et monstres montrés (carte, 
 const MINIMAP_HALF_SIZE := 45.0          # la minimap montre ± cette distance autour du joueur (m)
 
 # --- Limites de la carte ---
-const MAP_HALF_SIZE := 100.0             # la carte fait 200 x 200 m, centrée sur l'origine
+const MAP_HALF_SIZE := 150.0             # la carte fait 300 x 300 m, centrée sur l'origine
 const KILL_Y := -15.0                    # en dessous de cette hauteur : mort (plus de chute infinie)
 const FALL_KILLER_ID := -3               # killer_id quand un joueur meurt en tombant hors de la carte
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)

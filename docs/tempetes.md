@@ -6,7 +6,7 @@ Code : `systems/storm/storm_manager.gd` · Données : `data/storm/*.tres` (`Stor
 - Tempête sur toute la carte (plus de zone qui se referme), sans dégâts.
 - Annonce `warning_time` s avant (bandeau vert), transition ciel / brume / pluie / éclairs sur `fade_time`.
 - Phase 1 : démarre à 10:00 et dure jusqu'à la fin de la partie.
-- Pendant la tempête : Éclats d'orage (`shard_count`) et un collecteur (contrat de collecte).
+- Pendant la tempête : Éclats d'orage (`shard_count`) ; le collecteur n'apparaît que s'il a été tiré au départ (voir `docs/quetes.md`, `QuestDelayed`).
 - Monstres plus vigilants et plus rapides (`storm_monster_mult`).
 
 ## Reste à faire
@@ -22,4 +22,4 @@ Code : `systems/storm/storm_manager.gd` · Données : `data/storm/*.tres` (`Stor
 > sur **toute la carte**, sans zone ni dégâts. `data/storm/phase_1.tres` : annoncée à **9:00** (bandeau vert
 > « La Grande Marée débute dans 60 s »), elle commence à **10:00** et dure jusqu'à la fin. Le ciel passe en 20 s
 > au bleu-gris violet : pluie, éclairs violets, brouillard, soleil faible. Les monstres détectent et courent ×1,3
-> pendant la tempête (`Config.match_rules.storm_monster_mult`). Au début de la tempête : **12 Éclats d'orage** tombent au hasard sur la carte et un **Collecteur d'éclats d'orage** apparaît (30 pts d'objectif l'éclat, objectif « Éclats d'orage » à paliers) ; réglages dans `phase_1.tres`.
+> pendant la tempête (`Config.match_rules.storm_monster_mult`). Au début de la tempête : **12 Éclats d'orage** tombent au hasard sur la carte et, si le Collecteur d'éclats d'orage a été tiré, il **apparaît** (signal `Events.storm_started`) (30 pts d'objectif l'éclat, objectif « Éclats d'orage » à paliers) ; `shard_count` dans `phase_1.tres`.

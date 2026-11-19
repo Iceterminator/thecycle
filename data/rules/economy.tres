@@ -13,6 +13,7 @@ bounty_base = 20
 bounty_share = 0.1
 death_credits_loss = 0.5
 weapon_boost_prices = Array[int]([150, 250, 400])
+weapon_replace_hold_time = 2.0
 ability_price = 150
 ability_upgrade_price = 100
 ability_max_upgrades = 2

@@ -35,7 +35,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 - `resources/` : scripts des types de données (`WeaponData`, `KitData`, `MonsterData`, règles…)
 - `data/` : équilibrage en `.tres` — `rules/` (prix, Fame, timings, déplacement, départ),
   `weapons/`, `kits/`, `abilities/`, `items/`, `monsters/`, `camps/`, `quests/`, `contracts/`,
-  `factions/`, `weapon_mods/`, `objectives/`, `storm/` ; `reference/` = chiffres du jeu d'origine
+  `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/` ; `reference/` = chiffres du jeu d'origine
 - `assets/` : modèles (Quaternius, CC0), polices, icônes ; `tools/` : scripts d'outillage
 - `docs/` : design, fiches par mécanique, captures
 
@@ -70,14 +70,14 @@ qui charge `main.tscn` en différé ; autoloads via `root.get_node("Events")`) ;
 | Kits | `systems/kits/` | `data/kits/` | DESIGN §12 |
 | Capacités, gadgets | `systems/abilities/` | `data/abilities/` | DESIGN §11 |
 | Créatures | `systems/monsters/` | `data/monsters/`, `data/camps/` | `docs/creatures.md` |
-| Quêtes, contrats | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/` | `docs/quetes.md` |
+| Quêtes, contrats (tirage) | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
 | Tempête | `systems/storm/` | `data/storm/` | `docs/tempetes.md` |
-| Extraction (évac) | `systems/evac/`, `systems/match/` | `data/rules/match.tres` | `docs/extraction.md` |
+| Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule, écran de largage) | `data/rules/match.tres` | `docs/extraction.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
-| Carte, décor | `scenes/world/`, `systems/map/`, `systems/decor/` | `assets/models/nature/` | — |
-| Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu) | — | — |
+| Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` | `assets/models/nature/` | — |
+| Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |
 
 ## Pièges connus

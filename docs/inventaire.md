@@ -6,15 +6,25 @@ Code : `systems/inventory/inventory.gd`, `systems/shop/`, `systems/loot/` · Don
 - 2 emplacements d'arme ; arme de départ au choix parmi les secondaires débloquées, jamais perdue.
 - Q / F vides au départ : capacité ou gadget acheté puis assigné ; racheté = amélioration / recharge ;
   perdu à la mort.
-- Boutique configurée dans le lobby (4 armes + 4 gadgets / capacités) ; arme déjà portée = palier de boost
-  (+10 % dégâts, portée, cadence ; `weapon_boost_prices`).
-- Achats livrés par capsule de largage. Crédits : monstres (directement au tueur), mort = perte d'une part.
+- Plus de soins ni de recharges de bouclier (la vie et le bouclier se régénèrent seuls).
+- Ramasser une arme au sol (`systems/inventory/weapon_pickup.gd`) : en visant l'arme, touche 1 / 2 =
+  emplacement vide : prise immédiate et arme équipée ; emplacement occupé : maintenir
+  `weapon_replace_hold_time` (2 s, `economy.tres`) pour remplacer (appui court = changer d'arme).
+  E = emplacement en main ; s'il est occupé et l'autre libre, l'autre ; sinon maintien de E pour remplacer.
+  L'ancienne arme tombe au sol avec son palier et ses munitions. Le serveur vérifie cible, portée et maintien.
+  Les autres objets (ressources, crédits, gadgets) se ramassent avec E comme avant.
+- Boutique configurée dans le lobby (4 armes + 4 gadgets / capacités), en 3 colonnes : gadgets, armes, palier
+  d'amélioration suivant de chaque arme. Achat d'arme = capsule de largage.
+- Améliorations d'arme par type (`systems/shop/weapon_upgrades.gd`, `Inventory.weapon_upgrades`) : palier
+  acheté (+10 % dégâts, portée, cadence ; `weapon_boost_prices`) gardé jusqu'à la mort / nouvelle partie
+  (comme les paliers d'emplacement), appliqué à l'exemplaire équipé et aux exemplaires achetés ensuite
+  (livrés boostés). Une arme ramassée garde ses propres paliers.
+- Crédits : monstres (directement au tueur) ; à la mort la part perdue (`death_credits_loss`) va au tueur
+  joueur, sinon tombe au sol.
 - Objets au sol (`LootManager`), ramassage avec E.
 
 ## Reste à faire
-- 3 emplacements d'arme.
-- Soins et recharges de bouclier : plus obtenables (touches 3 et 4 inutiles).
-- Boutique en 3 colonnes, lâcher des crédits au sol.
+- Lâcher des crédits au sol (hors mort).
 
 ## Règles du jeu original : à compléter
 
@@ -31,5 +41,5 @@ Code : `systems/inventory/inventory.gd`, `systems/shop/`, `systems/loot/` · Don
 > 100 → 200 cr., 150 → 350 cr.), payées en crédits. L'achat fait tomber une **capsule de largage**
 > à 3 m devant le joueur, qui atterrit au bout de 3 s ; l'objet est dedans, au sol, et **n'importe quel
 > joueur peut le ramasser**. Prix dans `data/items/*.tres` (`price`), délais dans `Config`.
-> Soins et recharges de bouclier ne sont plus vendus ni trouvés pour l'instant (la vie et le bouclier
+> Soins et recharges de bouclier : supprimés (la vie et le bouclier
 > se régénèrent seuls).

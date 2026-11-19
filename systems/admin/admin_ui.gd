@@ -142,8 +142,8 @@ func _build() -> void:
 			_admin.request_set_kit.rpc_id(1, String(kit_data.id)))
 		kit_button.custom_minimum_size = Vector2(150, 34)
 		kits_row.add_child(kit_button)
-	var ready_button := _button("Recharges à zéro + K", func() -> void: _admin.request_abilities_ready.rpc_id(1))
-	ready_button.tooltip_text = "Capacités prêtes tout de suite, et menu Équipement (K) modifiable"
+	var ready_button := _button("Recharges à zéro", func() -> void: _admin.request_abilities_ready.rpc_id(1))
+	ready_button.tooltip_text = "Capacités prêtes tout de suite"
 	kits_row.add_child(ready_button)
 
 	# --- Capacités : Q ou F, équipées tout de suite ---
@@ -217,6 +217,18 @@ func _build() -> void:
 	var tune_button := _button("Régler la prise de l'arme", _start_grip_tuner)
 	tune_button.tooltip_text = "Flèches, Page ↑/↓, +/− : déplacer et redimensionner l'arme en main ; Entrée : enregistrer ; Fin : quitter"
 	dev_row.add_child(tune_button)
+	var map_button := _button("Carte complète", func() -> void: pass)
+	map_button.toggle_mode = true
+	map_button.button_pressed = MapView.full_map
+	map_button.toggled.connect(func(on: bool) -> void: MapView.full_map = on)
+	map_button.tooltip_text = "Carte et minimap sans limite de 40 m (affichage local)"
+	dev_row.add_child(map_button)
+	var fly_button := _button("Vol rapide", func() -> void: pass)
+	fly_button.toggle_mode = true
+	fly_button.button_pressed = _admin.fly.active
+	fly_button.toggled.connect(func(on: bool) -> void: _admin.fly.set_active(_player, on))
+	fly_button.tooltip_text = "Sans collision ni gravité. Direction caméra, Espace monte, Ctrl descend, Maj accélère"
+	dev_row.add_child(fly_button)
 
 	box.add_child(HSeparator.new())
 	_status_label = Label.new()

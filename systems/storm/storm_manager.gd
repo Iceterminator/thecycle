@@ -114,20 +114,8 @@ func _physics_process(_delta: float) -> void:
 			Events.announce_requested.emit("La %s débute dans %d s !" % [STORM_NAME, int(phase.warning_time)], WARNING_COLOR)
 		if _last_elapsed < phase.start_time and elapsed >= phase.start_time:
 			Events.announce_requested.emit("LA %s COMMENCE — les monstres sont plus agressifs" % STORM_NAME.to_upper(), ANNOUNCE_COLOR)
-			_server_spawn_harvest(phase)
+			Events.storm_started.emit(phase.shard_count)
 	_last_elapsed = elapsed
-
-
-## Début de tempête : éclats d'orage au hasard sur la carte + leur collecteur.
-func _server_spawn_harvest(phase: StormPhaseData) -> void:
-	if phase.collector == null or phase.collector.resource_item == null:
-		return
-	Events.contract_spawn_requested.emit(&"collector", phase.collector.resource_path, phase.collector_position)
-	var half := Config.MAP_HALF_SIZE - 10.0
-	for i in phase.shard_count:
-		var pos := Vector3(randf_range(-half, half), 0.0, randf_range(-half, half))
-		Events.loot_drop_requested.emit(phase.collector.resource_item.id, 1, -1, pos, false)
-	Events.announce_requested.emit("%d × %s tombés sur la carte ! Déposez-les au %s" % [phase.shard_count, phase.collector.resource_item.display_name, phase.collector.display_name.to_lower()], ANNOUNCE_COLOR)
 
 
 # =========================================================================

@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://systems/interaction/interactor.gd" id="5_interactor"]
 [ext_resource type="Script" path="res://systems/shop/shop.gd" id="6_shop"]
 [ext_resource type="Script" path="res://systems/score/score.gd" id="7_score"]
+[ext_resource type="Script" path="res://systems/inventory/weapon_pickup.gd" id="8_weapon_pickup"]
 
 [sub_resource type="CapsuleShape3D" id="Shape_body"]
 resource_local_to_scene = true
@@ -67,21 +68,12 @@ properties/1/replication_mode = 2
 properties/2/path = NodePath(".:active_slot")
 properties/2/spawn = true
 properties/2/replication_mode = 2
-properties/3/path = NodePath(".:medkits")
+properties/3/path = NodePath(".:credits")
 properties/3/spawn = true
 properties/3/replication_mode = 2
-properties/4/path = NodePath(".:shield_cells")
+properties/4/path = NodePath(".:carried")
 properties/4/spawn = true
 properties/4/replication_mode = 2
-properties/5/path = NodePath(".:credits")
-properties/5/spawn = true
-properties/5/replication_mode = 2
-properties/6/path = NodePath(".:using_item")
-properties/6/spawn = true
-properties/6/replication_mode = 2
-properties/7/path = NodePath(".:carried")
-properties/7/spawn = true
-properties/7/replication_mode = 2
 
 [sub_resource type="SceneReplicationConfig" id="ScoreReplication"]
 properties/0/path = NodePath(".:rank_points")
@@ -138,6 +130,9 @@ script = ExtResource("3_weapon")
 
 [node name="Interactor" type="Node" parent="."]
 script = ExtResource("5_interactor")
+
+[node name="WeaponPickup" type="Node" parent="."]
+script = ExtResource("8_weapon_pickup")
 
 [node name="Shop" type="Node" parent="."]
 script = ExtResource("6_shop")

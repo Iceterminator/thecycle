@@ -1,7 +1,6 @@
-[gd_resource type="Resource" script_class="StormPhaseData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="StormPhaseData" format=3]
 
 [ext_resource type="Script" path="res://resources/storm_phase_data.gd" id="1_storm"]
-[ext_resource type="Resource" path="res://data/contracts/storm_collector.tres" id="2_collector"]
 
 [resource]
 script = ExtResource("1_storm")
@@ -10,5 +9,3 @@ warning_time = 60.0
 fade_time = 20.0
 duration = 0.0
 shard_count = 12
-collector = ExtResource("2_collector")
-collector_position = Vector3(30, 0, 30)

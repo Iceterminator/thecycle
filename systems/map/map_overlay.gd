@@ -9,6 +9,7 @@ extends CanvasLayer
 
 const OBJECTIVES_DIR := "res://data/objectives/"
 const REFRESH_INTERVAL := 0.25
+const FORAGE_ID := &"forage"  ## objectif du Cristal : toujours visible
 const PANEL_WIDTH := 330.0
 
 var _player: Player
@@ -96,7 +97,12 @@ func _refresh_quests() -> void:
 	_quests_box.add_child(_title("VOS OBJECTIFS (→ Fame au prochain palier)"))
 	var points: Dictionary = _player.score.objective_points
 	var rates: Dictionary = _player.score.objective_rates
+	var quests := _world.get_node_or_null("QuestManager") as QuestManager
+	var active := quests.active_objectives if quests else PackedStringArray()
 	for track in _tracks:
+		# Seuls les objectifs des quêtes tirées (le Forage, lui, reste toujours affiché).
+		if not active.is_empty() and track.id != FORAGE_ID and not active.has(String(track.id)):
+			continue
 		var pts: int = points.get(track.resource_path, 0)
 		var tier := track.tiers_reached(pts)
 		var previous := track.threshold(tier - 1) if tier > 0 else 0

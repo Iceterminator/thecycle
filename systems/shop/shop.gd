@@ -1,17 +1,16 @@
 class_name Shop
 extends Node
 ## Boutique du joueur (touche T). Elle vend ce que le joueur a configuré dans le lobby :
-## 4 cases d'armes et 4 cases de gadgets / capacités (ProfileManager.shop_of), plus les
-## consommables (soins, cellules de bouclier), toujours en vente.
+## 4 cases d'armes et 4 cases de gadgets / capacités (ProfileManager.shop_of).
 ## - Arme pas encore possédée : capsule de largage devant le joueur (objet au sol normal).
-## - Arme déjà dans l'inventaire : palier de boost suivant (WeaponData.boosts, Config.economy.weapon_boost_prices).
+## - Amélioration d'une arme (request_upgrade) : palier suivant, gardé par type d'arme (WeaponUpgrades).
 ## - Gadget / capacité pas encore sur Q ou F : il attend d'être assigné (touche Q ou F).
 ## - Déjà sur Q ou F : capacité améliorée (-recharge), gadget rechargé.
 ## Client propriétaire : affiche l'interface (ShopUi) et DEMANDE un achat ; le serveur vérifie tout.
 
 signal purchase_result(ok: bool, message: String)
 
-enum Entry { NONE, WEAPON, GADGET, ABILITY, CONSUMABLE }
+enum Entry { NONE, WEAPON, GADGET, ABILITY }
 
 const SHOP_UI_SCRIPT := preload("res://systems/shop/shop_ui.gd")
 
@@ -38,8 +37,6 @@ static func entry_kind(id: String) -> Entry:
 		return Entry.NONE
 	var item := Items.get_item(StringName(id))
 	if item:
-		if item.kind in [ItemData.Kind.HEAL, ItemData.Kind.SHIELD_RECHARGE]:
-			return Entry.CONSUMABLE
 		if item.weapon:
 			return Entry.WEAPON if item.weapon.gadget == WeaponData.GadgetKind.NONE else Entry.GADGET
 		return Entry.NONE
@@ -92,20 +89,14 @@ static func entry_description(id: String) -> String:
 	return ""
 
 
-## Consommables toujours en vente.
-static func consumables() -> Array[String]:
-	var out: Array[String] = []
-	for item in Items.get_shop_items():
-		if entry_kind(String(item.id)) == Entry.CONSUMABLE:
-			out.append(String(item.id))
-	return out
 
 
 # =========================================================================
 # Achat : ce qu'un clic fait maintenant (client et serveur)
 # =========================================================================
 
-## { action: "buy" | "boost" | "upgrade" | "refill" | "pending", price, text, refusal }
+## { action: "buy" | "upgrade" | "refill" | "pending", price, text, refusal }
+## (le palier d'une arme est à part : upgrade_offer)
 func offer(id: String) -> Dictionary:
 	var peer := player.get_peer_id()
 	var kind := entry_kind(id)
@@ -113,29 +104,16 @@ func offer(id: String) -> Dictionary:
 	if kind == Entry.NONE or (kind != Entry.ABILITY and int(result["price"]) <= 0):
 		result["refusal"] = "Pas en vente"
 		return result
-	if kind != Entry.CONSUMABLE:
-		var shop := ProfileManager.shop_of(peer)
-		var list: Array = shop.get("weapons" if kind == Entry.WEAPON else "gadgets", [])
-		if not id in list:
-			result["refusal"] = "Pas dans votre boutique"
-			return result
-		if not entry_unlocked(peer, id):
-			var lock := entry_lock(id)
-			result["refusal"] = "Verrouillé : " + FactionData.lock_text(lock[0], lock[1])
-			return result
+	var shop := ProfileManager.shop_of(peer)
+	var list: Array = shop.get("weapons" if kind == Entry.WEAPON else "gadgets", [])
+	if not id in list:
+		result["refusal"] = "Pas dans votre boutique"
+		return result
+	if not entry_unlocked(peer, id):
+		var lock := entry_lock(id)
+		result["refusal"] = "Verrouillé : " + FactionData.lock_text(lock[0], lock[1])
+		return result
 	match kind:
-		Entry.WEAPON:
-			var slot := player.inventory.weapon_slot_of(StringName(id))
-			if slot >= 0:
-				var weapon := Items.get_item(StringName(id)).weapon
-				var level: int = player.inventory.slot_boosts[slot]
-				result["action"] = "boost"
-				if level >= mini(weapon.boosts.size(), Config.economy.weapon_boost_prices.size()):
-					result["refusal"] = "Palier maximum"
-					result["price"] = 0
-				else:
-					result["price"] = Config.economy.weapon_boost_prices[level]
-					result["text"] = "Palier %d : %s" % [level + 1, boost_text(weapon, level)]
 		Entry.GADGET, Entry.ABILITY:
 			var key_slot := Array(player.abilities.loadout).find(id)
 			if key_slot >= 0:
@@ -164,7 +142,7 @@ func _state_refusal(price: int) -> String:
 		return "Indisponible dans le lobby"
 	if player.health.is_dead:
 		return "Indisponible : vous êtes mort"
-	if player.is_evacuated:
+	if player.is_evacuated or player.is_dropping():
 		return "Indisponible : vous êtes à bord"
 	if player.health.is_downed:
 		return "Indisponible : vous êtes à terre"
@@ -190,12 +168,8 @@ func request_buy(item_id: String) -> void:
 			var forward := -player.global_basis.z
 			forward.y = 0.0
 			var pos := player.global_position + forward.normalized() * Config.DROP_POD_DISTANCE
-			Events.drop_pod_requested.emit(StringName(item_id), pos)
+			Events.drop_pod_requested.emit(StringName(item_id), pos, WeaponUpgrades.delivery_amount(player.inventory, item_id))  # livrée déjà améliorée
 			message = "%s : largage en approche !" % name
-		"boost":
-			var slot := player.inventory.weapon_slot_of(StringName(item_id))
-			player.inventory.server_boost_slot(slot)
-			message = "%s : %s" % [name, o["text"]]
 		"upgrade":
 			player.abilities.server_upgrade(Array(player.abilities.loadout).find(item_id))
 			message = "%s : %s" % [name, o["text"]]
@@ -208,6 +182,28 @@ func request_buy(item_id: String) -> void:
 	Events.item_purchased.emit(player.get_peer_id(), StringName(item_id), int(o["price"]))
 	print("[Boutique] Joueur %d : %s %s (%d crédits)" % [player.get_peer_id(), o["action"], item_id, o["price"]])
 	_purchase_result.rpc_id(player.get_peer_id(), true, message)
+
+
+## Palier d'amélioration suivant d'une arme (colonne 3 de la boutique) : { price, text, refusal, level, max }.
+func upgrade_offer(id: String) -> Dictionary:
+	var result := WeaponUpgrades.offer(player, id)
+	if result["refusal"] == "":
+		result["refusal"] = _state_refusal(int(result["price"]))
+	return result
+
+
+@rpc("any_peer", "call_local", "reliable")
+func request_upgrade(item_id: String) -> void:
+	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != player.get_peer_id():
+		return
+	var o := upgrade_offer(item_id)
+	if o["refusal"] != "" or not player.inventory.spend_credits(int(o["price"])):
+		_purchase_result.rpc_id(player.get_peer_id(), false, o["refusal"] if o["refusal"] != "" else "Pas assez de crédits")
+		return
+	WeaponUpgrades.server_apply(player, item_id)
+	Events.item_purchased.emit(player.get_peer_id(), StringName(item_id), int(o["price"]))
+	print("[Boutique] Joueur %d : amélioration %s (%d crédits)" % [player.get_peer_id(), item_id, o["price"]])
+	_purchase_result.rpc_id(player.get_peer_id(), true, "%s : %s" % [entry_name(item_id), o["text"]])
 
 
 @rpc("any_peer", "call_local", "reliable")

@@ -9,7 +9,6 @@ extends Resource
 @export var evac_board_time: float  ## temps à rester dans la soute pour embarquer (s)
 @export var respawn_delay: float  ## délai de réapparition (s)
 @export var match_restart_delay: float  ## écran de fin, puis nouvelle partie (s)
-@export var kit_change_window: float  ## s après le largage pour changer de kit
 @export var camp_respawn_delay: float  ## un camp vidé réapparaît après (s)
 @export var monster_level_times: Array[float] = []  ## temps de partie où les monstres montent de niveau (s)
 @export var monster_level_health_mult: Array[float] = []  ## PV des monstres par niveau
@@ -33,3 +32,20 @@ extends Resource
 @export var bounty_duration: float  ## survivre ce temps = la cible touche la moitié de la prime (s)
 @export var max_active_contracts: int  ## contrats actifs max
 @export var contracts_offered: int  ## contrats proposés
+@export var drawn_quest_types: int = 5  ## types de quêtes tirés en plus du Cristal, à chaque partie
+@export var lumicep_spots_per_collector: int = 5  ## points de Lumicèpes par collecteur de Lumicèpes tiré
+@export var quest_min_spacing: float = 60.0  ## distance min entre deux quêtes tirées (m) ; les cristaux l'ignorent
+@export var quest_spread_distance_weight: float = 1.0  ## répartition : points par mètre jusqu'au plus proche exemplaire du même type
+@export var quest_spread_new_quadrant_bonus: float = 60.0  ## répartition : bonus si le quart de carte n'a pas encore ce type
+@export var quest_spread_opposite_bonus: float = 60.0  ## répartition : bonus pour le quart opposé au 1er exemplaire du type
+@export var quest_spread_load_penalty: float = 25.0  ## répartition : malus par quête déjà présente dans le quart
+@export var drop_screen_time: float = 15.0  ## largage : écran carte + quêtes avant la descente (s)
+@export var drop_edge_min: float = 15.0  ## point de largage : distance min aux murs de la carte (m)
+@export var drop_edge_max: float = 30.0  ## point de largage : distance max aux murs de la carte (m)
+@export var drop_camp_distance: float = 20.0  ## point de largage : distance min à un camp de monstres (m)
+@export var drop_clear_radius: float = 2.0  ## point de largage : rayon libre de décor solide (m)
+@export var drop_candidates: int = 120  ## points candidats tirés dans la bande avant de choisir
+@export var drop_squad_spacing: float = 2.5  ## écart entre deux membres d'une escouade au largage (m)
+@export var drop_pod_height: float = 250.0  ## hauteur de départ de la capsule au-dessus du sol (m)
+@export var drop_pod_fall_time: float = 10.0  ## durée de la descente (s)
+@export var drop_pod_open_delay: float = 5.0  ## capsule fermée au sol avant l'ouverture (s)

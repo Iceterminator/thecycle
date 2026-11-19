@@ -51,7 +51,7 @@ func _on_drop_requested(item_id: StringName, amount: int, ammo: int, position: V
 	})
 
 
-func _on_drop_pod_requested(item_id: StringName, position: Vector3) -> void:
+func _on_drop_pod_requested(item_id: StringName, position: Vector3, amount: int) -> void:
 	var item := Items.get_item(item_id)
 	if item == null:
 		push_error("[Loot] Largage d'un objet inconnu : %s" % item_id)
@@ -66,7 +66,7 @@ func _on_drop_pod_requested(item_id: StringName, position: Vector3) -> void:
 		"type": "pickup",
 		"uid": _new_uid(),
 		"item": String(item_id),
-		"amount": item.amount,
+		"amount": amount,
 		"ammo": -1,
 		"pos": landing,
 	})
@@ -93,7 +93,8 @@ func _spawn_node(data: Dictionary) -> Node:
 ## une capsule peut atterrir sur un rocher).
 func _ground(pos: Vector3) -> Vector3:
 	var world := spawner.get_parent() as Node3D
-	var query := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 30.0, pos + Vector3.DOWN * 20.0, 1)
+	var top := maxf(pos.y, MapTerrain.height_at(pos.x, pos.z)) + 30.0
+	var query := PhysicsRayQueryParameters3D.create(Vector3(pos.x, top, pos.z), Vector3(pos.x, top - 50.0, pos.z), 1)
 	var hit := world.get_world_3d().direct_space_state.intersect_ray(query)
 	return hit["position"] if not hit.is_empty() else pos
 

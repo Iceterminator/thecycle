@@ -25,6 +25,8 @@ var follow: bool = false
 var view_half: float = Config.MAP_HALF_SIZE
 ## Noms des repères écrits sur la carte (pas sur la minimap, trop petite).
 var show_labels: bool = true
+## Carte nue (écran de largage) : relief et obstacles seulement, ni quêtes, ni monstres, ni joueurs.
+var bare: bool = false
 
 var _origin := Vector2.ZERO
 var _scale := 1.0
@@ -55,7 +57,16 @@ func to_map(pos: Vector3) -> Vector2:
 ## Vrai si `pos` est assez près du joueur local pour que ses quêtes / monstres se voient.
 ## Sert aussi aux textes flottants des quêtes (voir CombatHud).
 static func in_reveal_range(pos: Vector3, from: Vector3) -> bool:
-	return Vector2(pos.x - from.x, pos.z - from.z).length() <= Config.MAP_REVEAL_RADIUS
+	return Vector2(pos.x - from.x, pos.z - from.z).length() <= reveal_radius()
+
+
+## Carte complète (menu admin, affichage local) : plus de limite de distance.
+static var full_map: bool = false
+
+
+## Rayon de révélation effectif : unique source pour la carte, la minimap et les textes flottants.
+static func reveal_radius() -> float:
+	return INF if full_map else Config.MAP_REVEAL_RADIUS
 
 
 func _draw() -> void:
@@ -70,14 +81,18 @@ func _draw() -> void:
 	var h := Config.MAP_HALF_SIZE
 	var map_rect := Rect2(to_map(Vector3(-h, 0, -h)), Vector2(h * 2.0, h * 2.0) * _scale)
 	draw_rect(map_rect, BG_COLOR)
+	var relief := MapRelief.texture()
+	if relief:
+		draw_texture_rect(relief, map_rect, false)
 	_draw_grid(map_rect)
 	_draw_terrain()
-	_draw_reveal_radius()
-	_draw_markers()
-	_draw_monsters()
-	_draw_revealed()
-	_draw_scanner()
-	_draw_self()
+	if not bare:
+		_draw_reveal_radius()
+		_draw_markers()
+		_draw_monsters()
+		_draw_revealed()
+		_draw_scanner()
+		_draw_self()
 	draw_rect(Rect2(_origin, Vector2(side, side)), Color(1, 1, 1, 0.4), false, 2.0)
 	_text(_origin + Vector2(side / 2.0, 16), "N", 16 if show_labels else 12, Color(1, 1, 1, 0.8))
 
@@ -112,6 +127,8 @@ func _draw_terrain() -> void:
 
 ## Cercle discret : ce qui est dedans (quêtes, monstres) apparaît sur la carte.
 func _draw_reveal_radius() -> void:
+	if full_map:
+		return
 	var p := to_map(player.global_position)
 	var r := Config.MAP_REVEAL_RADIUS * _scale
 	draw_circle(p, r, Color(1, 1, 1, 0.05))

@@ -370,7 +370,7 @@ static func clean_shop(peer: int, shop: Dictionary) -> Dictionary:
 	return out
 
 
-## Lobby (ou fenêtre de changement après réapparition) : le joueur envoie son équipement.
+## Lobby : le joueur envoie son équipement.
 ## { kit, kit_mod, weapon_mods: {arme: mod}, start_weapon, shop: {weapons, gadgets} }
 ## + faction de prédilection. Le lobby l'envoie à chaque changement : la réussite est silencieuse.
 @rpc("any_peer", "call_local", "reliable")
@@ -381,8 +381,8 @@ func request_set_loadout(loadout: Dictionary, preferred: int) -> void:
 	var p := _player(peer)
 	if p == null or not _profiles.has(peer):
 		return
-	if not (MatchManager.is_lobby() or p.kit.can_change_kit_now()):
-		_reply(peer, "Équipement : modifiable seulement dans le lobby ou à la réapparition")
+	if not MatchManager.is_lobby():
+		_reply(peer, "Équipement : modifiable seulement dans le lobby")
 		return
 	var kit_id := String(loadout.get("kit", ""))
 	var kit := _kit_data(kit_id)

@@ -3,7 +3,7 @@ extends Node
 ## Kit (combinaison) d'un joueur : PV, bouclier, vitesse, capacités de mouvement, niveau.
 ## Créé en code par le Player sur tous les peers (nœud « Kit », autorité serveur).
 ##
-## Serveur : choisit le kit (au largage, à la réapparition, ou par le menu admin), donne
+## Serveur : applique le kit choisi dans le lobby (ou par le menu admin), donne
 ## l'XP (joueurs tués, monstres tués, points d'objectif et Fame gagnés), fait monter le
 ## niveau (1 à 6, Config.economy.kit_level_xp) et applique PV / bouclier à la Health.
 ## kit_id, level et xp sont envoyés à tous (KitSync) : chaque peer calcule les mêmes bonus.
@@ -14,7 +14,6 @@ signal changed
 signal leveled_up(level: int)
 
 const KITS_DIR := "res://data/kits/"
-const EQUIPMENT_UI_SCRIPT := preload("res://systems/kits/equipment_ui.gd")
 
 ## Synchronisés (serveur -> tous).
 var kit_id: String = "":
@@ -40,8 +39,6 @@ var mod_id: String = "":
 
 var player: Player
 var _kit: KitData
-# --- Serveur ---
-var _change_until_ms: int = 0   # le kit peut être changé jusqu'à ce moment
 
 
 func _init() -> void:
@@ -61,20 +58,11 @@ func _init() -> void:
 func _ready() -> void:
 	player = get_parent() as Player
 	if multiplayer.is_server():
-		player.health.dead_changed.connect(func(dead: bool) -> void:
-			if not dead:
-				_open_change_window())
 		Events.match_reset_requested.connect(_server_on_match_reset)
 		Events.monster_killed.connect(_on_monster_killed)
 		Events.player_died.connect(_on_player_died)
 		kit_id = String(Config.start_loadout.default_kit)
 		_server_apply_stats(true)
-		# Le client n'a pas encore ce joueur à cet instant : un RPC tout de suite serait perdu (erreur « Node not found »).
-		get_tree().create_timer(1.0).timeout.connect(_open_change_window)
-	if player.is_multiplayer_authority():
-		var ui: Node = EQUIPMENT_UI_SCRIPT.new()
-		add_child(ui)
-		ui.setup(player, self)
 
 
 ## Kit actuel (celui par défaut tant que rien n'est reçu).
@@ -175,37 +163,11 @@ func xp_for_next_level() -> int:
 	return Config.economy.kit_level_xp[level - 1]
 
 
-## Secondes restantes pour changer de kit (0 = fermé). Approximation côté client.
-func can_change_kit_now() -> bool:
-	return player.health.is_dead or Time.get_ticks_msec() < _change_until_ms
-
-
 # =========================================================================
 # Serveur
 # =========================================================================
 
-func _open_change_window() -> void:
-	_change_until_ms = Time.get_ticks_msec() + int(Config.match_rules.kit_change_window * 1000.0)
-	_notify_change_window.rpc_id(player.get_peer_id(), Config.match_rules.kit_change_window)
-
-
-## Menu Équipement : le joueur demande un kit (au largage / à la réapparition seulement).
-@rpc("any_peer", "call_local", "reliable")
-func request_kit(id: String) -> void:
-	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != player.get_peer_id():
-		return
-	var wanted: KitData = load(KITS_DIR + id + ".tres") as KitData if ResourceLoader.exists(KITS_DIR + id + ".tres") else null
-	if wanted and not ProfileManager.is_unlocked(player.get_peer_id(), wanted.faction, wanted.faction_level):
-		_kit_result.rpc_id(player.get_peer_id(), false, "Kit verrouillé : " + FactionData.lock_text(wanted.faction, wanted.faction_level))
-		return
-	if not (player.health.is_dead or Time.get_ticks_msec() < _change_until_ms):
-		_kit_result.rpc_id(player.get_peer_id(), false, "Changement de kit seulement au largage ou à la réapparition")
-		return
-	if server_set_kit(id):
-		_kit_result.rpc_id(player.get_peer_id(), true, "Kit équipé : %s" % get_display_name())
-
-
-## Change de kit (menu Équipement ou admin) : niveau 1, PV et bouclier pleins.
+## Change de kit (menu admin) : niveau 1, PV et bouclier pleins.
 func server_set_kit(id: String) -> bool:
 	if not ResourceLoader.exists(KITS_DIR + id + ".tres") or (load(KITS_DIR + id + ".tres") as KitData) == null:
 		return false
@@ -243,7 +205,6 @@ func _server_on_match_reset() -> void:
 	level = 1
 	xp = 0
 	_server_apply_stats(true)
-	_open_change_window()
 
 
 func _on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
@@ -254,27 +215,6 @@ func _on_monster_killed(_monster_id: StringName, killer_id: int) -> void:
 func _on_player_died(victim_id: int, killer_id: int) -> void:
 	if killer_id == player.get_peer_id() and victim_id != killer_id:
 		server_add_xp(Config.economy.kit_xp_player_kill)
-
-
-# =========================================================================
-# Client propriétaire
-# =========================================================================
-
-signal kit_result(ok: bool, message: String)
-
-
-@rpc("any_peer", "call_local", "reliable")
-func _kit_result(ok: bool, message: String) -> void:
-	if multiplayer.get_remote_sender_id() != 1:
-		return
-	kit_result.emit(ok, message)
-
-
-@rpc("any_peer", "call_local", "reliable")
-func _notify_change_window(seconds: float) -> void:
-	if multiplayer.get_remote_sender_id() != 1:
-		return
-	_change_until_ms = Time.get_ticks_msec() + int(seconds * 1000.0)
 
 
 # =========================================================================

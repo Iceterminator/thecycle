@@ -111,7 +111,7 @@ func status_text() -> String:
 # =========================================================================
 
 func _process(_delta: float) -> void:
-	if player.health.is_dead or player.health.is_downed or player.is_evacuated or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+	if player.health.is_dead or player.health.is_downed or player.is_evacuated or player.is_dropping() or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return
 	for slot in SLOTS:
 		if not Input.is_action_just_pressed("ability_%d" % (slot + 1)):
@@ -228,7 +228,7 @@ func server_reset_cooldowns() -> void:
 func request_use(slot: int, origin: Vector3, direction: Vector3) -> void:
 	if not _sender_ok() or slot < 0 or slot >= SLOTS:
 		return
-	if player.health.is_dead or player.health.is_downed or player.is_evacuated or cooldown_left[slot] > 0.0:
+	if player.health.is_dead or player.health.is_downed or player.is_evacuated or player.is_dropping() or cooldown_left[slot] > 0.0:
 		return
 	if not origin.is_finite() or not direction.is_finite() or direction.length_squared() < 0.01:
 		return
@@ -326,6 +326,6 @@ func _aim_ground(origin: Vector3, dir: Vector3, max_range: float) -> Vector3:
 func _ground(pos: Vector3) -> Vector3:
 	var query := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 5.0, pos + Vector3.DOWN * 60.0, 1)
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
-	return hit["position"] if not hit.is_empty() else Vector3(pos.x, 0.0, pos.z)
+	return hit["position"] if not hit.is_empty() else Vector3(pos.x, MapTerrain.height_at(pos.x, pos.z), pos.z)
 
 

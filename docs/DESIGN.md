@@ -37,7 +37,7 @@ On refait la boucle de The Cycle (Yager, 2019) : un FPS « competitive quest sho
 Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à bord de l'évac au départ. Timings de départ, à ajuster :
 
 1. **Lobby et loadout (hors partie).** Le joueur choisit arme, gadgets et faction de prédilection, puis rejoint une file.
-2. **0:00 – Largage.** Chaque joueur tombe en capsule à un point de son choix sur la carte. 4 contrats sont proposés ; il en accepte jusqu'à 2 à la fois.
+2. **0:00 – Largage (implémenté).** Quand tous sont prêts (ou « Lancer la partie » admin) : phase `DROP` de `drop_screen_time` s (15) — écran plein écran avec compte à rebours, carte nue (sans quêtes, monstres ni adversaires) montrant son point de largage et ceux de son escouade, et la liste des quêtes tirées (`DropScreen`). Points serveur (`DropPoints`) : bande de 15 à 30 m des murs, un par escouade, répartis par `QuestPlacement`, à 20 m des camps. Puis chute de 250 m en ~10 s dans une capsule transparente (`DropPodRide`), 5 s fermée au sol, ouverture : le chrono de partie démarre au début de la chute. Le kit se choisit uniquement dans le lobby (plus de touche K en partie ; la réapparition garde le kit choisi). Un joueur qui se connecte pendant le largage ou la partie ne rejoint pas : écran « Partie en cours, vous rejoindrez la prochaine », il entre au lobby suivant. Figé et invulnérable jusque-là. 4 contrats sont proposés ; il en accepte jusqu'à 2 à la fois.
 3. **0:00 – 17:00 – Prospection.** Contrats, loot, monstres, gains de crédits en partie. Le joueur améliore boucliers et armes en cours de partie (terminal d'achat ou largage de ravitaillement).
 4. **~5:00 et ~10:00 – Événements.** Contrats spéciaux pour tous (roi de la colline, boss, zone de ressources). Les monstres montent d'un palier de difficulté.
 5. **Tempête.** Elle arrive par vagues : un avertissement, puis elle balaie une partie de la carte (dégâts, visibilité réduite).
@@ -84,7 +84,7 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 
 ### 3. Santé et boucliers
 > **Kits (étape 8b, 17/11/2026) — remplace les paliers ci-dessous.** PV, bouclier et vitesse viennent du kit
-> (`data/kits/`, choisi avec **K** au largage / à la réapparition, 30 s ; Kit de prospecteur par défaut).
+> (`data/kits/`, choisi dans le lobby uniquement ; Kit de prospecteur par défaut).
 > Régénération de la référence : bouclier +90/s et PV +25/s après 7 s sans dégâts (Bastion : 40/s après 4 s).
 > Sprint = marche x1,9, glissade (sprint + Accroupi) pour tous, contrôle en l'air 0,25. Capacités : Martinet
 > (jetpack, plongée), Furet (charges, double saut, esquive), Bastion (super saut, coup de poing chargé **V**),
@@ -102,7 +102,7 @@ $3
 
 ### 6. Fame et score
 - **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, Cœur stellaire (où qu'il soit), et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
-- **Limites de la carte** : murs invisibles sur les bords (200 x 200 m) ; en dessous de y = -15, on meurt (« Tombé hors de la carte »), monstres compris.
+- **Limites de la carte** : murs invisibles sur les bords (300 x 300 m, ancienne carte plate 200 m gardée dans `scenes/world/world_test.tscn`) ; en dessous de y = -15, on meurt (« Tombé hors de la carte »), monstres compris.
 > **Codé (17/11/2026).** La Fame est le score général (anciens « points de classement », variable `rank_points`
 > dans le code). Tuer un joueur : **+50 Fame**. Mourir ne fait rien perdre. Les monstres ne donnent pas de Fame.
 > Les points de ce document marqués « classement » sont de la Fame.

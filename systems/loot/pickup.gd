@@ -1,6 +1,6 @@
 class_name Pickup
 extends Area3D
-## Objet au sol (arme, soin, recharge, crédits). Créé par le serveur via le
+## Objet au sol (arme, ressource, crédits). Créé par le serveur via le
 ## LootSpawner (spawn_function de LootManager) : ses données arrivent à la création
 ## et ne changent plus. Ramasser = le serveur le supprime, le spawner le retire partout.
 ## Couche de collision 4 (« interaction ») : ne bloque ni les joueurs ni les balles.
@@ -47,14 +47,8 @@ func get_prompt(player: Player) -> String:
 			if item.weapon and item.weapon.gadget != WeaponData.GadgetKind.NONE:
 				return "E : Ramasser %s (puis Q ou F)" % item.display_name
 			if inv.slot_ids.slice(0, Inventory.WEAPON_SLOTS).has(""):
-				return "E : Ramasser %s" % item.display_name
-			return "E : Échanger contre %s" % item.display_name
-		ItemData.Kind.HEAL:
-			if inv.medkits >= Config.start_loadout.max_medkits:
-				return "Kits de soin pleins"
-		ItemData.Kind.SHIELD_RECHARGE:
-			if inv.shield_cells >= Config.start_loadout.max_shield_cells:
-				return "Cellules de bouclier pleines"
+				return "E : Ramasser %s   (1 / 2 : choisir l'emplacement)" % item.display_name
+			return "Maintenir E / 1 / 2 : remplacer par %s" % item.display_name
 		ItemData.Kind.CREDITS:
 			return "E : Ramasser %d crédits" % amount
 		ItemData.Kind.RESOURCE:
@@ -66,7 +60,18 @@ func get_prompt(player: Player) -> String:
 	return "E : Ramasser %s" % item.display_name
 
 
-## Serveur uniquement (appelé par Interactor après vérification de distance).
+## Maintien de E (s) : seulement pour remplacer une arme quand les 2 emplacements sont pris.
+func get_hold_time(player: Player) -> float:
+	if WeaponPickup.is_weapon_pickup(self) and player.inventory.slot_ids[WeaponPickup.slot_for_e(player.inventory)] != "":
+		return Config.economy.weapon_replace_hold_time
+	return 0.0
+
+
+func is_taken() -> bool:
+	return _taken
+
+
+## Serveur uniquement (appelé par Interactor après vérification de distance et de maintien).
 func server_interact(player: Player) -> void:
 	if _taken:
 		return
@@ -74,6 +79,16 @@ func server_interact(player: Player) -> void:
 		_taken = true
 		Events.item_picked_up.emit(player.get_peer_id(), item.id, amount)
 		queue_free()
+
+
+## Serveur uniquement (WeaponPickup, touches 1 / 2) : prend l'arme dans l'emplacement demandé.
+func server_take_into(player: Player, slot: int) -> void:
+	if _taken:
+		return
+	_taken = true
+	player.weapon_pickup.server_take(item, amount, ammo, slot)
+	Events.item_picked_up.emit(player.get_peer_id(), item.id, amount)
+	queue_free()
 
 
 ## Arme avec un modèle 3D : le modèle (un peu agrandi pour bien se voir au sol, avec son

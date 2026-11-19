@@ -18,6 +18,8 @@ const BUFFS_SCRIPT := preload("res://systems/abilities/buff_controller.gd")
 const ABILITIES_SCRIPT := preload("res://systems/abilities/ability_controller.gd")
 const PACT_UI_SCRIPT := preload("res://systems/pacts/pact_ui.gd")
 const LOBBY_UI_SCRIPT := preload("res://systems/lobby/lobby_ui.gd")
+const DROP_POD_SCRIPT := preload("res://systems/match/drop_pod_ride.gd")
+const DROP_SCREEN_SCRIPT := preload("res://systems/match/drop_screen.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -27,6 +29,7 @@ const LOBBY_UI_SCRIPT := preload("res://systems/lobby/lobby_ui.gd")
 @onready var inventory: Inventory = $Inventory
 @onready var weapon: Weapon = $Weapon
 @onready var interactor: Interactor = $Interactor
+@onready var weapon_pickup: WeaponPickup = $WeaponPickup
 @onready var shop: Shop = $Shop
 @onready var score: Score = $Score
 
@@ -39,6 +42,7 @@ var movement: KitMovement
 ## Bonus / malus temporaires et capacités Q / F (étape 8c, autorité serveur).
 var buffs: BuffController
 var abilities: AbilityController
+var drop: DropPodRide  ## largage en capsule (serveur autoritaire, voir DropPodRide)
 var held_weapon: WeaponModel
 ## Recul subi (coup de poing chargé), qui s'estompe.
 var _knockback := Vector3.ZERO
@@ -101,6 +105,10 @@ func _ready() -> void:
 	abilities.name = "Abilities"
 	abilities.set_multiplayer_authority(1)
 	add_child(abilities)
+	drop = DROP_POD_SCRIPT.new()
+	drop.name = "Drop"
+	drop.set_multiplayer_authority(1)
+	add_child(drop)
 	# Arme tenue en main (modèle 3D), visible par tous : à la première personne pour le joueur local.
 	held_weapon = WeaponModel.new()
 	held_weapon.name = "HeldWeapon"
@@ -135,6 +143,10 @@ func _ready() -> void:
 		lobby_ui.name = "LobbyUi"
 		add_child(lobby_ui)
 		lobby_ui.setup(self)
+		var drop_screen: DropScreen = DROP_SCREEN_SCRIPT.new()
+		drop_screen.name = "DropScreen"
+		add_child(drop_screen)
+		drop_screen.setup(self)
 	health.downed_changed.connect(_on_downed_changed)
 	set_physics_process(is_local)
 	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
@@ -173,8 +185,16 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# Largage (écran de départ ou capsule) : figé, la trajectoire vient de DropPodRide.
+	if is_dropping():
+		drop.step()
+		return
 	if is_evacuated:
 		_spectator_move(delta)
+		return
+	# Vol admin (local, menu admin) : remplace tout le déplacement.
+	if admin != null and admin.fly.active and is_multiplayer_authority():
+		admin.fly.step(self, delta)
 		return
 	var on_floor := is_on_floor()
 	is_airborne = not on_floor
@@ -327,8 +347,13 @@ func set_evacuated(value: bool) -> void:
 
 
 ## Interface « damageable » (armes, monstres) — côté serveur.
+## Largage en cours (écran de départ ou capsule) : ni déplacement, ni action, ni dégâts.
+func is_dropping() -> bool:
+	return drop != null and (drop.is_active() or MatchManager.is_drop_phase())
+
+
 func can_be_hit() -> bool:
-	return not health.is_dead and not is_evacuated
+	return not health.is_dead and not is_evacuated and not is_dropping()
 
 
 ## Renvoie true si le coup tue le joueur. attacker_id = Config.MONSTER_KILLER_ID pour un monstre.

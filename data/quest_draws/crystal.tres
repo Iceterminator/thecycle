@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="QuestDrawData" format=3]
+
+[ext_resource type="Script" path="res://resources/quest_draw_data.gd" id="1_draw"]
+[ext_resource type="Resource" path="res://data/quests/crystal_easy.tres" id="2_v"]
+[ext_resource type="Resource" path="res://data/quests/crystal_medium.tres" id="3_v"]
+[ext_resource type="Resource" path="res://data/quests/crystal_hard.tres" id="4_v"]
+
+[resource]
+script = ExtResource("1_draw")
+display_name = "Cristal"
+kind = &"crystal"
+variants = Array[Resource]([ExtResource("2_v"), ExtResource("3_v"), ExtResource("4_v")])
+min_count = 3
+max_count = 5
+mandatory = true
+objective_id = &"forage"
+variant_weights = PackedFloat32Array(0.5, 0.35, 0.15)
+ignores_spacing = true

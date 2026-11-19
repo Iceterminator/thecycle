@@ -147,6 +147,10 @@ func apply_damage(amount: float, attacker_id: int, shield_mult: float = 1.0, hea
 		return false
 	if is_dead or amount <= 0.0:
 		return false
+	# Largage (écran de départ, capsule) : invulnérable, y compris à la chute.
+	var host := get_parent() as Player
+	if host and host.is_dropping():
+		return false
 	# Lobby : personne ne peut être blessé.
 	if MatchManager.is_lobby() and attacker_id != Config.FALL_KILLER_ID:
 		return false
@@ -225,7 +229,7 @@ func _physics_process(delta: float) -> void:
 		return
 	# Tombé sous la carte : mort (le serveur a la position envoyée par le client).
 	var body := get_parent() as Player
-	if body and not body.is_evacuated and body.global_position.y < Config.KILL_Y:
+	if body and not body.is_evacuated and not body.is_dropping() and body.global_position.y < Config.KILL_Y:
 		apply_damage(health + shield + 1.0, Config.FALL_KILLER_ID)
 		return
 	# À terre : on saigne, pas de régénération ; à la fin, mort (kill pour celui qui l'a mis à terre).

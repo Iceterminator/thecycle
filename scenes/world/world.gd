@@ -54,17 +54,25 @@ func _ready() -> void:
 	add_child(squads)
 	if not multiplayer.is_server():
 		return
-	Events.player_joined.connect(_add_player)
+	Events.player_joined.connect(_on_peer_joined)
 	Events.player_left.connect(_remove_player)
 	# Clients déjà connectés (normalement aucun à ce stade).
 	for id in multiplayer.get_peers():
-		_add_player(id)
+		_on_peer_joined(id)
 	# L'hôte joue aussi, sauf en serveur dédié.
 	if not Net.is_dedicated_server:
-		_add_player(1)
+		add_player(1)
 
 
-func _add_player(peer_id: int) -> void:
+## Arrivée d'un client : joueur créé seulement au lobby ; sinon il attend la prochaine partie.
+func _on_peer_joined(peer_id: int) -> void:
+	if match_manager.accepts_new_players():
+		add_player(peer_id)
+	else:
+		match_manager.add_waiting(peer_id)
+
+
+func add_player(peer_id: int) -> void:
 	if players.has_node(str(peer_id)):
 		return
 	var player := PLAYER_SCENE.instantiate()
@@ -88,7 +96,8 @@ func pick_spawn_point() -> Vector3:
 	var points := spawn_points.get_children()
 	if points.is_empty():
 		return Vector3(0, 2, 0)
-	return (points.pick_random() as Node3D).global_position
+	var pos := (points.pick_random() as Node3D).global_position
+	return Vector3(pos.x, MapTerrain.height_at(pos.x, pos.z) + 2.0, pos.z)  # 2 m au-dessus du sol
 
 
 ## Murs invisibles autour de la carte (sur tous les peers : décor local, pas d'objet réseau).

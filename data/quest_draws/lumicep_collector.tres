@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuestDrawData" format=3]
+
+[ext_resource type="Script" path="res://resources/quest_draw_data.gd" id="1_draw"]
+[ext_resource type="Resource" path="res://data/contracts/lumicep_collector.tres" id="2_v"]
+
+[resource]
+script = ExtResource("1_draw")
+display_name = "Collecteur de Lumicèpes"
+kind = &"collector"
+variants = Array[Resource]([ExtResource("2_v")])
+min_count = 2
+max_count = 3
+mandatory = false
+objective_id = &"lumicepes"

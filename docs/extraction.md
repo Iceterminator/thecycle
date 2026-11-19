@@ -10,6 +10,7 @@ Code : `systems/evac/evac_ship.gd`, `systems/match/match_manager.gd` · Données
 - Embarquement : rester `evac_board_time` s dans la soute. Les joueurs embarqués passent en spectateur.
 - Fame : bonus au premier embarqué ; pénalité `evac_missed_penalty` si pas à bord au décollage.
 - Écran de fin, puis lobby (`match_restart_delay`).
+- Largage de début de partie (phase `DROP`, `systems/match/` : `drop_points.gd`, `drop_pod_ride.gd`, `drop_pod_visual.gd`, `drop_screen.gd`, `drop_map_markers.gd`) : voir DESIGN §Déroulé ; réglages `drop_*` dans `data/rules/match.tres`. Reste : choix du point par le joueur, joueur arrivant pendant l'écran de largage (reste sur place).
 
 ## Reste à faire
 - Classement final : tous les évacués devant les non-évacués, puis par Fame ; supprimer la pénalité.

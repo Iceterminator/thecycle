@@ -130,7 +130,7 @@ func _process(delta: float) -> void:
 	if data == null:
 		return
 	_fire_cooldown = maxf(_fire_cooldown - delta, 0.0)
-	var can_act := not health.is_dead and not health.is_downed and not player.is_evacuated and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	var can_act := not health.is_dead and not health.is_downed and not player.is_evacuated and not player.is_dropping() and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	is_aiming = can_act and Input.is_action_pressed("aim")
 	var target_fov: float = data.get_ads_fov(Config.ADS_FOV, Config.DEFAULT_FOV) if is_aiming else Config.DEFAULT_FOV
 	# ads_time_s : temps pour faire l'essentiel du passage en visée.
@@ -322,7 +322,6 @@ func request_reload() -> void:
 		return
 	if health.is_dead or _srv_reload_end_ms > 0 or inventory.get_active_ammo() >= player.magazine_for(data):
 		return
-	inventory.cancel_use()
 	_srv_trigger_ms = 0
 	# 10 % de marge : la demande de rechargement et les tirs suivants n'arrivent
 	# pas forcément avec le même délai.
@@ -346,7 +345,7 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if not _sender_is_owner():
 		push_warning("[Weapon] Tir refusé : le peer %d tire avec l'arme du joueur %d" % [multiplayer.get_remote_sender_id(), player.get_peer_id()])
 		return
-	if health.is_dead or health.is_downed or player.is_evacuated:
+	if health.is_dead or health.is_downed or player.is_evacuated or player.is_dropping():
 		return
 	if not origin.is_finite() or not direction.is_finite() or direction.length_squared() < 0.01:
 		return
@@ -387,7 +386,6 @@ func request_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 		_server_gadget(origin, direction.normalized())
 		return
 	inventory.set_active_ammo(inventory.get_active_ammo() - 1)
-	inventory.cancel_use()  # tirer interrompt un soin
 	if player.buffs:
 		player.buffs.server_remove_with("cloak_breaks_on_fire")  # tirer révèle (Camouflage total)
 	# Le flag « visée » vient du client : au pire un tricheur obtient la précision ADS.
@@ -870,7 +868,7 @@ func _server_check_consumed() -> void:
 ## Rayon vital : clic droit = se soigner (coûte Config.combat.heal_beam_self_cost charges).
 @rpc("any_peer", "call_local", "reliable")
 func request_gadget_alt() -> void:
-	if not multiplayer.is_server() or not _sender_is_owner() or health.is_dead or player.is_evacuated:
+	if not multiplayer.is_server() or not _sender_is_owner() or health.is_dead or player.is_evacuated or player.is_dropping():
 		return
 	if data.gadget != WeaponData.GadgetKind.HEAL_BEAM or inventory.get_active_ammo() < Config.combat.heal_beam_self_cost:
 		return

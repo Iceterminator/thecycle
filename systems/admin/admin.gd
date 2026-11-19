@@ -15,6 +15,7 @@ const QUESTS_DIR := "res://data/quests/"
 @onready var player: Player = get_parent()
 
 var ui: AdminUi
+var fly := AdminFly.new()  # vol rapide, local au joueur propriétaire
 
 
 func _ready() -> void:
@@ -89,14 +90,13 @@ func request_set_ability(slot: int, ability_id: String) -> void:
 		_reply(false, "Capacité inconnue : %s" % ability_id)
 
 
-## Capacités : recharges remises à zéro et fenêtre d'équipement (K) rouverte.
+## Capacités : recharges remises à zéro.
 @rpc("any_peer", "call_local", "reliable")
 func request_abilities_ready() -> void:
 	if not _server_allowed():
 		return
 	player.abilities.server_reset_cooldowns()
-	player.kit._open_change_window()
-	_reply(true, "Recharges à zéro, équipement (K) modifiable %d s" % int(Config.match_rules.kit_change_window))
+	_reply(true, "Recharges à zéro")
 
 
 ## Équipe directement un kit (sans la limite « au largage / à la réapparition »).

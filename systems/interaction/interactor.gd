@@ -18,6 +18,7 @@ const RAY_MASK := 1 | (1 << 3)  # monde + interaction (les joueurs ne bloquent p
 @onready var player: Player = get_parent()
 
 var _prompt: String = ""
+var current_target: Node3D  ## objet interactif visé (lu par WeaponPickup)
 # Client : maintien en cours
 var _hold_target: Node3D
 var _hold_elapsed: float = 0.0
@@ -32,8 +33,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var target: Node3D = null
-	if not player.health.is_dead and not player.health.is_downed and not player.is_evacuated:
+	if not player.health.is_dead and not player.health.is_downed and not player.is_evacuated and not player.is_dropping():
 		target = _find_target()
+	current_target = target
 	var text: String = target.get_prompt(player) if target else ""
 	if text != _prompt:
 		_prompt = text
@@ -116,7 +118,7 @@ func request_interact(path: NodePath) -> void:
 		return
 	if MatchManager.is_lobby():
 		return  # pas de contrats ni de ramassage dans le lobby
-	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.health.is_downed or player.is_evacuated:
+	if multiplayer.get_remote_sender_id() != player.get_peer_id() or player.health.is_dead or player.health.is_downed or player.is_evacuated or player.is_dropping():
 		return
 	var target := get_node_or_null(path) as Node3D
 	if target == null or not target.is_in_group("interactable") or not target.has_method("server_interact"):

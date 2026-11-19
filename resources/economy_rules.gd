@@ -12,6 +12,7 @@ extends Resource
 @export var bounty_share: float  ## + cette part des Fame de la cible
 @export var death_credits_loss: float  ## part des crédits perdue à la mort (va au tueur)
 @export var weapon_boost_prices: Array[int] = []  ## prix des paliers de boost 1, 2, 3
+@export var weapon_replace_hold_time: float = 2.0  ## maintien (s) pour remplacer une arme portée par une arme au sol
 @export var ability_price: int  ## achat d'une capacité en boutique
 @export var ability_upgrade_price: int  ## crédits par amélioration de capacité
 @export var ability_max_upgrades: int  ## améliorations max d'une capacité

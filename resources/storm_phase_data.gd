@@ -11,8 +11,6 @@ extends Resource
 @export var duration: float = 0.0              ## durée de la tempête (s) ; 0 = jusqu'à la fin de la partie
 
 @export_group("Récolte d'orage")
-## Éclats d'orage posés au hasard sur la carte au début de la tempête (ressource du collecteur).
+## Éclats d'orage posés au hasard sur la carte au début de la tempête, si un collecteur
+## d'éclats d'orage a été tiré (voir QuestDelayed).
 @export var shard_count: int = 12
-## Collecteur qui apparaît au début de la tempête (vide = aucun). Sa ressource = les éclats.
-@export var collector: ContractData
-@export var collector_position: Vector3 = Vector3.ZERO

@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://systems/combat/respawn_manager.gd" id="2_respawn"]
@@ -8,19 +8,8 @@
 [ext_resource type="Resource" path="res://data/camps/camp_lvl1.tres" id="6_camp1"]
 [ext_resource type="Resource" path="res://data/camps/camp_lvl2.tres" id="7_camp2"]
 [ext_resource type="Script" path="res://systems/quests/quest_manager.gd" id="8_quests"]
-[ext_resource type="Script" path="res://systems/quests/crystal_spot.gd" id="9_spot"]
-[ext_resource type="Resource" path="res://data/quests/crystal_easy.tres" id="10_easy"]
-[ext_resource type="Resource" path="res://data/quests/crystal_medium.tres" id="11_medium"]
-[ext_resource type="Resource" path="res://data/quests/crystal_hard.tres" id="12_hard"]
-[ext_resource type="Script" path="res://systems/quests/contract_spot.gd" id="13_cspot"]
-[ext_resource type="Resource" path="res://data/contracts/uplink.tres" id="14_uplink"]
-[ext_resource type="Resource" path="res://data/contracts/extractor.tres" id="15_extractor"]
-[ext_resource type="Resource" path="res://data/contracts/relic.tres" id="16_relic"]
-[ext_resource type="Resource" path="res://data/contracts/biomass_collector.tres" id="17_biomass"]
-[ext_resource type="Resource" path="res://data/contracts/lumicep_collector.tres" id="18_lumicep"]
-[ext_resource type="Resource" path="res://data/contracts/facility.tres" id="19_facility"]
-[ext_resource type="Resource" path="res://data/contracts/drones.tres" id="20_drones"]
 [ext_resource type="Script" path="res://systems/contracts/bounty_manager.gd" id="21_bounty"]
+[ext_resource type="Script" path="res://systems/map/map_terrain.gd" id="22_terrain"]
 
 [sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
 sky_top_color = Color(0.38, 0.55, 0.72, 1)
@@ -49,12 +38,6 @@ agent_radius = 0.5
 agent_height = 1.5
 agent_max_climb = 0.5
 
-[sub_resource type="StandardMaterial3D" id="Mat_ground"]
-albedo_color = Color(0.35, 0.4, 0.3, 1)
-
-[sub_resource type="StandardMaterial3D" id="Mat_rock"]
-albedo_color = Color(0.45, 0.42, 0.4, 1)
-
 [sub_resource type="StandardMaterial3D" id="Mat_evac"]
 albedo_color = Color(0.85, 0.55, 0.15, 1)
 
@@ -73,11 +56,8 @@ directional_shadow_max_distance = 120.0
 
 [node name="Map" type="Node3D" parent="."]
 
-[node name="Ground" type="CSGBox3D" parent="Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-use_collision = true
-size = Vector3(200, 1, 200)
-material = SubResource("Mat_ground")
+[node name="Terrain" type="StaticBody3D" parent="Map"]
+script = ExtResource("22_terrain")
 
 [node name="EvacPad" type="CSGCylinder3D" parent="Map"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
@@ -87,43 +67,31 @@ height = 0.5
 sides = 24
 material = SubResource("Mat_evac")
 
-[node name="Rock1" type="CSGBox3D" parent="Map"]
-transform = Transform3D(0.92, 0, 0.39, 0, 1, 0, -0.39, 0, 0.92, 25, 2, 18)
-use_collision = true
-size = Vector3(8, 4, 5)
-material = SubResource("Mat_rock")
-
-[node name="Rock2" type="CSGBox3D" parent="Map"]
-transform = Transform3D(0.7, 0, -0.71, 0, 1, 0, 0.71, 0, 0.7, -30, 3, 10)
-use_collision = true
-size = Vector3(6, 6, 10)
-material = SubResource("Mat_rock")
-
-[node name="Rock3" type="CSGBox3D" parent="Map"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, -35)
-use_collision = true
-size = Vector3(14, 2, 3)
-material = SubResource("Mat_rock")
-
-[node name="Ramp" type="CSGBox3D" parent="Map"]
-transform = Transform3D(1, 0, 0, 0, 0.94, -0.34, 0, 0.34, 0.94, -15, 1.2, -20)
-use_collision = true
-size = Vector3(6, 0.5, 10)
-material = SubResource("Mat_rock")
-
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="Spawn1" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 2, 60)
 
 [node name="Spawn2" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 2, 40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 2, 60)
 
 [node name="Spawn3" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60, 2, -60)
 
 [node name="Spawn4" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 2, -40)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 2, -60)
+
+[node name="Spawn5" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 105, 2, -60)
+
+[node name="Spawn6" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105, 2, -60)
+
+[node name="Spawn7" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 100, 2, 110)
+
+[node name="Spawn8" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2, -60)
 
 [node name="Players" type="Node3D" parent="."]
 
@@ -153,17 +121,65 @@ navigation_mesh = SubResource("NavMesh")
 [node name="MonsterCamps" type="Node3D" parent="."]
 
 [node name="CampEst" type="Marker3D" parent="MonsterCamps"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 0, -10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 97.5, 0, -15)
 script = ExtResource("5_camp")
 camp_data = ExtResource("6_camp1")
 
 [node name="CampOuest" type="Marker3D" parent="MonsterCamps"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, -10)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -97.5, 0, -15)
 script = ExtResource("5_camp")
 camp_data = ExtResource("6_camp1")
 
 [node name="CampNord" type="Marker3D" parent="MonsterCamps"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -70)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -105)
+script = ExtResource("5_camp")
+camp_data = ExtResource("7_camp2")
+radius = 12.0
+
+[node name="CampSudEst" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 95, 0, 75)
+script = ExtResource("5_camp")
+camp_data = ExtResource("7_camp2")
+radius = 12.0
+
+[node name="CampSudOuest" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, 15)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampNordEst" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0, -100)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampNordOuest" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -62.5, 0, -82.5)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampCentreSud" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 42.5)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampCentreNord" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, 0, -42.5)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampSud" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 0, 117.5)
+script = ExtResource("5_camp")
+camp_data = ExtResource("6_camp1")
+
+[node name="CampSudOuestLointain" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120, 0, 120)
+script = ExtResource("5_camp")
+camp_data = ExtResource("7_camp2")
+radius = 12.0
+
+[node name="CampNordOuestLointain" type="Marker3D" parent="MonsterCamps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120, 0, -117.5)
 script = ExtResource("5_camp")
 camp_data = ExtResource("7_camp2")
 radius = 12.0
@@ -181,119 +197,192 @@ players_root = NodePath("../Players")
 nav_region = NodePath("../NavigationRegion")
 map = NodePath("../Map")
 
-[node name="CrystalSpots" type="Node3D" parent="."]
-
-[node name="CristalFacile" type="Marker3D" parent="CrystalSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, 70)
-script = ExtResource("9_spot")
-crystal_data = ExtResource("10_easy")
-
-[node name="CristalMoyen" type="Marker3D" parent="CrystalSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 0, 75)
-script = ExtResource("9_spot")
-crystal_data = ExtResource("11_medium")
-
-[node name="CristalDifficile" type="Marker3D" parent="CrystalSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80, 0, -70)
-script = ExtResource("9_spot")
-crystal_data = ExtResource("12_hard")
-
 [node name="Crystals" type="Node3D" parent="."]
 
 [node name="CrystalSpawner" type="MultiplayerSpawner" parent="."]
 spawn_path = NodePath("../Crystals")
 
-[node name="QuestManager" type="Node" parent="." node_paths=PackedStringArray("spawner", "spots", "contract_spots", "players_root")]
+[node name="QuestManager" type="Node" parent="." node_paths=PackedStringArray("spawner", "quest_spots", "lumicep_spots", "players_root")]
 script = ExtResource("8_quests")
 spawner = NodePath("../CrystalSpawner")
-spots = NodePath("../CrystalSpots")
-contract_spots = NodePath("../ContractSpots")
+quest_spots = NodePath("../QuestSpots")
+lumicep_spots = NodePath("../LumicepSpots")
 players_root = NodePath("../Players")
 
-[node name="ContractSpots" type="Node3D" parent="."]
+[node name="QuestSpots" type="Node3D" parent="."]
 
-[node name="Relais" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 0, 45)
-script = ExtResource("13_cspot")
-kind = &"uplink"
-contract_data = ExtResource("14_uplink")
+[node name="Spot01" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -49.5)
 
-[node name="Extracteur" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 0, 30)
-script = ExtResource("13_cspot")
-kind = &"extractor"
-contract_data = ExtResource("15_extractor")
+[node name="Spot02" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21, 0, 95)
 
-[node name="CoeurStellaire" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
-script = ExtResource("13_cspot")
-kind = &"relic"
-contract_data = ExtResource("16_relic")
+[node name="Spot03" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -72, 0, 117.5)
 
-[node name="CollecteurBiomasse" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -85, 0, 15)
-script = ExtResource("13_cspot")
-kind = &"collector"
-contract_data = ExtResource("17_biomass")
+[node name="Spot04" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.5, 0, 114)
 
-[node name="CollecteurLumiceps" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50)
-script = ExtResource("13_cspot")
-kind = &"collector"
-contract_data = ExtResource("18_lumicep")
+[node name="Spot05" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -104.5, 0, 22)
 
-[node name="Station" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80, 0, -75)
-script = ExtResource("13_cspot")
-kind = &"facility"
-contract_data = ExtResource("19_facility")
+[node name="Spot06" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.5, 0, 89.5)
 
-[node name="Drones" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 0, -90)
-script = ExtResource("13_cspot")
-kind = &"drones"
-contract_data = ExtResource("20_drones")
+[node name="Spot07" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32.5, 0, -19.5)
 
-[node name="Lumicepe1" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 25)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot08" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 111.5, 0, -133)
 
-[node name="Lumicepe2" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 30)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot09" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 62, 0, 22.5)
 
-[node name="Lumicepe3" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, 60)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot10" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -89, 0, 74.5)
 
-[node name="Lumicepe4" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, 0, 60)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot11" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 51)
 
-[node name="Lumicepe5" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 0, -20)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot12" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 0, -5.5)
 
-[node name="Lumicepe6" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 0, -30)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot13" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.5, 0, -128.5)
 
-[node name="Lumicepe7" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 85, 0, 80)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot14" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.5, 0, 120)
 
-[node name="Lumicepe8" type="Marker3D" parent="ContractSpots"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -85, 0, 85)
-script = ExtResource("13_cspot")
-kind = &"lumicep"
+[node name="Spot15" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -125, 0, -89.5)
 
-[node name="BountyManager" type="Node" parent="." node_paths=PackedStringArray("players_root")]
-script = ExtResource("21_bounty")
-players_root = NodePath("../Players")
+[node name="Spot16" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 49, 0, -71)
+
+[node name="Spot17" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49, 0, 81.5)
+
+[node name="Spot18" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110, 0, 95.5)
+
+[node name="Spot19" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120, 0, 102.5)
+
+[node name="Spot20" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.5, 0, -78)
+
+[node name="Spot21" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -85, 0, -100)
+
+[node name="Spot22" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.5, 0, -48)
+
+[node name="Spot23" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -102.5, 0, -132.5)
+
+[node name="Spot24" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 124.5, 0, -23)
+
+[node name="Spot25" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 0, -37.5)
+
+[node name="Spot26" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 69.5, 0, -16)
+
+[node name="Spot27" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -45, 0, 36)
+
+[node name="Spot28" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 0, 125)
+
+[node name="Spot29" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -77.5)
+
+[node name="Spot30" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -71.5, 0, -134)
+
+[node name="Spot31" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 133, 0, -71)
+
+[node name="Spot32" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -76, 0, -63)
+
+[node name="Spot33" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.5, 0, 47)
+
+[node name="Spot34" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 94.5, 0, 19)
+
+[node name="Spot35" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -133, 0, -11.5)
+
+[node name="Spot36" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75, 0, 51)
+
+[node name="Spot37" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -130)
+
+[node name="Spot38" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 99.5, 0, 129)
+
+[node name="Spot39" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -127.5, 0, 69)
+
+[node name="Spot40" type="Marker3D" parent="QuestSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 131.5, 0, 56.5)
+
+[node name="LumicepSpots" type="Node3D" parent="."]
+
+[node name="Lumicepe01" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130.5, 0, -72.5)
+
+[node name="Lumicepe02" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 34.5, 0, -125.5)
+
+[node name="Lumicepe03" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, -21.5)
+
+[node name="Lumicepe04" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.5, 0, 4.5)
+
+[node name="Lumicepe05" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 130, 0, 42.5)
+
+[node name="Lumicepe06" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 36)
+
+[node name="Lumicepe07" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17, 0, 62.5)
+
+[node name="Lumicepe08" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 117.5, 0, -50)
+
+[node name="Lumicepe09" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 0, -58)
+
+[node name="Lumicepe10" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -86.5, 0, -76.5)
+
+[node name="Lumicepe11" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 0, 59)
+
+[node name="Lumicepe12" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44, 0, 13.5)
+
+[node name="Lumicepe13" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 88.5)
+
+[node name="Lumicepe14" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 121, 0, -89)
+
+[node name="Lumicepe15" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.5, 0, -91.5)
+
+[node name="Lumicepe16" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -110.5, 0, 114)
+
+[node name="Lumicepe17" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -95.5, 0, 45.5)
+
+[node name="Lumicepe18" type="Marker3D" parent="LumicepSpots"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -130, 0, -123.5)

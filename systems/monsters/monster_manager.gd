@@ -46,9 +46,10 @@ func _setup() -> void:
 		_spawn_camp(camp)
 
 
-## Navmesh généré sur le serveur à partir des COLLISIONS des CSG de la carte
+## Navmesh généré sur le serveur à partir du relief (MapTerrainMesh) et des COLLISIONS des CSG
 ## (pas de leurs maillages de rendu : un serveur dédié n'a pas de rendu).
 func _bake_navmesh() -> void:
+	var started := Time.get_ticks_msec()
 	var source := NavigationMeshSourceGeometryData3D.new()
 	var navmesh := nav_region.navigation_mesh
 	# Décor (arbres, rochers de MapDecor) : ses collisions bloquent aussi les monstres.
@@ -57,6 +58,8 @@ func _bake_navmesh() -> void:
 	if decor:
 		navmesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 		NavigationServer3D.parse_source_geometry_data(navmesh, source, decor)
+	if map.get_node_or_null("Terrain"):
+		source.add_faces(MapTerrainMesh.playable_faces(), Transform3D.IDENTITY)
 	for node in map.find_children("*", "CSGShape3D"):
 		var csg := node as CSGShape3D
 		if not csg.is_root_shape() or not csg.use_collision:
@@ -66,7 +69,7 @@ func _bake_navmesh() -> void:
 			source.add_faces(shape.get_faces(), csg.global_transform)
 	NavigationServer3D.bake_from_source_geometry_data(navmesh, source)
 	NavigationServer3D.region_set_navigation_mesh(nav_region.get_rid(), navmesh)
-	print("[Monstres] Navmesh généré : %d polygones" % navmesh.get_polygon_count())
+	print("[Monstres] Navmesh généré : %d polygones en %d ms" % [navmesh.get_polygon_count(), Time.get_ticks_msec() - started])
 
 
 func _spawn_camp(camp: MonsterCamp) -> void:
@@ -130,7 +133,9 @@ func _spawn_node(data: Dictionary) -> Node:
 
 func _ground(pos: Vector3) -> Vector3:
 	var world := spawner.get_parent() as Node3D
-	var query := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 3.0, pos + Vector3.DOWN * 20.0, 1)
+	# Le tir part au-dessus du relief (qui peut être haut en ce point).
+	var top := maxf(pos.y, MapTerrain.height_at(pos.x, pos.z)) + 3.0
+	var query := PhysicsRayQueryParameters3D.create(Vector3(pos.x, top, pos.z), Vector3(pos.x, top - 25.0, pos.z), 1)
 	var hit := world.get_world_3d().direct_space_state.intersect_ray(query)
 	return (hit["position"] as Vector3) + Vector3.UP * 0.05 if not hit.is_empty() else pos
 
