@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CrystalData" load_steps=5 format=3]
 
 [ext_resource type="Resource" path="res://data/objectives/forage.tres" id="9_track"]
+[ext_resource type="PackedScene" uid="uid://jul7vwfq2kbp" path="res://assets/models/props/cristal_2.gltf" id="8_model"]
 [ext_resource type="Script" path="res://resources/crystal_data.gd" id="1_crystal"]
 [ext_resource type="Script" path="res://resources/camp_data.gd" id="2_camp"]
 [ext_resource type="Resource" path="res://data/quests/waves/medium_1.tres" id="3_w1"]
@@ -11,7 +12,8 @@ script = ExtResource("1_crystal")
 level = 2
 display_name = "Cristal"
 difficulty_name = "moyen"
-color = Color(0.7, 0.4, 1, 1)
+color = Color(0.42, 0.1, 0.86, 1)
+model = ExtResource("8_model")
 waves = Array[ExtResource("2_camp")]([ExtResource("3_w1"), ExtResource("4_w2")])
 monster_health_mult = 1.0
 monster_damage_mult = 1.0

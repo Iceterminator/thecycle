@@ -6,7 +6,8 @@ extends Resource
 @export var level: int = 1
 @export var display_name: String = "Cristal"
 @export var difficulty_name: String = "facile"
-@export var color: Color = Color(0.3, 0.9, 1.0)
+@export var color: Color = Color(0.3, 0.9, 1.0)   ## teinte des prismes (appliquée par le jeu)
+@export var model: PackedScene                   ## modèle 3D : socle + maillage « Cristal »
 
 @export_group("Vagues")
 @export var waves: Array[CampData] = []

@@ -15,46 +15,20 @@ func _init(crystal: Crystal) -> void:
 
 func build() -> void:
 	var data := _c.data
-	# Socle rocheux.
-	var rock_mat := StandardMaterial3D.new()
-	rock_mat.albedo_color = Color(0.35, 0.32, 0.3)
-	var rock := MeshInstance3D.new()
-	var rock_mesh := CylinderMesh.new()
-	rock_mesh.top_radius = 1.0
-	rock_mesh.bottom_radius = 1.4
-	rock_mesh.height = 0.5
-	rock_mesh.radial_segments = 7
-	rock.mesh = rock_mesh
-	rock.material_override = rock_mat
-	rock.position.y = 0.25
-	_c.add_child(rock)
-
-	# Grappe de cristaux (prismes), lumineux, couleur selon la difficulté.
+	# Prismes lumineux, couleur selon le niveau (assombris une fois épuisé).
 	crystal_mat = StandardMaterial3D.new()
 	crystal_mat.albedo_color = data.color
 	crystal_mat.emission_enabled = true
 	crystal_mat.emission = data.color
 	crystal_mat.emission_energy_multiplier = 1.5
 	crystal_mat.roughness = 0.2
-	var shards := [
-		[Vector3(0, 0.4, 0), 2.0, 0.35, Vector3.ZERO],
-		[Vector3(0.4, 0.4, 0.2), 1.3, 0.25, Vector3(0, 0, -0.35)],
-		[Vector3(-0.35, 0.4, -0.25), 1.5, 0.25, Vector3(0.3, 0, 0.3)],
-		[Vector3(0.1, 0.4, -0.45), 1.0, 0.2, Vector3(0.4, 0, 0)],
-	]
-	for s in shards:
-		var shard := MeshInstance3D.new()
-		var prism := CylinderMesh.new()
-		prism.top_radius = 0.0
-		prism.bottom_radius = s[2]
-		prism.height = s[1]
-		prism.radial_segments = 6
-		prism.rings = 1
-		shard.mesh = prism
-		shard.material_override = crystal_mat
-		shard.position = s[0] + Vector3.UP * s[1] / 2.0
-		shard.rotation = s[3]
-		_c.add_child(shard)
+	# Modèle (socle + grappe) : le maillage « Cristal » reçoit le matériau ci-dessus.
+	if data.model:
+		var model := data.model.instantiate()
+		_c.add_child(model)
+		var prisms := model.find_child("Cristal", true, false) as MeshInstance3D
+		if prisms:
+			prisms.material_override = crystal_mat
 
 	var light := OmniLight3D.new()
 	light.light_color = data.color
@@ -133,7 +107,7 @@ func update_label() -> void:
 	match _c.state:
 		Crystal.State.IDLE:
 			label.text = "%s\n+%d pts de Forage" % [title, data.objective_points]
-			label.modulate = data.color
+			label.modulate = data.color.lightened(0.35)   # lisible même pour le violet foncé
 		Crystal.State.DEFENSE:
 			var wave_text := ""
 			if _c.next_wave_in > 0.0:
