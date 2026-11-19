@@ -2,6 +2,7 @@ extends RefCounted
 ## Comportements serveur d'un AbilityObject : champs, tourelle, frappe, explosion, portail, balise.
 ## Appelé par AbilityObject._physics_process (serveur uniquement). Les RPC restent sur l'objet.
 
+const Utility := preload("res://systems/abilities/ability_object_server_utility.gd")
 const TICK := 0.25                 ## champs : dégâts / soins tous les TICK s
 const MISSILE_RADIUS := 2.5        ## rayon d'explosion d'un missile de frappe (m)
 const PORTAL_RADIUS := 1.3
@@ -151,26 +152,7 @@ func _explode(point: Vector3, radius: float, damage: float, falloff_start: float
 
 
 func _portal() -> void:
-	var entry := o.global_position
-	var exit: Vector3 = o.spawn_data["exit"]
-	var candidates: Array = []
-	var players := _world().get_node_or_null("Players")
-	if players:
-		candidates.append_array(players.get_children())
-	var monsters := _world().get_node_or_null("Monsters")
-	if monsters:
-		candidates.append_array(monsters.get_children())
-	for node in candidates:
-		var body := node as Node3D
-		if body == null or Vector2(body.global_position.x - entry.x, body.global_position.z - entry.z).length() > PORTAL_RADIUS:
-			continue
-		if o.age - float(_teleported.get(body, -10.0)) < 1.0:
-			continue
-		_teleported[body] = o.age
-		var dest := exit + Vector3.UP * 0.3
-		body.global_position = dest
-		if body is Player:
-			(body as Player).teleport.rpc_id((body as Player).get_peer_id(), dest)
+	Utility.portal(o, _teleported)
 
 
 func _ward(delta: float) -> void:
@@ -178,12 +160,4 @@ func _ward(delta: float) -> void:
 	if _tick_left > 0.0:
 		return
 	_tick_left = maxf(o.ability.scan_interval_s, 1.0)
-	var spotted: Array = []
-	var players := _world().get_node_or_null("Players")
-	if players:
-		for node in players.get_children():
-			var p := node as Player
-			if p and p.get_peer_id() != o.owner_id and p.can_be_hit() \
-					and p.global_position.distance_to(o.global_position) <= maxf(o.ability.radius_m, 5.0):
-				spotted.append(p.global_position)
-	o._scan_ping.rpc_id(o.owner_id, spotted)
+	Utility.ward_scan(o)

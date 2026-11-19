@@ -16,6 +16,7 @@ extends StaticBody3D
 
 const Server := preload("res://systems/abilities/ability_object_server.gd")
 const Visuals := preload("res://systems/abilities/ability_object_visuals.gd")
+const Effects := preload("res://systems/abilities/ability_object_effects.gd")
 
 const TICK := Server.TICK                      ## champs : dégâts / soins tous les TICK s
 const MISSILE_RADIUS := Server.MISSILE_RADIUS  ## rayon d'explosion d'un missile de frappe (m)
@@ -96,9 +97,7 @@ func life() -> float:
 	return 5.0
 
 
-# =========================================================================
-# Interface « damageable » (tourelle, balise)
-# =========================================================================
+# --- Interface « damageable » (tourelle, balise) ---
 
 func can_be_hit() -> bool:
 	return health > 0.0
@@ -118,9 +117,7 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 	return false
 
 
-# =========================================================================
-# Serveur
-# =========================================================================
+# --- Serveur ---
 
 func _physics_process(delta: float) -> void:
 	age += delta
@@ -134,9 +131,7 @@ func _land_pos() -> Vector3:
 	return spawn_data.get("land_pos", global_position)
 
 
-# =========================================================================
-# Tous les peers : visuels
-# =========================================================================
+# --- Tous les peers : visuels ---
 
 func _process(delta: float) -> void:
 	if multiplayer.is_server():
@@ -159,7 +154,6 @@ func _arc_pos(t: float) -> Vector3:
 	return start + vel * t + Vector3.DOWN * 0.5 * g * t * t
 
 
-
 ## Position de l'objet telle que donnée à l'apparition (avant l'entrée dans l'arbre).
 func global_position_from_data() -> Vector3:
 	return spawn_data.get("pos", spawn_data.get("start", Vector3.ZERO))
@@ -167,41 +161,14 @@ func global_position_from_data() -> Vector3:
 
 @rpc("authority", "call_local", "unreliable")
 func _show_tracer(from: Vector3, to: Vector3) -> void:
-	if Net.is_dedicated_server:
-		return
-	var bar := BoxMesh.new()
-	bar.size = Vector3(0.05, 0.05, from.distance_to(to))
-	var mi := MeshInstance3D.new()
-	mi.mesh = bar
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.albedo_color = Visuals.color_of(ability)
-	mi.material_override = mat
-	get_parent().get_parent().add_child(mi)  # dans le monde, pas dans le conteneur du spawner
-	mi.global_position = (from + to) / 2.0
-	mi.look_at(to, Vector3.UP if absf((to - from).normalized().y) < 0.99 else Vector3.RIGHT)
-	get_tree().create_timer(0.06).timeout.connect(mi.queue_free)
+	if not Net.is_dedicated_server:
+		Effects.show_tracer(self, from, to)
 
 
 @rpc("authority", "call_local", "unreliable")
 func _show_boom(point: Vector3, radius: float) -> void:
-	if Net.is_dedicated_server:
-		return
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color(1.0, 0.55, 0.15, 0.7)
-	var ball := MeshInstance3D.new()
-	ball.mesh = Visuals.sphere(1.0)
-	ball.material_override = mat
-	get_parent().get_parent().add_child(ball)
-	ball.global_position = point
-	ball.scale = Vector3.ONE * 0.2
-	Events.camera_shake_requested.emit(point, 0.9, radius * 4.0)
-	var tween := ball.create_tween().set_parallel()
-	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
-	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)
-	tween.chain().tween_callback(ball.queue_free)
+	if not Net.is_dedicated_server:
+		Effects.show_boom(self, point, radius)
 
 
 ## Balise : positions des joueurs repérés, pour la carte du propriétaire seulement.

@@ -84,6 +84,27 @@ func _do_return() -> void:
 	motion.move_toward_with_path(_m.home, _m.data.walk_speed * 1.6)
 
 
+## Monstre de vague : fonce sur son objectif dès son apparition.
+func aggro_objective() -> void:
+	_m._had_objective = true
+	if is_instance_valid(_m.objective):
+		_m._target = _m.objective
+		_m.state = Monster.State.CHASE
+		_m._repath_left = 0.0
+
+
+## Prend `player` pour cible. `alert_camp` : prévient le reste de la meute.
+func aggro(player: Player, alert_camp: bool) -> void:
+	if _m.health <= 0.0:
+		return
+	_m._target = player
+	if _m.state == Monster.State.PATROL or _m.state == Monster.State.RETURN:
+		_m.state = Monster.State.CHASE
+		_m._repath_left = 0.0
+	if alert_camp and _m.camp:
+		_m.camp.alert(player, _m)
+
+
 func start_return() -> void:
 	# Monstre de vague : il retourne attaquer son objectif plutôt que rentrer.
 	if is_instance_valid(_m.objective) and _m.objective.can_be_hit():

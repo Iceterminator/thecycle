@@ -1,13 +1,12 @@
 class_name AbilityController
 extends Node
 ## Emplacements Q et F du joueur (étapes 8c et 9) : chacun contient une capacité OU un gadget.
-## On commence la partie sans rien : capacités et gadgets s'achètent en boutique, puis
-## attendent (« pending ») que le joueur appuie sur Q ou F pour les y mettre (remplace
-## l'ancien contenu). Racheter une capacité équipée l'améliore (-recharge, 2 fois max) ;
-## racheter un gadget équipé le recharge. À la mort, Q et F sont vidés.
-## Un gadget sur Q / F vit dans l'inventaire (emplacements 2 et 3) : la touche le prend en
-## main (ou rend l'arme), le clic l'utilise. Créé en code par le Player sur tous les peers
-## (nœud « Abilities », autorité serveur ; AbilitySync envoie l'état).
+## On commence sans rien : capacités et gadgets s'achètent en boutique, puis attendent (« pending »)
+## que le joueur appuie sur Q ou F pour les y mettre (remplace l'ancien contenu). Racheter une
+## capacité équipée l'améliore (-recharge, 2 fois max) ; racheter un gadget équipé le recharge.
+## À la mort, Q et F sont vidés. Un gadget sur Q / F vit dans l'inventaire (emplacements 2 et 3) :
+## la touche le prend en main (ou rend l'arme), le clic l'utilise. Créé en code par le Player sur
+## tous les peers (nœud « Abilities », autorité serveur ; AbilitySync envoie l'état).
 ##
 ## Client propriétaire : Q / F -> assigner l'achat en attente, prendre le gadget, ou
 ## request_use(emplacement, origine et direction de visée) pour une capacité.
@@ -21,8 +20,9 @@ const Activation := preload("res://systems/abilities/ability_controller_activati
 const InputHandler := preload("res://systems/abilities/ability_controller_input.gd")
 const Status := preload("res://systems/abilities/ability_controller_status.gd")
 const Slots := preload("res://systems/abilities/ability_controller_slots.gd")
+const Catalog := preload("res://systems/abilities/ability_controller_catalog.gd")
 
-const ABILITIES_DIR := "res://data/abilities/"
+const ABILITIES_DIR := Catalog.ABILITIES_DIR
 const SLOTS := 2
 
 ## Synchronisés (serveur -> tous).
@@ -39,16 +39,8 @@ var _slots: Slots
 
 
 func _init() -> void:
-	var config := SceneReplicationConfig.new()
-	for key in ["loadout", "upgrades", "cooldown_left", "pending"]:
-		var path := NodePath(".:" + key)
-		config.add_property(path)
-		config.property_set_spawn(path, true)
-		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
-	var sync := MultiplayerSynchronizer.new()
-	sync.name = "AbilitySync"
-	sync.replication_config = config
-	add_child(sync)
+	Slots.build_sync(self)
+
 
 func _ready() -> void:
 	player = get_parent() as Player
@@ -66,25 +58,16 @@ func _ready() -> void:
 
 
 static func get_ability(id: String) -> AbilityData:
-	if id == "" or not ResourceLoader.exists(ABILITIES_DIR + id + ".tres"):
-		return null
-	return load(ABILITIES_DIR + id + ".tres") as AbilityData
+	return Catalog.get_ability(id)
 
 
 static func list_abilities() -> Array[AbilityData]:
-	var result: Array[AbilityData] = []
-	for file in ResourceLoader.list_directory(ABILITIES_DIR):
-		var a: AbilityData = load(ABILITIES_DIR + file) as AbilityData if file.ends_with(".tres") else null
-		if a:
-			result.append(a)
-	result.sort_custom(func(x: AbilityData, y: AbilityData) -> bool: return x.get_display_name() < y.get_display_name())
-	return result
+	return Catalog.list_abilities()
 
 
 ## Un gadget (objet arme de type gadget) ?
 static func is_gadget(id: String) -> bool:
-	var item := Items.get_item(StringName(id)) if id != "" else null
-	return item != null and item.weapon != null and item.weapon.gadget != WeaponData.GadgetKind.NONE
+	return Catalog.is_gadget(id)
 
 
 ## Capacité de l'emplacement (null si vide ou si c'est un gadget).
@@ -97,17 +80,13 @@ func status_text() -> String:
 	return Status.build(self)
 
 
-# =========================================================================
-# Client propriétaire
-# =========================================================================
+# --- Client propriétaire ---
 
 func _process(_delta: float) -> void:
 	_input.update()
 
 
-# =========================================================================
-# Serveur
-# =========================================================================
+# --- Serveur ---
 
 func _physics_process(delta: float) -> void:
 	var changed := false

@@ -57,3 +57,17 @@ func reset() -> void:
 	c.pending = ""
 
 
+
+
+## AbilitySync : réplique l'état du contrôleur (loadout, upgrades, cooldown_left, pending).
+static func build_sync(controller: Node) -> void:
+	var config := SceneReplicationConfig.new()
+	for key in ["loadout", "upgrades", "cooldown_left", "pending"]:
+		var path := NodePath(".:" + key)
+		config.add_property(path)
+		config.property_set_spawn(path, true)
+		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ALWAYS)
+	var sync := MultiplayerSynchronizer.new()
+	sync.name = "AbilitySync"
+	sync.replication_config = config
+	controller.add_child(sync)

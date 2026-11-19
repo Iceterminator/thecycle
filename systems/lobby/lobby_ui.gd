@@ -1,18 +1,13 @@
 class_name LobbyUi
 extends CanvasLayer
 ## Écran du lobby (étape 9, joueur local), affiché pendant la phase LOBBY du MatchManager.
-## Barre du haut : escouade, onglets, pseudo, compte à rebours, bouton PRÊT. Onglets :
-## - Décollage : joueurs prêts, résumé de l'équipement ;
-## - Équipement (LoadoutPage) : vue d'ensemble (départ + boutique), fiche d'un objet, sélecteur ;
-##   voir loadout_page.gd ;
-## - Arsenal : catégories à gauche, filtres, cartes (débloquées, puis verrouillées par
-##   niveau de faction), fiche détaillée à droite avec les actions ;
-## - Factions : faction de prédilection et ce que chaque niveau de réputation débloque ;
-## - Escouade : créer, rejoindre, quitter.
+## Barre du haut : escouade, onglets, pseudo, compte à rebours, bouton PRÊT. Onglets : Décollage
+## (joueurs prêts, résumé), Équipement (LoadoutPage : départ + boutique, fiche, sélecteur), Arsenal
+## (catégories, filtres, cartes débloquées puis verrouillées par niveau de faction, fiche et actions),
+## Factions (prédilection, déblocages par réputation), Escouade (créer, rejoindre, quitter).
 ## Chaque changement est envoyé au serveur (ProfileManager.request_set_loadout), qui vérifie tout.
-## Ce script garde l'état de l'équipement et orchestre ; chaque onglet est dans lobby_ui_<onglet>.gd
-## (launch, arsenal, factions, squad), la barre du haut dans lobby_ui_top_bar.gd, l'envoi au serveur
-## dans lobby_ui_sync.gd, le catalogue dans lobby_ui_catalog.gd, les widgets dans lobby_ui_widgets.gd.
+## Ce script garde l'état de l'équipement et orchestre ; un onglet = lobby_ui_<onglet>.gd (launch,
+## arsenal, factions, squad), plus : top_bar, sync (envoi), catalog, widgets, build, access.
 
 const Catalog := preload("res://systems/lobby/lobby_ui_catalog.gd")
 const Sync := preload("res://systems/lobby/lobby_ui_sync.gd")
@@ -22,6 +17,8 @@ const ArsenalPage := preload("res://systems/lobby/lobby_ui_arsenal.gd")
 const ArsenalActions := preload("res://systems/lobby/lobby_ui_arsenal_actions.gd")
 const FactionsPage := preload("res://systems/lobby/lobby_ui_factions.gd")
 const SquadPage := preload("res://systems/lobby/lobby_ui_squad.gd")
+const Build := preload("res://systems/lobby/lobby_ui_build.gd")
+const Access := preload("res://systems/lobby/lobby_ui_access.gd")
 
 const SEND_DELAY := 0.3
 const BG := UiStyle.BG_TOP
@@ -75,7 +72,7 @@ func setup(player: Player) -> void:
 	_shop_weapons = Sync.padded(default_shop["weapons"], Config.SHOP_WEAPON_SLOTS)
 	_shop_gadgets = Sync.padded(default_shop["gadgets"], Config.SHOP_GADGET_SLOTS)
 	_catalog = Catalog.build()
-	_build()
+	Build.build(self)
 	_show_page(Page.LAUNCH)
 	Events.match_clock_synced.connect(_on_clock)
 	Events.lobby_synced.connect(func(ready: Dictionary) -> void: _ready_players = ready)
@@ -88,14 +85,7 @@ func setup(player: Player) -> void:
 
 
 func _on_clock(_elapsed: float, phase: int) -> void:
-	var lobby := phase == MatchManager.Phase.LOBBY
-	if lobby == visible:
-		return
-	visible = lobby
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if lobby else Input.MOUSE_MODE_CAPTURED
-	if lobby:
-		_set_ready(false, false)
-		_show_page(Page.LAUNCH)
+	Access.on_clock(self, phase)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -108,38 +98,16 @@ func _process(delta: float) -> void:
 		_send_left -= delta
 		if _send_left < 0.0:
 			_send()
-	if not visible:
-		return
-	var total := _player.get_parent().get_child_count()
-	var ready := _ready_count()
-	_top.countdown.text = "PRÊTS  %d / %d" % [ready, total]
-	_launch.update_clock(ready, total)
-	_refresh_left -= delta
-	if _refresh_left <= 0.0:
-		_refresh_left = 0.5
-		_refresh()
+	if visible:
+		Access.update_clock(self, delta)
 
 
 func _me() -> int:
 	return _player.get_peer_id()
 
 
-func _ready_count() -> int:
-	var n := 0
-	for peer: int in _ready_players:
-		if _ready_players[peer]:
-			n += 1
-	return n
-
-
 func _set_ready(on: bool, send: bool) -> void:
-	for button in [_top.ready_button, _launch.ready_button]:
-		(button as Button).set_pressed_no_signal(on)
-		(button as Button).text = "PRÊT ✔" if on else "PRÊT"
-	if send:
-		var match_manager := _world.get_node_or_null("MatchManager") as MatchManager
-		if match_manager:
-			match_manager.request_lobby_ready.rpc_id(1, on)
+	Access.set_ready(self, on, send)
 
 
 # --- État : chargement, envoi (voir lobby_ui_sync.gd) ---
@@ -165,7 +133,7 @@ func _set_status(text: String, color: Color) -> void:
 # --- Accès partagés avec les onglets ---
 
 func _unlocked(faction: int, level: int) -> bool:
-	return ProfileManager.is_unlocked(_me(), faction, level)
+	return Access.unlocked(self, faction, level)
 
 
 func _lock_text(faction: int, level: int) -> String:
@@ -173,24 +141,15 @@ func _lock_text(faction: int, level: int) -> String:
 
 
 func _rep_key() -> String:
-	var parts: PackedStringArray = []
-	for f in FactionData.all():
-		parts.append(str(ProfileManager.rep_points(_me(), f.id)))
-	return ",".join(parts)
+	return Access.rep_key(self)
 
 
 func _kit_data(id: String) -> KitData:
-	for e in _catalog:
-		if e["cat"] == Cat.KIT and e["id"] == id:
-			return e["kit"]
-	return null
+	return Access.kit_data(_catalog, id)
 
 
 func _entry(id: String) -> Dictionary:
-	for e in _catalog:
-		if e["id"] == id:
-			return e
-	return {}
+	return Access.entry(_catalog, id)
 
 
 func _weapon_mod_option(weapon_id: String) -> OptionButton:
@@ -209,59 +168,12 @@ func _refresh() -> void:
 	var squad := SquadManager.squad_of(_me())
 	_top.squad_chip.text = "ESCOUADE %d/%d" % [SquadManager.members_of(squad).size() if squad != 0 else 1, Config.SQUAD_MAX]
 	match _page:
-		Page.LAUNCH:
-			_launch.refresh(self)
-		Page.LOADOUT:
-			_loadout_page.refresh()
-		Page.ARSENAL:
-			_arsenal.refresh(self)
-		Page.FACTIONS:
-			_factions.refresh(self)
-		Page.SQUAD:
-			_squad.refresh(self)
-
-
-func _build() -> void:
-	var bg := UiStyle.make_lobby_background()
-	add_child(bg)
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 0)
-	root.theme = UiStyle.theme()
-	add_child(root)
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_child(_top.build(self))
-	var line := ColorRect.new()
-	line.color = ACCENT.darkened(0.4)
-	line.custom_minimum_size = Vector2(0, 2)
-	root.add_child(line)
-	var margin := MarginContainer.new()
-	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 22)
-	root.add_child(margin)
-	var stack := Control.new()
-	margin.add_child(stack)
-	_loadout_page = LoadoutPage.new()
-	_loadout_page.setup(self)
-	var builders: Array[Callable] = [_launch.build.bind(self), func() -> Control: return _loadout_page,
-			_arsenal.build.bind(self), _factions.build.bind(self), _squad.build]
-	for builder in builders:
-		var page: Control = builder.call()
-		stack.add_child(page)
-		page.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		_pages.append(page)
+		Page.LAUNCH: _launch.refresh(self)
+		Page.LOADOUT: _loadout_page.refresh()
+		Page.ARSENAL: _arsenal.refresh(self)
+		Page.FACTIONS: _factions.refresh(self)
+		Page.SQUAD: _squad.refresh(self)
 
 
 func _show_page(page: int) -> void:
-	_page = page
-	for i in _pages.size():
-		_pages[i].visible = i == page
-	_top.style_nav(page)
-	if page == Page.ARSENAL:
-		_arsenal.rebuild_grid(self)
-	if page == Page.LOADOUT and _loadout_page:
-		_loadout_page.show_overview()
-	_launch.key = ""
-	_squad.key = ""
-	_refresh()
+	Access.show_page(self, page)
