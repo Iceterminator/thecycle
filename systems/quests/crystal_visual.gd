@@ -2,11 +2,20 @@ extends RefCounted
 ## Visuel du cristal et de sa foreuse, construit en code (sur tous les peers), et
 ## texte flottant selon l'état. Les nœuds sont ajoutés comme enfants du Crystal.
 
+const FOREUSE_MODEL: PackedScene = preload("res://assets/models/props/foreuse.gltf")
+const DROP_HEIGHT := 18.0   ## hauteur de départ de la descente (m)
+const DROP_TIME := 1.4      ## durée de la chute avec rebond (s)
+const BIT_RAISE := 0.8      ## mèche relevée pendant la chute (m)
+const BIT_TIME := 0.6       ## durée de l'abaissement de la mèche (s)
+
 var crystal_mat: StandardMaterial3D
 var drill: Node3D
 var bit: Node3D
 var label: Label3D
 var _c: Crystal
+var _tween: Tween
+var _bit_rest_y := 0.0
+var _prev_state: int = -1
 
 
 func _init(crystal: Crystal) -> void:
@@ -47,52 +56,42 @@ func build() -> void:
 	_c.add_child(label)
 
 
-## Foreuse : 4 pieds + une mèche qui tourne au-dessus du cristal (cachée en IDLE).
+## Foreuse : modèle 3D posé sur le cristal (cachée en IDLE), mèche « Meche » qui tourne.
 func _build_drill() -> void:
-	var metal := StandardMaterial3D.new()
-	metal.albedo_color = Color(0.8, 0.6, 0.2)
-	metal.metallic = 0.6
-	drill = Node3D.new()
+	drill = FOREUSE_MODEL.instantiate()
 	_c.add_child(drill)
-	for i in 4:
-		var leg := MeshInstance3D.new()
-		var leg_mesh := BoxMesh.new()
-		leg_mesh.size = Vector3(0.15, 3.4, 0.15)
-		leg.mesh = leg_mesh
-		leg.material_override = metal
-		var a := TAU * i / 4.0 + PI / 4.0
-		leg.position = Vector3(cos(a) * 1.2, 1.6, sin(a) * 1.2)
-		leg.rotation = Vector3(sin(a) * 0.25, 0, -cos(a) * 0.25)
-		drill.add_child(leg)
-	var head := MeshInstance3D.new()
-	var head_mesh := BoxMesh.new()
-	head_mesh.size = Vector3(1.0, 0.5, 1.0)
-	head.mesh = head_mesh
-	head.material_override = metal
-	head.position.y = 3.3
-	drill.add_child(head)
-	bit = Node3D.new()
-	bit.position.y = 3.05
-	drill.add_child(bit)
-	var tip := MeshInstance3D.new()
-	var tip_mesh := CylinderMesh.new()
-	tip_mesh.top_radius = 0.25
-	tip_mesh.bottom_radius = 0.0
-	tip_mesh.height = 0.8
-	tip_mesh.radial_segments = 5
-	tip.mesh = tip_mesh
-	var tip_mat := StandardMaterial3D.new()
-	tip_mat.albedo_color = Color(0.4, 0.4, 0.45)
-	tip.material_override = tip_mat
-	tip.position.y = -0.4
-	bit.add_child(tip)
+	bit = drill.find_child("Meche", true, false) as Node3D
+	if bit == null:   # modèle sans mèche : on garde un pivot vide
+		bit = Node3D.new()
+		drill.add_child(bit)
+	_bit_rest_y = bit.position.y
+
+
+## Descente : la foreuse tombe du ciel, rebondit au sol, puis la mèche s'abaisse.
+func _play_drop() -> void:
+	if _tween:
+		_tween.kill()
+	drill.position.y = DROP_HEIGHT
+	bit.position.y = _bit_rest_y + BIT_RAISE
+	_tween = _c.create_tween()
+	_tween.tween_property(drill, "position:y", 0.0, DROP_TIME).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(bit, "position:y", _bit_rest_y, BIT_TIME).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 
 
 func update_look() -> void:
 	if drill == null:
 		return
 	var state := _c.state
-	drill.visible = state == Crystal.State.DEFENSE or state == Crystal.State.EXTRACT
+	var shown := state == Crystal.State.DEFENSE or state == Crystal.State.EXTRACT
+	drill.visible = shown
+	# Animation seulement au lancement vu en direct (pas pour un joueur qui arrive en cours).
+	if state == Crystal.State.DEFENSE and _prev_state == Crystal.State.IDLE:
+		_play_drop()
+	elif not shown and _tween:
+		_tween.kill()
+		drill.position.y = 0.0
+		bit.position.y = _bit_rest_y
+	_prev_state = state
 	var dim := state == Crystal.State.DONE
 	crystal_mat.emission_enabled = not dim
 	crystal_mat.albedo_color = _c.data.color.darkened(0.7) if dim else _c.data.color
