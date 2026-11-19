@@ -11,6 +11,10 @@ extends Node
 ## avec cette faction atteint son niveau requis (Config.economy.rep_levels) ; les objets de départ
 ## (faction 0 ou niveau 0) le sont toujours.
 
+
+const ProfileStorage := preload("res://systems/profiles/profile_storage.gd")
+const LoadoutRules := preload("res://systems/profiles/profile_loadout_rules.gd")
+const PublicReader := preload("res://systems/profiles/profile_public_reader.gd")
 const PROFILES_DIR := "user://profiles/"
 const COLOR := Color(0.75, 0.85, 1.0)
 
@@ -62,16 +66,11 @@ func _exit_tree() -> void:
 
 ## Nom affiché d'un joueur (son pseudo, sinon « Joueur <id> »).
 static func name_of(peer: int) -> String:
-	if _current and _current.public.has(peer):
-		return String(_current.public[peer].get("name", "Joueur %d" % peer))
-	return "Joueur %d" % peer
+	return PublicReader.name_of(_public_of_current(), peer)
 
 
 static func rep_points(peer: int, faction: int) -> int:
-	if _current == null or not _current.public.has(peer):
-		return 0
-	var rep: Dictionary = _current.public[peer].get("rep", {})
-	return int(rep.get(faction, 0))
+	return PublicReader.rep_points(_public_of_current(), peer, faction)
 
 
 ## Niveau de réputation (0 à 10) : nombre de seuils de Config.economy.rep_levels atteints.
@@ -95,32 +94,27 @@ static func is_unlocked(peer: int, faction: int, level: int) -> bool:
 
 
 static func preferred_faction(peer: int) -> int:
-	if _current and _current.public.has(peer):
-		return int(_current.public[peer].get("preferred", 0))
-	return 0
+	return PublicReader.preferred_faction(_public_of_current(), peer)
 
 
 ## Mods d'arme choisis par ce joueur : { id d'arme : id de mod }.
 static func weapon_mods(peer: int) -> Dictionary:
-	if _current and _current.public.has(peer):
-		return _current.public[peer].get("weapon_mods", {})
-	return {}
+	return PublicReader.weapon_mods(_public_of_current(), peer)
 
 
 ## Arme de départ du joueur (une arme secondaire débloquée), Config.start_loadout.base_weapon par défaut.
 static func start_weapon(peer: int) -> StringName:
-	if _current and _current.public.has(peer):
-		var id := String(_current.public[peer].get("start_weapon", ""))
-		if id != "" and Items.get_item(StringName(id)) != null:
-			return StringName(id)
-	return Config.start_loadout.base_weapon
+	return PublicReader.start_weapon(_public_of_current(), peer)
 
 
 ## Boutique configurée : { weapons: [4 ids], gadgets: [4 ids] } ("" = case vide).
 static func shop_of(peer: int) -> Dictionary:
-	if _current and _current.public.has(peer) and _current.public[peer].has("shop"):
-		return _current.public[peer]["shop"]
-	return default_shop()
+	var shop := PublicReader.shop_of(_public_of_current(), peer)
+	return shop if not shop.is_empty() else default_shop()
+
+
+static func _public_of_current() -> Dictionary:
+	return _current.public if _current else {}
 
 
 static func default_shop() -> Dictionary:
@@ -135,52 +129,20 @@ var local_loadout: Dictionary = {}
 # Serveur
 # =========================================================================
 
-static func _sanitize(raw: String) -> String:
-	var out := ""
-	for c in raw.strip_edges():
-		if c.is_valid_identifier() or c.is_valid_int() or c in ["-", "_"] or c.to_lower() != c.to_upper():
-			out += c
-	return out.left(16)
-
-
-func _default_profile(name: String) -> Dictionary:
-	return {
-		"name": name,
-		"rep": {"1": 0, "2": 0, "3": 0},
-		"preferred": 0,
-		"loadout": {
-			"kit": String(Config.start_loadout.default_kit),
-			"kit_mods": {},
-			"weapon_mods": {},
-			"start_weapon": String(Config.start_loadout.base_weapon),
-			"shop": default_shop(),
-		},
-		"stats": {"matches": 0, "evacs": 0, "kills": 0, "best_fame": 0},
-	}
-
-
-func _path(name: String) -> String:
-	return PROFILES_DIR + name.to_lower() + ".json"
-
 
 @rpc("any_peer", "call_local", "reliable")
 func request_register(raw_name: String) -> void:
 	if not multiplayer.is_server():
 		return
 	var peer := multiplayer.get_remote_sender_id()
-	var name := _sanitize(raw_name)
+	var name := ProfileStorage.sanitize(raw_name)
 	if name == "":
 		name = "Joueur%d" % (peer % 10000)
 	# Deux joueurs connectés ne peuvent pas avoir le même pseudo.
 	for other: int in public:
 		if other != peer and String(public[other].get("name", "")).to_lower() == name.to_lower():
 			name = (name + "_%d" % (peer % 100)).left(16)
-	var profile := _default_profile(name)
-	if FileAccess.file_exists(_path(name)):
-		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(_path(name)))
-		if data is Dictionary:
-			profile.merge(data, true)
-			profile["name"] = name
+	var profile := ProfileStorage.load_or_default(name)
 	_profiles[peer] = profile
 	_publish(peer)
 	print("[Profil] Joueur %d = %s" % [peer, name])
@@ -190,21 +152,10 @@ func request_register(raw_name: String) -> void:
 	_save(peer)
 
 
-## Réputation des factions avec des clés entières (le JSON les rend en texte).
+## Met à jour l'entrée publique du joueur (envoyée à tous).
 func _publish(peer: int) -> void:
-	var profile: Dictionary = _profiles[peer]
-	var rep := {}
-	for key: String in profile["rep"]:
-		rep[int(key)] = int(profile["rep"][key])
 	var d := public.duplicate(true)
-	d[peer] = {
-		"name": profile["name"],
-		"rep": rep,
-		"preferred": int(profile["preferred"]),
-		"weapon_mods": profile["loadout"].get("weapon_mods", {}),
-		"start_weapon": String(profile["loadout"].get("start_weapon", Config.start_loadout.base_weapon)),
-		"shop": profile["loadout"].get("shop", default_shop()),
-	}
+	d[peer] = PublicReader.public_entry(_profiles[peer])
 	public = d
 
 
@@ -280,9 +231,7 @@ func _on_player_left(peer: int) -> void:
 func _save(peer: int) -> void:
 	if not _profiles.has(peer):
 		return
-	var file := FileAccess.open(_path(_profiles[peer]["name"]), FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(_profiles[peer], "\t"))
+	ProfileStorage.save_profile(_profiles[peer])
 	_dirty.erase(peer)
 
 
@@ -316,10 +265,6 @@ func _player(peer: int) -> Player:
 	return players.get_node_or_null(str(peer)) as Player if players else null
 
 
-static func _kit_data(id: String) -> KitData:
-	var path := KitController.KITS_DIR + id + ".tres"
-	return load(path) as KitData if id != "" and ResourceLoader.exists(path) else null
-
 
 ## Serveur : applique au joueur l'équipement de son profil (ce qui est débloqué).
 ## Les capacités ne viennent plus du profil : elles s'achètent en partie (boutique -> Q / F).
@@ -329,7 +274,7 @@ func server_apply_loadout(peer: int) -> void:
 		return
 	var loadout: Dictionary = _profiles[peer]["loadout"]
 	var kit_id := String(loadout.get("kit", Config.start_loadout.default_kit))
-	var kit := _kit_data(kit_id)
+	var kit := LoadoutRules.kit_data(kit_id)
 	if kit and is_unlocked(peer, kit.faction, kit.faction_level):
 		if p.kit.kit_id != kit_id:
 			p.kit.server_set_kit(kit_id)
@@ -340,34 +285,15 @@ func server_apply_loadout(peer: int) -> void:
 		p.inventory.reset_loadout()
 
 
+
 ## Arme de départ valable : une arme secondaire (pas un gadget) débloquée.
 static func start_weapon_ok(peer: int, id: String) -> bool:
-	var item := Items.get_item(StringName(id))
-	if item == null or item.weapon == null or item.weapon.gadget != WeaponData.GadgetKind.NONE:
-		return false
-	return item.weapon.slot == WeaponData.Slot.SECONDARY and is_unlocked(peer, item.weapon.faction, item.weapon.faction_level)
+	return LoadoutRules.start_weapon_ok(peer, id)
 
 
-## Boutique valable : 4 armes max et 4 gadgets / capacités max, sans doublon, tout débloqué.
-## Renvoie la boutique nettoyée, ou {} si refusée.
+## Boutique valable (voir ProfileLoadoutRules.clean_shop) : renvoie la boutique nettoyée, ou {}.
 static func clean_shop(peer: int, shop: Dictionary) -> Dictionary:
-	var weapons: Array = shop.get("weapons", [])
-	var gadgets: Array = shop.get("gadgets", [])
-	if weapons.size() > Config.SHOP_WEAPON_SLOTS or gadgets.size() > Config.SHOP_GADGET_SLOTS:
-		return {}
-	var out := {"weapons": [], "gadgets": []}
-	for key: String in ["weapons", "gadgets"]:
-		var size: int = Config.SHOP_WEAPON_SLOTS if key == "weapons" else Config.SHOP_GADGET_SLOTS
-		var list: Array = shop.get(key, [])
-		for i in size:
-			var id := String(list[i]) if i < list.size() else ""
-			if id != "":
-				var kind := Shop.entry_kind(id)
-				var wanted := kind == Shop.Entry.WEAPON if key == "weapons" else kind in [Shop.Entry.GADGET, Shop.Entry.ABILITY]
-				if not wanted or id in out[key] or not Shop.entry_unlocked(peer, id):
-					return {}
-			out[key].append(id)
-	return out
+	return LoadoutRules.clean_shop(peer, shop)
 
 
 ## Lobby : le joueur envoie son équipement.
@@ -384,39 +310,11 @@ func request_set_loadout(loadout: Dictionary, preferred: int) -> void:
 	if not MatchManager.is_lobby():
 		_reply(peer, "Équipement : modifiable seulement dans le lobby")
 		return
-	var kit_id := String(loadout.get("kit", ""))
-	var kit := _kit_data(kit_id)
-	if kit == null or not is_unlocked(peer, kit.faction, kit.faction_level):
-		_reply(peer, "Kit verrouillé")
+	var result := LoadoutRules.check_request(peer, loadout, _profiles[peer]["loadout"].get("kit_mods", {}))
+	if result.has("error"):
+		_reply(peer, String(result["error"]))
 		return
-	var kit_mod := String(loadout.get("kit_mod", ""))
-	if kit_mod != "" and not KitController.mod_unlocked(peer, kit, kit_mod):
-		_reply(peer, "Mod de kit verrouillé")
-		return
-	var start := String(loadout.get("start_weapon", Config.start_loadout.base_weapon))
-	if not start_weapon_ok(peer, start):
-		_reply(peer, "Arme de départ verrouillée (ou pas une arme secondaire)")
-		return
-	var shop := clean_shop(peer, loadout.get("shop", {}))
-	if shop.is_empty():
-		_reply(peer, "Boutique refusée : objet verrouillé, en double ou mauvaise case")
-		return
-	var weapon_mods := {}
-	var asked: Dictionary = loadout.get("weapon_mods", {})
-	for weapon_id: String in asked:
-		var mod := WeaponModData.get_mod(String(asked[weapon_id]))
-		var item := Items.get_item(StringName(weapon_id))
-		if mod and item and item.weapon and is_unlocked(peer, mod.faction, mod.faction_level):
-			weapon_mods[weapon_id] = String(mod.id)
-	var kit_mods: Dictionary = _profiles[peer]["loadout"].get("kit_mods", {}).duplicate()
-	kit_mods[kit_id] = kit_mod
-	server_store_loadout(peer, {
-		"kit": kit_id,
-		"kit_mods": kit_mods,
-		"weapon_mods": weapon_mods,
-		"start_weapon": start,
-		"shop": shop,
-	}, clampi(preferred, 0, 3))
+	server_store_loadout(peer, result["loadout"], clampi(preferred, 0, 3))
 	server_apply_loadout(peer)
 
 

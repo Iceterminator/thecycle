@@ -9,17 +9,8 @@ extends CharacterBody3D
 ## - L'arme (Weapon) et l'interaction (Interactor) DEMANDENT au serveur.
 ## - Couches : le joueur est sur la couche 2 (« joueurs ») et collisionne avec 1 et 2.
 
-const HUD_SCRIPT := preload("res://systems/combat/hud.gd")
-const ADMIN_SCRIPT := preload("res://systems/admin/admin.gd")
-const MAP_OVERLAY_SCRIPT := preload("res://systems/map/map_overlay.gd")
-const KIT_SCRIPT := preload("res://systems/kits/kit_controller.gd")
-const MOVEMENT_SCRIPT := preload("res://systems/kits/kit_movement.gd")
-const BUFFS_SCRIPT := preload("res://systems/abilities/buff_controller.gd")
-const ABILITIES_SCRIPT := preload("res://systems/abilities/ability_controller.gd")
-const PACT_UI_SCRIPT := preload("res://systems/pacts/pact_ui.gd")
-const LOBBY_UI_SCRIPT := preload("res://systems/lobby/lobby_ui.gd")
-const DROP_POD_SCRIPT := preload("res://systems/match/drop_pod_ride.gd")
-const DROP_SCREEN_SCRIPT := preload("res://systems/match/drop_screen.gd")
+const PlayerSetup := preload("res://scenes/player/player_setup.gd")
+const PlayerMotion := preload("res://scenes/player/player_motion.gd")
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -44,6 +35,7 @@ var buffs: BuffController
 var abilities: AbilityController
 var drop: DropPodRide  ## largage en capsule (serveur autoritaire, voir DropPodRide)
 var held_weapon: WeaponModel
+var _motion: PlayerMotion
 ## Recul subi (coup de poing chargé), qui s'estompe.
 var _knockback := Vector3.ZERO
 
@@ -87,66 +79,10 @@ func _ready() -> void:
 	body_mesh.visible = not is_local
 	health.dead_changed.connect(_on_dead_changed)
 	add_to_group("damageable")
-	admin = ADMIN_SCRIPT.new()
-	admin.name = "Admin"
-	add_child(admin)
-	kit = KIT_SCRIPT.new()
-	kit.name = "Kit"
-	kit.set_multiplayer_authority(1)  # le serveur décide du kit, du niveau et de l'XP
-	add_child(kit)
-	movement = MOVEMENT_SCRIPT.new()
-	movement.name = "Movement"
-	add_child(movement)
-	buffs = BUFFS_SCRIPT.new()
-	buffs.name = "Buffs"
-	buffs.set_multiplayer_authority(1)
-	add_child(buffs)
-	abilities = ABILITIES_SCRIPT.new()
-	abilities.name = "Abilities"
-	abilities.set_multiplayer_authority(1)
-	add_child(abilities)
-	drop = DROP_POD_SCRIPT.new()
-	drop.name = "Drop"
-	drop.set_multiplayer_authority(1)
-	add_child(drop)
-	# Arme tenue en main (modèle 3D), visible par tous : à la première personne pour le joueur local.
-	held_weapon = WeaponModel.new()
-	held_weapon.name = "HeldWeapon"
-	head.add_child(held_weapon)
-	held_weapon.setup(self)
-	# Corps animé, pour les autres joueurs seulement (le joueur local ne voit pas son corps).
-	if not is_local and not Net.is_dedicated_server:
-		avatar = PlayerAvatar.new()
-		avatar.name = "Avatar"
-		body_mesh.add_child(avatar)
-		avatar.setup(self, body_mesh)
-	if not is_local:
-		_build_beacon()
+	_motion = PlayerMotion.new(self)
+	PlayerSetup.build_components(self, is_local)
 	if is_local:
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-		var hud: CombatHud = HUD_SCRIPT.new()
-		add_child(hud)
-		hud.setup(self)
-		var map_overlay: MapOverlay = MAP_OVERLAY_SCRIPT.new()
-		map_overlay.name = "MapOverlay"
-		add_child(map_overlay)
-		map_overlay.setup(self)
-		# Profil : le serveur charge réputation et équipement de ce pseudo.
-		var profiles := get_parent().get_parent().get_node_or_null("ProfileManager")
-		if profiles:
-			profiles.request_register.rpc_id(1, Net.player_name)
-		var pact_ui: PactUi = PACT_UI_SCRIPT.new()
-		pact_ui.name = "PactUi"
-		add_child(pact_ui)
-		pact_ui.setup(self)
-		var lobby_ui: LobbyUi = LOBBY_UI_SCRIPT.new()
-		lobby_ui.name = "LobbyUi"
-		add_child(lobby_ui)
-		lobby_ui.setup(self)
-		var drop_screen: DropScreen = DROP_SCREEN_SCRIPT.new()
-		drop_screen.name = "DropScreen"
-		add_child(drop_screen)
-		drop_screen.setup(self)
+		PlayerSetup.build_local_ui(self)
 	health.downed_changed.connect(_on_downed_changed)
 	set_physics_process(is_local)
 	# Les copies distantes appliquent seulement la hauteur d'accroupi reçue.
@@ -159,25 +95,11 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * Config.MOUSE_SENSITIVITY)
-		head.rotate_x(-event.relative.y * Config.MOUSE_SENSITIVITY)
-		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-89), deg_to_rad(89))
-	elif event.is_action_pressed("toggle_mouse"):
-		Input.mouse_mode = (
-			Input.MOUSE_MODE_VISIBLE
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-			else Input.MOUSE_MODE_CAPTURED
-		)
-	elif event is InputEventMouseButton and event.pressed \
-			and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
-		# Un vrai clic recapture la souris ; pas la molette (sinon, défiler dans un menu
-		# ouvert recapturait la souris par-dessus le menu).
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_motion.handle_input(event)
 
 
 func _process(delta: float) -> void:
-	_apply_crouch_shape(delta)
+	_motion.apply_crouch_shape(delta)
 	# Camouflage vu par les autres : le corps devient transparent.
 	if buffs and body_mesh.visible:
 		var speed := Vector2(velocity.x, velocity.z).length()
@@ -190,69 +112,13 @@ func _physics_process(delta: float) -> void:
 		drop.step()
 		return
 	if is_evacuated:
-		_spectator_move(delta)
+		_motion.spectator_move(delta)
 		return
 	# Vol admin (local, menu admin) : remplace tout le déplacement.
 	if admin != null and admin.fly.active and is_multiplayer_authority():
 		admin.fly.step(self, delta)
 		return
-	var on_floor := is_on_floor()
-	is_airborne = not on_floor
-	if not on_floor:
-		velocity.y -= gravity * delta
-
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	# À terre : on rampe, rien d'autre (pas de saut ni de capacité).
-	if health.is_downed:
-		is_crouching = true
-		_apply_crouch_shape(delta)
-		var crawl := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized() * Config.combat.downed_speed
-		velocity.x = crawl.x
-		velocity.z = crawl.z
-		move_and_slide()
-		return
-	# Saut, glissade et capacités du kit (jetpack, esquive, super saut…).
-	movement.pre_physics(delta, input_dir)
-	is_crouching = Input.is_action_pressed("crouch") or movement.is_sliding()
-	_apply_crouch_shape(delta)
-
-	if movement.overrides_horizontal():
-		var forced := movement.forced_horizontal()
-		velocity.x = forced.x
-		velocity.z = forced.z
-	else:
-		var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-		var target := direction * _current_speed(input_dir)
-		if on_floor:
-			if direction:
-				velocity.x = target.x
-				velocity.z = target.z
-			else:
-				var speed := _current_speed(input_dir)
-				velocity.x = move_toward(velocity.x, 0, speed)
-				velocity.z = move_toward(velocity.z, 0, speed)
-		else:
-			# En l'air : contrôle partiel (Config.combat.air_control), total pendant le jetpack.
-			var weight := clampf(movement.air_control() * 10.0 * delta, 0.0, 1.0)
-			velocity.x = lerpf(velocity.x, target.x, weight)
-			velocity.z = lerpf(velocity.z, target.z, weight)
-
-	# Recul : ajouté au sol (où la vitesse horizontale est réimposée à chaque image).
-	if on_floor:
-		velocity += _knockback
-	_knockback = _knockback.move_toward(Vector3.ZERO, 30.0 * delta)
-	move_and_slide()
-	movement.post_physics()
-
-
-## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.combat.sprint_multiplier.
-func _current_speed(input_dir: Vector2) -> float:
-	var buff := buffs.get_mult("speed_mult") if buffs else 1.0
-	if is_crouching:
-		return Config.combat.crouch_speed * buff
-	if Input.is_action_pressed("sprint") and input_dir.y < 0:
-		return kit.move_speed() * Config.combat.sprint_multiplier * buff
-	return kit.move_speed() * buff
+	_motion.step(delta)
 
 
 ## Mod d'arme choisi par ce joueur pour cette arme (lobby, étape 9), ou null.
@@ -309,27 +175,6 @@ func apply_knockback(impulse: Vector3) -> void:
 	_knockback = impulse.limit_length(20.0)
 
 
-func _apply_crouch_shape(delta: float) -> void:
-	var target := CROUCH_HEIGHT if is_crouching else STAND_HEIGHT
-	var shape := collision.shape as CapsuleShape3D
-	shape.height = lerpf(shape.height, target, 12.0 * delta)
-	collision.position.y = shape.height / 2.0
-	head.position.y = shape.height - HEAD_OFFSET
-
-
-## Spectateur (embarqué) : vol libre sans collision. Espace monte, Ctrl descend, Maj accélère.
-func _spectator_move(delta: float) -> void:
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var direction := head.global_basis * Vector3(input_dir.x, 0, input_dir.y)
-	if Input.is_action_pressed("jump"):
-		direction += Vector3.UP
-	if Input.is_action_pressed("crouch"):
-		direction += Vector3.DOWN
-	if direction.length_squared() > 0.0:
-		var speed := Config.SPECTATOR_SPEED * (2.0 if Input.is_action_pressed("sprint") else 1.0)
-		global_position += direction.normalized() * speed * delta
-
-
 ## Envoyé par le serveur à tous (embarquement, nouvelle partie).
 @rpc("any_peer", "call_local", "reliable")
 func set_evacuated(value: bool) -> void:
@@ -365,27 +210,6 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 func is_headshot(point: Vector3) -> bool:
 	var top := global_position.y + (collision.shape as CapsuleShape3D).height
 	return point.y >= top - Config.HEAD_ZONE_HEIGHT
-
-
-## Balise au-dessus des AUTRES joueurs, visible de loin et à travers le décor,
-## quand leur Score.beacon n'est pas vide (porteur du Cœur stellaire, prime…).
-func _build_beacon() -> void:
-	var label := Label3D.new()
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.fixed_size = true
-	label.pixel_size = 0.0009
-	label.font_size = 30
-	label.outline_size = 8
-	label.modulate = Color(1, 0.85, 0.2)
-	label.position.y = 2.4
-	add_child(label)
-	var refresh := func() -> void:
-		label.text = score.beacon
-		label.visible = score.beacon != "" and not health.is_dead
-	score.changed.connect(refresh)
-	health.dead_changed.connect(func(_d: bool) -> void: refresh.call())
-	refresh.call()
 
 
 func _on_dead_changed(dead: bool) -> void:

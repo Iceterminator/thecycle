@@ -20,6 +20,9 @@ static var _current: MatchManager
 const ANNOUNCE_COLOR := Color(0.6, 0.85, 1.0)
 const MONSTER_COLOR := Color(1.0, 0.5, 0.35)
 const EVAC_COLOR := Color(1.0, 0.42, 0.38)  ## annonces de l'évac (bandeau rouge)
+const MatchClock := preload("res://systems/match/match_clock.gd")
+const MatchCycle := preload("res://systems/match/match_cycle.gd")
+const MatchEvac := preload("res://systems/match/match_evac.gd")
 
 @onready var world: World = get_parent()
 
@@ -40,9 +43,15 @@ var _drop_points: Dictionary = {}  # peer -> point de largage
 var waiting: Array[int] = []
 var _waiting_screen: WaitingScreen
 var _results: Array = []
+var _clock: MatchClock
+var _cycle: MatchCycle
+var _evac: MatchEvac
 
 
 func _ready() -> void:
+	_clock = MatchClock.new(self)
+	_cycle = MatchCycle.new(self)
+	_evac = MatchEvac.new(self)
 	_current = self
 	Events.match_clock_requested.connect(func() -> void: Events.match_clock_synced.emit(elapsed, phase))
 	set_physics_process(multiplayer.is_server())
@@ -87,46 +96,9 @@ func _process(delta: float) -> void:
 		elapsed = minf(elapsed + delta, Config.match_rules.match_duration)
 
 
-## Annonces : [temps (s), texte, couleur]. Déclenchées quand l'horloge franchit le temps.
-func _announces() -> Array:
-	var land := Config.match_rules.evac_landing_time
-	var end := Config.match_rules.match_duration
-	return [
-		[Config.match_rules.evac_announce_time, "La navette d'évacuation arrivera dans %d secondes, au centre de la carte !" % roundi(land - Config.match_rules.evac_announce_time), EVAC_COLOR],
-		[end - 30.0, "Décollage de l'évac dans 30 secondes !", EVAC_COLOR],
-		[end - 10.0, "Décollage dans 10 secondes !", EVAC_COLOR],
-	]
-
-
 ## Fait avancer l'horloge jusqu'à `to` en déclenchant tout ce qui est franchi.
 func _advance(to: float) -> void:
-	var before := elapsed
-	elapsed = minf(to, Config.match_rules.match_duration)
-	for entry: Array in _announces():
-		if before < entry[0] and elapsed >= entry[0]:
-			Events.announce_requested.emit(entry[1], entry[2])
-	if before < Config.match_rules.evac_announce_time and elapsed >= Config.match_rules.evac_announce_time:
-		_set_pad_blocked(true)
-		Events.evac_announced.emit()  # MonsterManager occupe la plateforme (ou la déclare libre)
-		if pad_blocked:
-			Events.announce_requested.emit("Des monstres occupent la plateforme d'évac : tuez-les pour que la navette puisse se poser !", EVAC_COLOR)
-	if phase == Phase.PLAYING and pad_blocked and before < Config.match_rules.evac_landing_time and elapsed >= Config.match_rules.evac_landing_time:
-		Events.announce_requested.emit("NAVETTE BLOQUÉE — NETTOYER LA PLATEFORME", EVAC_COLOR)
-	if phase == Phase.PLAYING and not pad_blocked and elapsed >= Config.match_rules.evac_landing_time:
-		phase = Phase.EVAC
-		Events.evac_landed.emit()
-		Events.announce_requested.emit("L'évac se pose au centre ! Montez à bord par la rampe.", ANNOUNCE_COLOR)
-		_broadcast_clock()
-	# Niveau des monstres (1 au départ, puis 2 et 3 aux temps de Config).
-	for i in Config.match_rules.monster_level_times.size():
-		var t: float = Config.match_rules.monster_level_times[i]
-		if before < t and elapsed >= t:
-			Events.monster_level_changed.emit(i + 2)
-			Events.announce_requested.emit("Les monstres passent au niveau %d : plus résistants, plus de crédits !" % (i + 2), MONSTER_COLOR)
-	if before < Config.match_rules.crystal_upgrade_time and elapsed >= Config.match_rules.crystal_upgrade_time:
-		Events.crystal_upgrade_requested.emit()
-	if elapsed >= Config.match_rules.match_duration:
-		_end_match()
+	_clock.advance(to)
 
 
 ## Menu admin : on ne peut qu'avancer (revenir en arrière défairait l'évac).
@@ -139,20 +111,7 @@ func _set_time(seconds: float) -> void:
 
 
 func _on_player_evacuated(peer_id: int) -> void:
-	if phase != Phase.EVAC or peer_id in evacuated:
-		return
-	var player := world.get_player(peer_id)
-	if player == null:
-		return
-	evacuated.append(peer_id)
-	var bonus := Config.economy.evac_first_bonus if evacuated.size() == 1 else Config.economy.evac_other_bonus
-	player.score.add_rank_points(bonus)
-	player.set_evacuated.rpc(true)
-	var text := "%s a embarqué dans l'évac !" % ProfileManager.name_of(peer_id)
-	if bonus > 0:
-		text += " (premier à bord : +%d)" % bonus
-	Events.announce_requested.emit(text, ANNOUNCE_COLOR)
-	print("[Partie] Joueur %d embarqué (+%d)" % [peer_id, bonus])
+	_evac.on_player_evacuated(peer_id)
 
 
 func _set_pad_blocked(blocked: bool) -> void:
@@ -160,112 +119,22 @@ func _set_pad_blocked(blocked: bool) -> void:
 	_sync_pad.rpc(blocked)
 
 
-## Contrat « Nettoyer la plateforme » rempli : Fame au tueur, la navette peut se poser
-## (tout de suite si elle est déjà là, sinon à Config.match_rules.evac_landing_time).
 func _on_evac_pad_cleared(killer_id: int) -> void:
-	if not pad_blocked or phase != Phase.PLAYING:
-		return
-	_set_pad_blocked(false)
-	var killer := world.get_player(killer_id)
-	if killer:
-		killer.score.add_contract_fame(Config.economy.evac_pad_clear_fame)
-		Events.announce_requested.emit("%s a nettoyé la plateforme d'évac ! (+%d)" % [ProfileManager.name_of(killer_id), Config.economy.evac_pad_clear_fame], EVAC_COLOR)
-	else:
-		Events.announce_requested.emit("La plateforme d'évac est dégagée !", EVAC_COLOR)
-	_advance(elapsed)  # se pose tout de suite si l'heure est passée
+	_evac.on_evac_pad_cleared(killer_id)
 
 
 func _end_match() -> void:
-	phase = Phase.ENDED
-	elapsed = Config.match_rules.match_duration
-	Events.evac_departed.emit()
-	_results = []
-	for node in world.players.get_children():
-		var player := node as Player
-		if player == null:
-			continue
-		var peer := player.get_peer_id()
-		var aboard := peer in evacuated
-		if not aboard:
-			player.score.add_rank_points(-Config.economy.evac_missed_penalty)
-		_results.append({"peer": peer, "points": player.score.rank_points, "evacuated": aboard})
-	_results.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["points"] > b["points"])
-	_restart_left = Config.match_rules.match_restart_delay
-	Events.match_ended.emit()
-	Events.announce_requested.emit("L'évac a décollé ! Fin de la partie.", ANNOUNCE_COLOR)
-	print("[Partie] Fin : %s" % [_results])
-	_broadcast_clock()
-	_show_results.rpc(_results, _restart_left)
+	_cycle.end_match()
 
 
-## Nouvelle partie, étape 1 : chaque système de carte se remet à zéro (Events : tirage des
-## quêtes, monstres), puis les joueurs ; puis phase LARGAGE (écran carte + quêtes). Le chrono
-## de partie reste à 0 jusqu'à _begin_drop (fin de l'écran).
+## Nouvelle partie : remise à zéro puis phase LARGAGE (voir MatchCycle.restart).
 func _restart() -> void:
-	# Niveau 1 d'abord : les camps sont repeuplés pendant match_reset_requested.
-	Events.monster_level_changed.emit(1)
-	Events.match_reset_requested.emit()
-	# Équipement du profil (choisi dans le lobby).
-	var profiles := world.get_node_or_null("ProfileManager") as ProfileManager
-	var players: Array[Player] = []
-	for node in world.players.get_children():
-		var player := node as Player
-		if player == null:
-			continue
-		if profiles:
-			profiles.server_apply_loadout(player.get_peer_id())
-		_reset_player(player)
-		players.append(player)
-	ready_players = {}
-	evacuated.clear()
-	_set_pad_blocked(false)
-	_results = []
-	phase = Phase.DROP
-	elapsed = 0.0
-	_drop_left = Config.match_rules.drop_screen_time
-	_drop_points = DropPoints.assign(world, players)
-	_broadcast_clock()
-	_send_drop_screens(players)
-	print("[Partie] Largage dans %d s : %s" % [roundi(_drop_left), _drop_points])
-
-
-## Chaque joueur reçoit son point et ceux de son escouade (pas ceux des adversaires).
-func _send_drop_screens(players: Array[Player]) -> void:
-	for player in players:
-		_send_drop_screen(player.get_peer_id())
-
-
-## Écran de largage d'un joueur : son point et ceux de son escouade (temps restant).
-func _send_drop_screen(peer: int) -> void:
-	if world.get_player(peer) == null:
-		return
-	var squad := SquadManager.squad_of(peer)
-	var points: Array = []
-	for other_peer: int in _drop_points:
-		if other_peer == peer or (squad != 0 and SquadManager.squad_of(other_peer) == squad):
-			points.append([other_peer, _drop_points[other_peer]])
-	_show_drop.rpc_id(peer, points, _drop_left)
+	_cycle.restart()
 
 
 ## Fin de l'écran de largage : la partie démarre, chacun descend dans sa capsule.
 func _begin_drop() -> void:
-	phase = Phase.PLAYING
-	elapsed = 0.0
-	_broadcast_clock()
-	for peer: int in _drop_points:
-		var player := world.get_player(peer)
-		if player:
-			player.drop.server_start(_drop_points[peer])
-	Events.announce_requested.emit("Nouvelle partie !", ANNOUNCE_COLOR)
-	print("[Partie] Nouvelle partie : largage")
-
-
-func _reset_player(player: Player) -> void:
-	player.set_evacuated.rpc(false)
-	player.health.server_reset()
-	player.inventory.server_reset()
-	player.score.server_reset()
-	player.weapon.server_refill()
+	_cycle.begin_drop()
 
 
 ## Un joueur arrive en cours de partie : horloge, joueurs déjà embarqués, classement.
@@ -274,19 +143,7 @@ func _on_player_joined(peer_id: int) -> void:
 	await get_tree().create_timer(1.0).timeout
 	if not peer_id in multiplayer.get_peers():
 		return
-	_sync_clock.rpc_id(peer_id, elapsed, phase)
-	_sync_pad.rpc_id(peer_id, pad_blocked)
-	if phase == Phase.LOBBY:
-		_sync_lobby.rpc_id(peer_id, ready_players)
-	for id in evacuated:
-		var player := world.get_player(id)
-		if player:
-			player.set_evacuated.rpc_id(peer_id, true)
-	if peer_id in waiting:
-		_show_waiting.rpc_id(peer_id, true)
-		return
-	if phase == Phase.ENDED:
-		_show_results.rpc_id(peer_id, _results, _restart_left)
+	_cycle.sync_new_player(peer_id)
 
 
 func _broadcast_clock() -> void:
@@ -353,38 +210,12 @@ static func is_lobby() -> bool:
 
 ## Serveur : décompte du lobby (seulement s'il y a des joueurs) ; départ quand tous sont prêts.
 func _server_lobby(delta: float) -> void:
-	var count := world.players.get_child_count()
-	if count == 0:
-		return
-	var all_ready := true
-	for node in world.players.get_children():
-		if not ready_players.get((node as Player).get_peer_id(), false):
-			all_ready = false
-	_resync_left -= delta
-	if _resync_left <= 0.0:
-		_broadcast_clock()
-	if all_ready:
-		print("[Partie] Départ : les %d joueurs sont prêts" % count)
-		_restart()
+	_cycle.server_lobby(delta)
 
 
 ## Après l'écran de fin : retour au lobby (les joueurs restent dans le monde, sans dégâts).
 func _enter_lobby() -> void:
-	phase = Phase.LOBBY
-	ready_players = {}
-	for peer in waiting:  # ceux arrivés en cours de partie entrent maintenant
-		if peer in multiplayer.get_peers():
-			world.add_player(peer)
-			_show_waiting.rpc_id(peer, false)
-	waiting.clear()
-	for node in world.players.get_children():
-		var player := node as Player
-		if player:
-			player.set_evacuated.rpc(false)
-			player.health.server_reset()
-			player.drop.server_cancel()
-	_broadcast_clock()
-	Events.announce_requested.emit("Lobby : préparez votre équipement, la partie démarre quand tout le monde est prêt", ANNOUNCE_COLOR)
+	_cycle.enter_lobby()
 
 
 @rpc("any_peer", "call_local", "reliable")

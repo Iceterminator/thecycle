@@ -7,8 +7,7 @@ extends Node
 ## poste) ; le profil (réputation, équipement) est gardé par le serveur (ProfileManager).
 
 const WORLD_SCENE := preload("res://scenes/world/world.tscn")
-const SETTINGS_PATH := "user://settings.cfg"
-const MAX_RECENT := 5
+const MainMenuExtras := preload("res://scenes/main/main_menu_extras.gd")
 
 @onready var menu: CanvasLayer = $Menu
 @onready var address_edit: LineEdit = %AddressEdit
@@ -17,8 +16,7 @@ const MAX_RECENT := 5
 @onready var status_label: Label = %StatusLabel
 
 var name_edit: LineEdit
-var _recent: PackedStringArray = []
-var _recent_box: VBoxContainer
+var _extras := MainMenuExtras.new()
 var _quick_queue: Array = []   # Partie rapide : adresses encore à essayer
 
 
@@ -50,68 +48,39 @@ func _ready() -> void:
 			_on_join_pressed.call_deferred()
 
 
-## Pseudo (en haut), serveurs récents et Partie rapide (en bas), ajoutés en code.
 func _build_extra_menu() -> void:
-	var vbox := host_button.get_parent()
-	var name_label := Label.new()
-	name_label.text = "Pseudo"
-	vbox.add_child(name_label)
-	vbox.move_child(name_label, 1)
-	name_edit = LineEdit.new()
-	name_edit.placeholder_text = "Votre pseudo (16 caractères max)"
-	name_edit.max_length = 16
-	vbox.add_child(name_edit)
-	vbox.move_child(name_edit, 2)
-	var quick := Button.new()
-	quick.text = "Partie rapide"
-	quick.pressed.connect(_on_quick_play)
-	vbox.add_child(quick)
-	vbox.move_child(quick, status_label.get_index())
-	var recent_title := Label.new()
-	recent_title.text = "Serveurs récents"
-	vbox.add_child(recent_title)
-	_recent_box = VBoxContainer.new()
-	vbox.add_child(_recent_box)
+	_extras.build(host_button, status_label, _on_quick_play)
+	name_edit = _extras.name_edit
 
 
 func _load_settings() -> void:
-	var cfg := ConfigFile.new()
-	if cfg.load(SETTINGS_PATH) == OK:
-		name_edit.text = String(cfg.get_value("player", "name", ""))
-		_recent = PackedStringArray(cfg.get_value("servers", "recent", []))
+	_extras.load_settings()
 	_refresh_recent()
 
 
 func _save_settings() -> void:
-	var cfg := ConfigFile.new()
-	cfg.set_value("player", "name", name_edit.text.strip_edges())
-	cfg.set_value("servers", "recent", _recent)
-	cfg.save(SETTINGS_PATH)
+	_extras.save_settings()
 
 
 func _remember(address: String) -> void:
 	if address == "":
 		return
-	var list := Array(_recent)
-	list.erase(address)
-	list.push_front(address)
-	_recent = PackedStringArray(list.slice(0, MAX_RECENT))
-	_save_settings()
+	_extras.remember(address)
 	_refresh_recent()
 
 
 func _refresh_recent() -> void:
-	if _recent_box == null:
+	if _extras.recent_box == null:
 		return
-	for child in _recent_box.get_children():
+	for child in _extras.recent_box.get_children():
 		child.queue_free()
-	for address in _recent:
+	for address in _extras.recent:
 		var b := Button.new()
 		b.text = address
 		b.pressed.connect(func() -> void:
 			address_edit.text = address
 			_on_join_pressed())
-		_recent_box.add_child(b)
+		_extras.recent_box.add_child(b)
 
 
 func _use_name() -> void:
@@ -144,7 +113,7 @@ func _join(address: String) -> void:
 ## Partie rapide : le dernier serveur rejoint, puis les adresses de Config.QUICK_PLAY_ADDRESSES.
 func _on_quick_play() -> void:
 	_use_name()
-	_quick_queue = Array(_recent).slice(0, 1)
+	_quick_queue = Array(_extras.recent).slice(0, 1)
 	for address in Config.QUICK_PLAY_ADDRESSES:
 		if not address in _quick_queue:
 			_quick_queue.append(address)
