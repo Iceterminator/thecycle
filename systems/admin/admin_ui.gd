@@ -5,8 +5,8 @@ extends CanvasLayer
 ## (donc pas de tir, pas de visée, pas d'interaction). Le menu reste ouvert après
 ## chaque demande pour en enchaîner plusieurs.
 
-const CREDIT_AMOUNTS: Array[int] = [100, 500, 1000, 5000]
-const TIME_SKIPS: Array[float] = [60.0, 300.0, 600.0]
+const Catalog := preload("res://systems/admin/admin_ui_catalog.gd")
+const Tools := preload("res://systems/admin/admin_ui_tools.gd")
 
 var _player: Player
 var _admin: Admin
@@ -65,16 +65,6 @@ func _on_result(ok: bool, message: String) -> void:
 	_status_tween.tween_property(_status_label, "modulate:a", 0.0, 0.5)
 
 
-## Annonce de la première Grande Marée (data/storm/), pour le raccourci de temps.
-func _storm_warning_time() -> float:
-	var first := INF
-	for file in ResourceLoader.list_directory(StormManager.PHASES_DIR):
-		var phase := load(StormManager.PHASES_DIR + file) as StormPhaseData
-		if phase:
-			first = minf(first, phase.start_time - phase.warning_time)
-	return first if first < INF else Config.match_rules.monster_level_times[1]
-
-
 func _build() -> void:
 	# Fond assombri qui capte les clics (ils ne doivent pas atteindre le jeu).
 	var dim := ColorRect.new()
@@ -114,121 +104,13 @@ func _build() -> void:
 	box.add_child(title)
 	box.add_child(HSeparator.new())
 
-	# --- Armes (toutes celles de data/weapons/) ---
-	box.add_child(_section("Armes"))
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 200)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	box.add_child(scroll)
-	var grid := GridContainer.new()
-	grid.columns = 4
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
-	scroll.add_child(grid)
-	for item in Items.get_items_of_kind(ItemData.Kind.WEAPON):
-		var button := _button(item.display_name, func() -> void:
-			_admin.request_spawn_item.rpc_id(1, String(item.id), 1))
-		button.tooltip_text = _weapon_tooltip(item.weapon)
-		button.add_theme_color_override("font_color", item.color)
-		grid.add_child(button)
-
-	# --- Kits (équipés tout de suite) ---
-	box.add_child(_section("Kits"))
-	var kits_row := _row()
-	box.add_child(kits_row)
-	for kit_data in KitController.list_kits():
-		var kit_button := _button(KitController.kit_name(kit_data), func() -> void:
-			_admin.request_set_kit.rpc_id(1, String(kit_data.id)))
-		kit_button.custom_minimum_size = Vector2(150, 34)
-		kits_row.add_child(kit_button)
-	var ready_button := _button("Recharges à zéro", func() -> void: _admin.request_abilities_ready.rpc_id(1))
-	ready_button.tooltip_text = "Capacités prêtes tout de suite"
-	kits_row.add_child(ready_button)
-
-	# --- Capacités : Q ou F, équipées tout de suite ---
-	box.add_child(_section("Capacités (équipées tout de suite sur Q ou F)"))
-	var ability_grid := GridContainer.new()
-	ability_grid.columns = 3
-	ability_grid.add_theme_constant_override("h_separation", 14)
-	box.add_child(ability_grid)
-	for ability_data in AbilityController.list_abilities():
-		var cell := HBoxContainer.new()
-		var ability_label := Label.new()
-		ability_label.text = ability_data.get_display_name()
-		ability_label.custom_minimum_size = Vector2(170, 0)
-		ability_label.tooltip_text = ability_data.behavior
-		ability_label.mouse_filter = Control.MOUSE_FILTER_PASS
-		cell.add_child(ability_label)
-		for ability_slot in 2:
-			var slot_button := Button.new()
-			slot_button.text = "Q" if ability_slot == 0 else "F"
-			slot_button.custom_minimum_size = Vector2(34, 28)
-			slot_button.pressed.connect(func() -> void: _admin.request_set_ability.rpc_id(1, ability_slot, String(ability_data.id)))
-			cell.add_child(slot_button)
-		ability_grid.add_child(cell)
-
-	# --- Crédits ---
-	box.add_child(_section("Crédits (au sol)"))
-	var credits_row := _row()
-	box.add_child(credits_row)
-	for amount in CREDIT_AMOUNTS:
-		credits_row.add_child(_button("+%d" % amount, func() -> void:
-			_admin.request_spawn_item.rpc_id(1, "credits", amount)))
-
-	# --- Quêtes ---
-	box.add_child(_section("Quêtes : cristal + foreuse"))
-	var quest_row := _row()
-	box.add_child(quest_row)
-	for crystal in Admin.get_crystal_datas():
-		var button := _button("Cristal %s" % crystal.difficulty_name, func() -> void:
-			_admin.request_spawn_crystal.rpc_id(1, crystal.resource_path))
-		button.add_theme_color_override("font_color", crystal.color)
-		quest_row.add_child(button)
-
-	# --- Temps ---
-	var start_button := _button("Lancer la partie (lobby)", func() -> void: _admin.request_force_start.rpc_id(1))
-	box.add_child(start_button)
-	box.add_child(_section("Temps de partie (on ne peut qu'avancer)"))
-	var time_row := _row()
-	box.add_child(time_row)
-	for seconds in TIME_SKIPS:
-		time_row.add_child(_button("+%d min" % int(seconds / 60.0), func() -> void:
-			_admin.request_time_skip.rpc_id(1, seconds)))
-	# Juste avant chaque moment clé : niveau 2 des monstres (5:00), Grande Marée (annonce 9:00),
-	# niveau 3 + cristaux + Grande Marée (10:00), annonce de l'évac (16:00), arrivée de l'évac (17:00), décollage.
-	var goto_row := _row()
-	box.add_child(goto_row)
-	var rules := Config.match_rules
-	var targets: Array[float] = [rules.monster_level_times[0] - 10.0, _storm_warning_time() - 10.0,
-		rules.monster_level_times[1] - 10.0, rules.evac_announce_time - 10.0,
-		rules.evac_landing_time - 10.0, rules.match_duration - 10.0]
-	for target in targets:
-		var label := "→ %d:%02d" % [floori(target / 60.0), int(target) % 60]
-		var button := _button(label, func() -> void:
-			_admin.request_time_set.rpc_id(1, target))
-		button.custom_minimum_size = Vector2(100, 34)
-		goto_row.add_child(button)
-
-	box.add_child(HSeparator.new())
-	box.add_child(_section("Outils de dev"))
-	var dev_row := _row()
-	box.add_child(dev_row)
-	var tune_button := _button("Régler la prise de l'arme", _start_grip_tuner)
-	tune_button.tooltip_text = "Flèches, Page ↑/↓, +/− : déplacer et redimensionner l'arme en main ; Entrée : enregistrer ; Fin : quitter"
-	dev_row.add_child(tune_button)
-	var map_button := _button("Carte complète", func() -> void: pass)
-	map_button.toggle_mode = true
-	map_button.button_pressed = MapView.full_map
-	map_button.toggled.connect(func(on: bool) -> void: MapView.full_map = on)
-	map_button.tooltip_text = "Carte et minimap sans limite de 40 m (affichage local)"
-	dev_row.add_child(map_button)
-	var fly_button := _button("Vol rapide", func() -> void: pass)
-	fly_button.toggle_mode = true
-	fly_button.button_pressed = _admin.fly.active
-	fly_button.toggled.connect(func(on: bool) -> void: _admin.fly.set_active(_player, on))
-	fly_button.tooltip_text = "Sans collision ni gravité. Direction caméra, Espace monte, Ctrl descend, Maj accélère"
-	dev_row.add_child(fly_button)
+	Catalog.add_weapons(box, _admin)
+	Catalog.add_kits(box, _admin)
+	Catalog.add_abilities(box, _admin)
+	Tools.add_credits(box, _admin)
+	Tools.add_quests(box, _admin)
+	Tools.add_time(box, _admin)
+	Tools.add_dev_tools(box, _admin, _player, _start_grip_tuner)
 
 	box.add_child(HSeparator.new())
 	_status_label = Label.new()
@@ -253,38 +135,3 @@ func _start_grip_tuner() -> void:
 	parent.add_child(tuner)
 	tuner.setup(_player)
 
-
-func _section(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-	return label
-
-
-func _row() -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	return row
-
-
-func _button(text: String, on_pressed: Callable) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.custom_minimum_size = Vector2(176, 34)
-	button.pressed.connect(on_pressed)
-	return button
-
-
-## Résumé de l'arme au survol : type de tir et chiffres principaux.
-func _weapon_tooltip(w: WeaponData) -> String:
-	if w == null:
-		return ""
-	var modes := ["auto", "coup par coup", "rafale", "charge", "rafale chargée", "rayon"]
-	var shots := ["instantané", "projectile", "projectile explosif"]
-	var text := "%s — %s, %s\n%d dégâts, %d coups/min, chargeur %d" % [
-		w.display_name, modes[w.fire_mode], shots[w.projectile_type], int(w.damage), int(w.rpm), w.magazine]
-	if w.is_explosive():
-		text += "\nExplosion : %d dégâts sur %.1f m" % [int(w.aoe_damage), w.aoe_radius_m]
-	if w.role != "":
-		text += "\n" + w.role
-	return text

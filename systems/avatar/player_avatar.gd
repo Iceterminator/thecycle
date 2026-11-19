@@ -12,6 +12,8 @@ extends Node3D
 ## L'état vient de ce qui est déjà synchronisé (position, is_crouching, is_airborne, is_dead) :
 ## rien de plus ne passe par le réseau, sauf le tir qui réutilise l'effet de tir existant.
 
+const PlayerAvatarTools := preload("res://systems/avatar/player_avatar_tools.gd")
+
 const MODELS := [
 	"res://assets/models/characters/Superhero_Male_FullBody.gltf",
 	"res://assets/models/characters/Superhero_Female_FullBody.gltf",
@@ -95,50 +97,7 @@ static func animation_library() -> AnimationLibrary:
 
 
 func _build_tree(skeleton_path: NodePath) -> AnimationNodeBlendTree:
-	var bt := AnimationNodeBlendTree.new()
-	var loco := AnimationNodeTransition.new()
-	loco.xfade_time = BLEND
-	loco.input_count = LOCO.size()
-	bt.add_node("loco", loco)
-	for i in LOCO.size():
-		var entry: Array = LOCO[i]
-		loco.set_input_name(i, entry[0])
-		var clip := AnimationNodeAnimation.new()
-		clip.animation = entry[1]
-		if entry[2]:
-			clip.play_mode = AnimationNodeAnimation.PLAY_MODE_BACKWARD
-		bt.add_node("clip_" + String(entry[0]), clip)
-		bt.connect_node("loco", i, "clip_" + String(entry[0]))
-	var aim := AnimationNodeAnimation.new()
-	aim.animation = "Pistol_Aim_Neutral"
-	bt.add_node("aim", aim)
-	var upper := AnimationNodeBlend2.new()
-	var shoot := AnimationNodeOneShot.new()
-	shoot.fadein_time = 0.03
-	shoot.fadeout_time = 0.12
-	var fire := AnimationNodeAnimation.new()
-	fire.animation = "Pistol_Shoot"
-	bt.add_node("fire", fire)
-	# Haut du corps seulement : spine_01 et tous ses descendants.
-	upper.filter_enabled = true
-	shoot.filter_enabled = true
-	var bones: Array[int] = [_skeleton.find_bone(UPPER_ROOT_BONE)]
-	while not bones.is_empty():
-		var bone: int = bones.pop_back()
-		if bone < 0:
-			continue
-		var path := NodePath("%s:%s" % [skeleton_path, _skeleton.get_bone_name(bone)])
-		upper.set_filter_path(path, true)
-		shoot.set_filter_path(path, true)
-		bones.append_array(_skeleton.get_bone_children(bone))
-	bt.add_node("upper", upper)
-	bt.connect_node("upper", 0, "loco")
-	bt.connect_node("upper", 1, "aim")
-	bt.add_node("shoot", shoot)
-	bt.connect_node("shoot", 0, "upper")
-	bt.connect_node("shoot", 1, "fire")
-	bt.connect_node("output", 0, "shoot")
-	return bt
+	return PlayerAvatarTools.build_tree(_skeleton, skeleton_path)
 
 
 ## Un coup de feu de ce joueur (appelé sur tous les peers par l'effet de tir).
@@ -161,29 +120,12 @@ func hand_position() -> Vector3:
 
 ## Os de la paume droite présents dans le squelette.
 static func palm_bones(skeleton: Skeleton3D) -> PackedInt32Array:
-	var bones := PackedInt32Array()
-	for bone_name: String in PALM_BONES:
-		var bone := skeleton.find_bone(bone_name)
-		if bone >= 0:
-			bones.append(bone)
-	return bones
+	return PlayerAvatarTools.palm_bones(skeleton)
 
 
-## Point d'attache de l'arme : moyenne des os de la paume, décalée vers l'intérieur de la
-## main (normale de la paume, côté doigts repliés) pour que la poignée soit dans le creux.
+## Point d'attache de l'arme : moyenne des os de la paume, décalée vers l'intérieur de la main.
 static func palm_global(skeleton: Skeleton3D, bones: PackedInt32Array) -> Vector3:
-	var points: Array[Vector3] = []
-	var sum := Vector3.ZERO
-	for bone in bones:
-		var point := (skeleton.global_transform * skeleton.get_bone_global_pose(bone)).origin
-		points.append(point)
-		sum += point
-	var center := sum / maxf(bones.size(), 1.0)
-	if points.size() == PALM_BONES.size():  # main, index, majeur, auriculaire
-		var normal := (points[1] - points[3]).cross(points[2] - points[0])
-		if normal.length_squared() > 0.0:
-			center += normal.normalized() * PALM_DEPTH
-	return center
+	return PlayerAvatarTools.palm_global(skeleton, bones)
 
 
 func _process(delta: float) -> void:

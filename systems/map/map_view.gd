@@ -7,6 +7,8 @@ extends Control
 ## soit), zones de tempête, et le joueur local. Seulement à moins de
 ## Config.MAP_REVEAL_RADIUS : les autres quêtes (cristaux, contrats) et les monstres.
 
+const MapViewEntities := preload("res://systems/map/map_view_entities.gd")
+
 const GRID_STEP := 50.0
 const BG_COLOR := Color(0.16, 0.19, 0.15, 1.0)  ## opaque (seul le fond de l'écran Tab est transparent)
 const OUTSIDE_COLOR := Color(0.05, 0.05, 0.06, 1.0)  ## hors de la carte (minimap)
@@ -88,10 +90,10 @@ func _draw() -> void:
 	_draw_terrain()
 	if not bare:
 		_draw_reveal_radius()
-		_draw_markers()
-		_draw_monsters()
-		_draw_revealed()
-		_draw_scanner()
+		MapViewEntities.draw_markers(self)
+		MapViewEntities.draw_monsters(self)
+		MapViewEntities.draw_revealed(self)
+		MapViewEntities.draw_scanner(self)
 		_draw_self()
 	draw_rect(Rect2(_origin, Vector2(side, side)), Color(1, 1, 1, 0.4), false, 2.0)
 	_text(_origin + Vector2(side / 2.0, 16), "N", 16 if show_labels else 12, Color(1, 1, 1, 0.8))
@@ -135,53 +137,6 @@ func _draw_reveal_radius() -> void:
 	draw_arc(p, r, 0, TAU, 64, Color(1, 1, 1, 0.25), 1.0)
 
 
-func _draw_markers() -> void:
-	for node in get_tree().get_nodes_in_group("map_marker"):
-		var marker := node as Node3D
-		if marker == null or not marker.is_inside_tree() or not marker.has_method("map_info"):
-			continue
-		var info: Dictionary = marker.map_info()
-		var kind: String = info.get("kind", "")
-		var pos: Vector3 = info.get("position", marker.global_position)
-		var always := kind == "evac" or kind == "relic"
-		if not always and not (kind in NEARBY_KINDS and in_reveal_range(pos, player.global_position)):
-			continue
-		var p := to_map(pos)
-		var color: Color = info.get("color", Color.WHITE)
-		var title: String = String(info.get("text", "")).get_slice("\n", 0)
-		match kind:
-			"evac":
-				draw_arc(p, 12.0 * _scale, 0, TAU, 32, color, 2.5)
-				if show_labels:
-					_text(p + Vector2(0, -12.0 * _scale - 4), title, 15, color)
-				continue
-			"crystal":
-				var diamond := PackedVector2Array([p + Vector2(0, -7), p + Vector2(6, 0), p + Vector2(0, 7), p + Vector2(-6, 0)])
-				draw_colored_polygon(diamond, color)
-			"relic":
-				_text(p + Vector2(0, 7), "★", 22, color)
-			_:
-				draw_circle(p, 5.0, color)
-				draw_arc(p, 5.0, 0, TAU, 12, Color.BLACK, 1.0)
-		if show_labels:
-			_text(p + Vector2(0, -12), title, 13, color)
-
-
-## Monstres vivants proches (position répliquée chez tous les clients).
-func _draw_monsters() -> void:
-	var monsters := world.get_node_or_null("Monsters")
-	if monsters == null:
-		return
-	for node in monsters.get_children():
-		var monster := node as Monster
-		if monster == null or monster.health <= 0.0 or not in_reveal_range(monster.global_position, player.global_position):
-			continue
-		var p := to_map(monster.global_position)
-		var radius := clampf(monster.data.radius * 4.0, 3.0, 6.0) if monster.data else 4.0
-		draw_circle(p, radius, MONSTER_COLOR)
-		draw_arc(p, radius, 0, TAU, 12, Color.BLACK, 1.0)
-
-
 func _draw_self() -> void:
 	var p := to_map(player.global_position)
 	var forward := -player.global_basis.z
@@ -200,44 +155,3 @@ func _text(pos: Vector2, text: String, font_size: int, color: Color) -> void:
 	var at := pos - Vector2(width / 2.0, 0)
 	draw_string_outline(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, 4, Color(0, 0, 0, 0.85))
 	draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
-
-
-## Joueurs repérés par vos balises d'écoute (quelle que soit la distance), quelques secondes.
-func _draw_revealed() -> void:
-	var now := Time.get_ticks_msec()
-	_revealed = _revealed.filter(func(r: Array) -> bool: return r[1] > now)
-	for r: Array in _revealed:
-		var p := to_map(r[0])
-		var diamond := PackedVector2Array([p + Vector2(0, -7), p + Vector2(7, 0), p + Vector2(0, 7), p + Vector2(-7, 0)])
-		draw_colored_polygon(diamond, Color(1.0, 0.2, 0.6))
-		draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color.BLACK, 1.0)
-
-
-## Partenaire de pacte (toujours) ; Scanner directionnel : joueurs non alliés à moins de
-## Config.combat.scanner_range ; crédits et ressources au sol à moins de Config.MAP_REVEAL_RADIUS.
-func _draw_scanner() -> void:
-	var players := world.get_node_or_null("Players")
-	if players:
-		for node in players.get_children():
-			var other := node as Player
-			if other == null or other == player or other.health.is_dead or other.is_evacuated:
-				continue
-			var p := to_map(other.global_position)
-			if Allies.allied(player.get_peer_id(), other.get_peer_id()):
-				draw_circle(p, 6.0, Color(0.4, 1.0, 0.6))
-				draw_arc(p, 6.0, 0, TAU, 16, Color.BLACK, 1.5)
-			elif other.global_position.distance_to(player.global_position) <= Config.combat.scanner_range:
-				var tri := PackedVector2Array([p + Vector2(0, -7), p + Vector2(6, 5), p + Vector2(-6, 5)])
-				draw_colored_polygon(tri, Color(1.0, 0.3, 0.25))
-	var loot := world.get_node_or_null("Loot")
-	if loot == null:
-		return
-	for node in loot.get_children():
-		var pickup := node as Pickup
-		if pickup == null or pickup.item == null:
-			continue
-		if pickup.item.kind != ItemData.Kind.CREDITS and pickup.item.kind != ItemData.Kind.RESOURCE:
-			continue
-		if not in_reveal_range(pickup.global_position, player.global_position):
-			continue
-		draw_circle(to_map(pickup.global_position), 3.0, pickup.item.color)

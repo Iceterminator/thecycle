@@ -7,9 +7,9 @@ extends CanvasLayer
 ## Lecture seule : tout vient de données déjà synchronisées (Score, repères "map_marker").
 ## Pas affiché par-dessus un menu (boutique, admin) : il faut que la souris soit capturée.
 
+const MapOverlayPanels := preload("res://systems/map/map_overlay_panels.gd")
 const OBJECTIVES_DIR := "res://data/objectives/"
 const REFRESH_INTERVAL := 0.25
-const FORAGE_ID := &"forage"  ## objectif du Cristal : toujours visible
 const PANEL_WIDTH := 330.0
 
 var _player: Player
@@ -50,85 +50,8 @@ func _process(delta: float) -> void:
 	_refresh_left -= delta
 	if _refresh_left <= 0.0:
 		_refresh_left = REFRESH_INTERVAL
-		_refresh_ranking()
-		_refresh_quests()
-
-
-# =========================================================================
-# Classement (gauche)
-# =========================================================================
-
-func _refresh_ranking() -> void:
-	_clear(_ranking_box)
-	_ranking_box.add_child(_title("CLASSEMENT"))
-	var players: Array[Player] = []
-	var root := _world.get_node_or_null("Players") if _world else null
-	if root:
-		for node in root.get_children():
-			if node is Player:
-				players.append(node)
-	players.sort_custom(func(a: Player, b: Player) -> bool: return a.score.rank_points > b.score.rank_points)
-	var rank := 1
-	for p in players:
-		var me := p == _player
-		var who := "Vous (%s)" % ProfileManager.name_of(p.get_peer_id()) if me else ProfileManager.name_of(p.get_peer_id())
-		var tags: PackedStringArray = []
-		if p.is_evacuated:
-			tags.append("à bord")
-		elif p.health.is_dead:
-			tags.append("mort")
-		if p.score.beacon != "":
-			tags.append(p.score.beacon)
-		var line := "%d. %s — %d Fame" % [rank, who, p.score.rank_points]
-		if not tags.is_empty():
-			line += "\n    " + ", ".join(tags)
-		var label := _label(line, 18 if me else 17)
-		label.add_theme_color_override("font_color", Color(1, 0.9, 0.3) if me else Color(1, 1, 1, 0.85))
-		_ranking_box.add_child(label)
-		rank += 1
-
-
-# =========================================================================
-# Quêtes (droite)
-# =========================================================================
-
-func _refresh_quests() -> void:
-	_clear(_quests_box)
-	_quests_box.add_child(_title("VOS OBJECTIFS (→ Fame au prochain palier)"))
-	var points: Dictionary = _player.score.objective_points
-	var rates: Dictionary = _player.score.objective_rates
-	var quests := _world.get_node_or_null("QuestManager") as QuestManager
-	var active := quests.active_objectives if quests else PackedStringArray()
-	for track in _tracks:
-		# Seuls les objectifs des quêtes tirées (le Forage, lui, reste toujours affiché).
-		if not active.is_empty() and track.id != FORAGE_ID and not active.has(String(track.id)):
-			continue
-		var pts: int = points.get(track.resource_path, 0)
-		var tier := track.tiers_reached(pts)
-		var previous := track.threshold(tier - 1) if tier > 0 else 0
-		var next := track.threshold(tier)
-		var text := "%s  %d / %d  → +%d" % [track.display_name, pts, next, track.reward(tier)]
-		var rate: float = rates.get(track.resource_path, 0.0)
-		if rate > 0.0:
-			text += "  (+%.1f/s)" % rate
-		# Couleur de l'objectif, éclaircie pour rester lisible sur le fond.
-		var label := _label(text, 16)
-		label.add_theme_color_override("font_color", track.color.lightened(0.35))
-		_quests_box.add_child(label)
-		var bar := ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(0, 6)
-		bar.max_value = 1.0
-		bar.step = 0.0
-		bar.value = clampf(float(pts - previous) / maxf(next - previous, 1), 0.0, 1.0)
-		var fill := StyleBoxFlat.new()
-		fill.bg_color = track.color
-		var bg := StyleBoxFlat.new()
-		bg.bg_color = Color(1, 1, 1, 0.2)
-		bar.add_theme_stylebox_override("fill", fill)
-		bar.add_theme_stylebox_override("background", bg)
-		_quests_box.add_child(bar)
-
+		MapOverlayPanels.refresh_ranking(self)
+		MapOverlayPanels.refresh_quests(self)
 
 
 # =========================================================================

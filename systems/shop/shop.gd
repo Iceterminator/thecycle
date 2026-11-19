@@ -12,6 +12,7 @@ signal purchase_result(ok: bool, message: String)
 
 enum Entry { NONE, WEAPON, GADGET, ABILITY }
 
+const ShopOffers := preload("res://systems/shop/shop_offers.gd")
 const SHOP_UI_SCRIPT := preload("res://systems/shop/shop_ui.gd")
 
 @onready var player: Player = get_parent()
@@ -89,8 +90,6 @@ static func entry_description(id: String) -> String:
 	return ""
 
 
-
-
 # =========================================================================
 # Achat : ce qu'un clic fait maintenant (client et serveur)
 # =========================================================================
@@ -98,57 +97,11 @@ static func entry_description(id: String) -> String:
 ## { action: "buy" | "upgrade" | "refill" | "pending", price, text, refusal }
 ## (le palier d'une arme est à part : upgrade_offer)
 func offer(id: String) -> Dictionary:
-	var peer := player.get_peer_id()
-	var kind := entry_kind(id)
-	var result := {"action": "buy", "price": entry_price(id), "text": "", "refusal": ""}
-	if kind == Entry.NONE or (kind != Entry.ABILITY and int(result["price"]) <= 0):
-		result["refusal"] = "Pas en vente"
-		return result
-	var shop := ProfileManager.shop_of(peer)
-	var list: Array = shop.get("weapons" if kind == Entry.WEAPON else "gadgets", [])
-	if not id in list:
-		result["refusal"] = "Pas dans votre boutique"
-		return result
-	if not entry_unlocked(peer, id):
-		var lock := entry_lock(id)
-		result["refusal"] = "Verrouillé : " + FactionData.lock_text(lock[0], lock[1])
-		return result
-	match kind:
-		Entry.GADGET, Entry.ABILITY:
-			var key_slot := Array(player.abilities.loadout).find(id)
-			if key_slot >= 0:
-				if kind == Entry.ABILITY:
-					result["action"] = "upgrade"
-					result["price"] = Config.economy.ability_upgrade_price
-					var level: int = player.abilities.upgrades[key_slot]
-					result["text"] = "Amélioration %d/%d : -%d s de recharge" % [level + 1, Config.economy.ability_max_upgrades, roundi(AbilityController.get_ability(id).upgrade_cooldown_s)]
-					if level >= Config.economy.ability_max_upgrades:
-						result["refusal"] = "Amélioration maximum"
-				else:
-					result["action"] = "refill"
-					result["text"] = "Recharger les charges"
-			else:
-				result["action"] = "pending"
-				result["text"] = "Puis Q ou F pour l'équiper"
-				if player.abilities.pending != "":
-					result["refusal"] = "Équipez d'abord %s (Q ou F)" % entry_name(player.abilities.pending)
-	if result["refusal"] == "":
-		result["refusal"] = _state_refusal(int(result["price"]))
-	return result
+	return ShopOffers.offer(player, id)
 
 
 func _state_refusal(price: int) -> String:
-	if MatchManager.is_lobby():
-		return "Indisponible dans le lobby"
-	if player.health.is_dead:
-		return "Indisponible : vous êtes mort"
-	if player.is_evacuated or player.is_dropping():
-		return "Indisponible : vous êtes à bord"
-	if player.health.is_downed:
-		return "Indisponible : vous êtes à terre"
-	if player.inventory.credits < price:
-		return "Pas assez de crédits"
-	return ""
+	return ShopOffers.state_refusal(player, price)
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -161,24 +114,7 @@ func request_buy(item_id: String) -> void:
 	if o["refusal"] != "" or not player.inventory.spend_credits(int(o["price"])):
 		_purchase_result.rpc_id(player.get_peer_id(), false, o["refusal"] if o["refusal"] != "" else "Pas assez de crédits")
 		return
-	var name := entry_name(item_id)
-	var message := ""
-	match String(o["action"]):
-		"buy":
-			var forward := -player.global_basis.z
-			forward.y = 0.0
-			var pos := player.global_position + forward.normalized() * Config.DROP_POD_DISTANCE
-			Events.drop_pod_requested.emit(StringName(item_id), pos, WeaponUpgrades.delivery_amount(player.inventory, item_id))  # livrée déjà améliorée
-			message = "%s : largage en approche !" % name
-		"upgrade":
-			player.abilities.server_upgrade(Array(player.abilities.loadout).find(item_id))
-			message = "%s : %s" % [name, o["text"]]
-		"refill":
-			player.inventory.server_refill_gadget(Array(player.abilities.loadout).find(item_id))
-			message = "%s rechargé" % name
-		"pending":
-			player.abilities.server_offer(item_id)
-			message = "%s acheté : appuyez sur Q ou F pour l'équiper" % name
+	var message := ShopOffers.apply(player, item_id, o)
 	Events.item_purchased.emit(player.get_peer_id(), StringName(item_id), int(o["price"]))
 	print("[Boutique] Joueur %d : %s %s (%d crédits)" % [player.get_peer_id(), o["action"], item_id, o["price"]])
 	_purchase_result.rpc_id(player.get_peer_id(), true, message)

@@ -12,6 +12,7 @@ extends Node3D
 
 enum State { SKY, LANDING, LANDED, DEPARTING }
 
+const EvacShipBuild := preload("res://systems/evac/evac_ship_build.gd")
 const HULL_COLOR := Color(0.55, 0.58, 0.62)
 const BAY_COLOR := Color(0.3, 0.9, 0.6)
 const PROGRESS_SEND_INTERVAL := 0.1  ## s entre deux envois de progression au joueur
@@ -33,7 +34,7 @@ var _send_left: float = 0.0
 
 
 func _ready() -> void:
-	_build()
+	EvacShipBuild.build(self)
 	add_to_group("map_marker")  # écran Tab (systems/map/)
 	_apply_state(State.SKY, false)
 	set_physics_process(multiplayer.is_server())
@@ -147,74 +148,6 @@ func _apply_state(new_state: State, animate: bool) -> void:
 			_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			_tween.tween_property(self, "global_position", sky, Config.EVAC_FLIGHT_TIME if animate else 0.01)
 			_tween.tween_callback(func() -> void: visible = false)
-
-
-# =========================================================================
-# Construction (formes simples, collisions sur la couche « monde »)
-# =========================================================================
-
-func _build() -> void:
-	var body := StaticBody3D.new()
-	body.name = "Hull"
-	body.collision_layer = 1
-	body.collision_mask = 0
-	add_child(body)
-	var hull := StandardMaterial3D.new()
-	hull.albedo_color = HULL_COLOR
-	_bay_floor_mat = StandardMaterial3D.new()
-	_bay_floor_mat.albedo_color = BAY_COLOR.darkened(0.5)
-	_bay_floor_mat.emission = BAY_COLOR
-	_bay_floor_mat.emission_energy_multiplier = 0.6
-
-	# Plancher de la soute (dessus à 1,5 m) : on passe dessous accroupi.
-	_box(body, Vector3(8, 0.3, 10), Vector3(0, 1.35, 0), 0.0, _bay_floor_mat)
-	# Murs gauche, droit, arrière, toit.
-	_box(body, Vector3(0.5, 4.2, 10.5), Vector3(-4.25, 3.6, 0), 0.0, hull)
-	_box(body, Vector3(0.5, 4.2, 10.5), Vector3(4.25, 3.6, 0), 0.0, hull)
-	_box(body, Vector3(9.0, 4.2, 0.5), Vector3(0, 3.6, -5.25), 0.0, hull)
-	_box(body, Vector3(9.5, 0.5, 11.5), Vector3(0, 5.95, 0), 0.0, hull)
-	# Façade avant avec une seule porte de 3 m (de 1,5 m à 4 m de haut).
-	_box(body, Vector3(3.0, 4.2, 0.5), Vector3(-2.75, 3.6, 5.25), 0.0, hull)
-	_box(body, Vector3(3.0, 4.2, 0.5), Vector3(2.75, 3.6, 5.25), 0.0, hull)
-	_box(body, Vector3(2.5, 1.7, 0.5), Vector3(0, 4.85, 5.25), 0.0, hull)
-	# Rampe : du seuil de la porte (z = 5,5, y = 1,5) jusqu'au sol (z = 10,5, y = 0).
-	# Rotation positive autour de X = le bout côté +z (loin de la porte) descend.
-	var ramp_angle := atan2(1.5, 5.0)
-	# Un peu plus longue que la pente : le bas s'enfonce dans le sol (pas de marche).
-	_box(body, Vector3(3.0, 0.25, 5.6), Vector3(0, 0.62, 8.0), ramp_angle, hull)
-	# Pieds sous le plancher, aux quatre coins.
-	for corner: Vector2 in [Vector2(-3.6, -4.6), Vector2(3.6, -4.6), Vector2(-3.6, 4.6), Vector2(3.6, 4.6)]:
-		_box(body, Vector3(0.4, 1.2, 0.4), Vector3(corner.x, 0.6, corner.y), 0.0, hull)
-
-	_beacon = Label3D.new()
-	_beacon.text = "ÉVAC"
-	_beacon.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_beacon.no_depth_test = true
-	_beacon.fixed_size = true
-	_beacon.pixel_size = 0.0012
-	_beacon.font_size = 36
-	_beacon.outline_size = 10
-	_beacon.modulate = Color(0.6, 0.85, 1.0)
-	_beacon.position = Vector3(0, 8.5, 0)
-	add_child(_beacon)
-
-
-func _box(body: StaticBody3D, size: Vector3, pos: Vector3, rot_x: float, mat: Material) -> void:
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = size
-	shape.shape = box
-	shape.position = pos
-	shape.rotation.x = rot_x
-	body.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var box_mesh := BoxMesh.new()
-	box_mesh.size = size
-	box_mesh.material = mat
-	mesh.mesh = box_mesh
-	mesh.position = pos
-	mesh.rotation.x = rot_x
-	add_child(mesh)
 
 
 ## Écran Tab : l'évac est toujours sur la carte (son point d'atterrissage).

@@ -53,14 +53,23 @@ var carried: Dictionary = {}:
 @onready var player: Player = get_parent()
 @onready var health: Health = $"../Health"
 
+const InventoryGadgets := preload("res://systems/inventory/inventory_gadgets.gd")
+const InventoryDeath := preload("res://systems/inventory/inventory_death.gd")
+const InventoryPickup := preload("res://systems/inventory/inventory_pickup.gd")
+const InventoryBoostSync := preload("res://systems/inventory/inventory_boost_sync.gd")
+
 var _last_active_id: String = ""
+
+var _gadgets: InventoryGadgets
+var _death: InventoryDeath
+var _pickup: InventoryPickup
 
 
 func _ready() -> void:
 	_last_active_id = "%d:%s" % [active_slot, slot_ids[active_slot]]
 	if multiplayer.is_server():
 		reset_loadout()
-		health.dead_changed.connect(_on_dead_changed_server)
+		health.dead_changed.connect(_death.on_dead_changed)
 	set_process_unhandled_input(player.is_multiplayer_authority())
 
 
@@ -147,25 +156,7 @@ func set_active_ammo(value: int) -> void:
 
 ## Serveur : essaie de prendre un objet ramassé. Renvoie false si impossible (plein).
 func server_take(item: ItemData, amount: int, ammo: int) -> bool:
-	match item.kind:
-		ItemData.Kind.WEAPON:
-			# Gadget ramassé : il attend d'être assigné à Q ou F (comme un achat).
-			if item.weapon.gadget != WeaponData.GadgetKind.NONE:
-				return player.abilities.server_offer(String(item.id)) == ""
-			player.weapon_pickup.server_take(item, amount, ammo, -1)
-		ItemData.Kind.CREDITS:
-			add_credits(amount)
-		ItemData.Kind.SHIELD_UPGRADE:
-			return false  # ancien système : le bouclier vient du kit (étape 8b)
-		ItemData.Kind.RESOURCE:
-			var have := get_resource(item.id)
-			var room := (item.max_carry - have) if item.max_carry > 0 else amount
-			if room <= 0:
-				return false
-			var c := carried.duplicate()
-			c[String(item.id)] = have + mini(amount, room)
-			carried = c
-	return true
+	return _pickup.take(item, amount, ammo)
 
 
 func get_resource(item_id: StringName) -> int:
@@ -174,12 +165,7 @@ func get_resource(item_id: StringName) -> int:
 
 ## Serveur : retire toute une ressource portée (dépôt à un collecteur). Renvoie la quantité.
 func take_resource(item_id: StringName) -> int:
-	var n := get_resource(item_id)
-	if n > 0:
-		var c := carried.duplicate()
-		c.erase(String(item_id))
-		carried = c
-	return n
+	return _pickup.take_resource(item_id)
 
 
 ## Serveur : dépense des crédits (achat). Renvoie false si pas assez.
@@ -210,31 +196,6 @@ func server_set_slot(slot: int, item_id: StringName, ammo: int, boost: int = 0) 
 	slot_ids = ids
 
 
-## Serveur : à la mort, on lâche tout ce qui dépasse l'équipement de base,
-## et la moitié des crédits va au tueur (au sol s'il n'y a pas de tueur joueur).
-func _on_dead_changed_server(dead: bool) -> void:
-	if not dead:
-		return
-	var pos := player.global_position + Vector3(0, 0.5, 0)
-	for i in WEAPON_SLOTS:  # les gadgets (Q / F) sont perdus
-		if slot_ids[i] != "" and StringName(slot_ids[i]) != player.start_weapon_id():
-			Events.loot_drop_requested.emit(StringName(slot_ids[i]), 1 + slot_boosts[i], slot_ammo[i], pos, true)
-	for res_id: String in carried:
-		Events.loot_drop_requested.emit(StringName(res_id), carried[res_id], -1, pos, true)
-	carried = {}
-
-	var lost := int(credits * Config.economy.death_credits_loss)
-	if lost > 0:
-		credits -= lost
-		Events.credits_changed.emit(player.get_peer_id(), credits)
-		var killer := player.get_parent().get_node_or_null(str(health.killer_id)) as Player
-		if killer and killer != player:
-			killer.inventory.add_credits(lost)
-		else:
-			Events.loot_drop_requested.emit(&"credits", lost, -1, pos, true)
-	reset_loadout()
-
-
 func _sender_is_owner() -> bool:
 	return multiplayer.get_remote_sender_id() == player.get_peer_id()
 
@@ -246,19 +207,11 @@ func server_reset() -> void:
 	credits = 0
 	Events.credits_changed.emit(player.get_peer_id(), credits)
 
-
 func _init() -> void:
-	# Palier de boost des emplacements : synchronisé à part (player.tscn reste inchangé).
-	var config := SceneReplicationConfig.new()
-	for property in [".:slot_boosts", ".:weapon_upgrades"]:
-		var path := NodePath(property)
-		config.add_property(path)
-		config.property_set_spawn(path, true)
-		config.property_set_replication_mode(path, SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE)
-	var sync := MultiplayerSynchronizer.new()
-	sync.name = "BoostSync"
-	sync.replication_config = config
-	add_child(sync)
+	_gadgets = InventoryGadgets.new(self)
+	_death = InventoryDeath.new(self)
+	_pickup = InventoryPickup.new(self)
+	add_child(InventoryBoostSync.create())
 
 
 func get_active_boost() -> int:
@@ -272,48 +225,24 @@ func server_boost_active() -> void:
 	slot_boosts = b
 
 
-## Serveur : retire l'arme en main (gadget épuisé). Un gadget de Q / F libère aussi son emplacement
-## de capacité ; on reprend une arme.
+## Serveur : retire l'arme en main (gadget épuisé), voir InventoryGadgets.
 func server_remove_active() -> void:
-	var slot := active_slot
-	if slot >= WEAPON_SLOTS:
-		player.abilities.server_clear_slot(slot - WEAPON_SLOTS)
-		return
-	var other := 1 - slot
-	if slot_ids[other] != "":
-		active_slot = other
-	server_set_slot(slot, &"", 0)
-	if slot_ids[active_slot] == "":
-		reset_loadout()
+	_gadgets.remove_active()
 
 
 ## Serveur : met un gadget dans l'emplacement de Q (0) ou F (1), chargeur plein.
 func server_set_gadget(key_slot: int, item_id: StringName) -> void:
-	var slot := WEAPON_SLOTS + key_slot
-	var item := Items.get_item(item_id)
-	if item == null or item.weapon == null:
-		return
-	server_set_slot(slot, item_id, player.magazine_for(item.weapon))
+	_gadgets.set_gadget(key_slot, item_id)
 
 
 ## Serveur : vide l'emplacement de gadget de Q (0) ou F (1) ; s'il était en main, on reprend l'arme 1.
 func server_clear_gadget(key_slot: int) -> void:
-	var slot := WEAPON_SLOTS + key_slot
-	if slot_ids[slot] == "":
-		return
-	if active_slot == slot:
-		active_slot = 0 if slot_ids[0] != "" else 1
-	server_set_slot(slot, &"", 0)
+	_gadgets.clear_gadget(key_slot)
 
 
 ## Serveur : recharge le gadget de Q (0) ou F (1) (rachat en boutique).
 func server_refill_gadget(key_slot: int) -> void:
-	var slot := WEAPON_SLOTS + key_slot
-	var item := Items.get_item(StringName(slot_ids[slot]))
-	if item and item.weapon:
-		var a := slot_ammo
-		a[slot] = player.magazine_for(item.weapon)
-		slot_ammo = a
+	_gadgets.refill_gadget(key_slot)
 
 
 ## Serveur : monte d'un palier le boost de l'arme d'un emplacement (rachat en boutique).

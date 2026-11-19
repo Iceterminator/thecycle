@@ -8,6 +8,7 @@ extends Node3D
 ## partir du temps de partie (MatchManager.elapsed), sur le serveur comme chez les clients :
 ## les sauts de temps du menu admin marchent sans rien de plus. Le serveur fait les annonces.
 
+const StormVisuals := preload("res://systems/storm/storm_visuals.gd")
 const PHASES_DIR := "res://data/storm/"
 const STORM_NAME := "Grande Marée"
 const WARNING_COLOR := Color(0.55, 0.9, 0.55)       ## annonce (bandeau vert)
@@ -43,7 +44,7 @@ func _ready() -> void:
 	_world = get_parent() as World
 	_load_phases()
 	if not Net.is_dedicated_server:
-		_build_visuals()
+		StormVisuals.build(self)
 
 
 func _exit_tree() -> void:
@@ -149,59 +150,3 @@ func _process(delta: float) -> void:
 			_lightning_left = randf_range(3.0, 8.0)
 			_flash.modulate.a = 0.45
 	_flash.modulate.a = maxf(_flash.modulate.a - 3.0 * delta, 0.0)
-
-
-func _build_visuals() -> void:
-	var env_node := _world.get_node_or_null("WorldEnvironment") as WorldEnvironment if _world else null
-	if env_node and env_node.environment:
-		_env = env_node.environment
-		_base["fog_density"] = _env.fog_density
-		_base["fog_color"] = _env.fog_light_color
-		_sky = _env.sky.sky_material as ProceduralSkyMaterial if _env.sky else null
-		if _sky:
-			_base["sky_top"] = _sky.sky_top_color
-			_base["sky_horizon"] = _sky.sky_horizon_color
-			_base["ground_horizon"] = _sky.ground_horizon_color
-	_sun = _world.get_node_or_null("Sun") as DirectionalLight3D if _world else null
-	if _sun:
-		_base["sun_energy"] = _sun.light_energy
-		_base["sun_color"] = _sun.light_color
-	_rain = _make_rain()
-	add_child(_rain)
-	var layer := CanvasLayer.new()
-	layer.layer = 5
-	add_child(layer)
-	_flash = ColorRect.new()
-	_flash.color = Color(0.8, 0.7, 1.0)
-	_flash.modulate.a = 0.0
-	_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(_flash)
-	_flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
-
-## Gouttes : fins traits verticaux qui tombent dans une boîte au-dessus de la caméra.
-func _make_rain() -> GPUParticles3D:
-	var process := ParticleProcessMaterial.new()
-	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	process.emission_box_extents = Vector3(25.0, 1.0, 25.0)
-	process.direction = Vector3(0.1, -1.0, 0.0)
-	process.spread = 3.0
-	process.initial_velocity_min = 28.0
-	process.initial_velocity_max = 32.0
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-	mat.albedo_color = Color(0.78, 0.78, 0.95, 0.35)
-	var drop := QuadMesh.new()
-	drop.size = Vector2(0.02, 0.7)
-	drop.material = mat
-	var rain := GPUParticles3D.new()
-	rain.amount = 3000
-	rain.lifetime = 0.9
-	rain.emitting = false
-	rain.process_material = process
-	rain.draw_pass_1 = drop
-	rain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	rain.visibility_aabb = AABB(Vector3(-30, -40, -30), Vector3(60, 45, 60))
-	return rain
