@@ -3,6 +3,7 @@ extends RefCounted
 ## projectiles visibles, fumée. Impacts et explosions : weapon_effects_impacts.gd. Réglages « Ressenti » du WeaponData.
 
 const WeaponEffectsImpacts := preload("res://systems/combat/weapon_effects_impacts.gd")
+const Fx := preload("res://systems/combat/weapon_effects_fx.gd")
 
 var _w: Weapon
 var _visual_projectiles: Dictionary[int, Node3D] = {}
@@ -58,13 +59,8 @@ func show_shot(origin: Vector3, end: Vector3, kind: int) -> void:
 	if world == null or data == null:
 		return
 	var from := _muzzle(origin)
-	# Traçant : une barre fine entre le canon et l'impact (épaisseur et durée selon l'arme).
-	var length := from.distance_to(end)
-	if length > 0.05:
-		var bar := BoxMesh.new()
-		bar.size = Vector3(data.tracer_width, data.tracer_width, length)
-		var tracer := _spawn_mesh(world, bar, data.tracer_color, (from + end) / 2.0, data.tracer_time)
-		tracer.look_at(end, Vector3.UP if absf((end - from).normalized().y) < 0.99 else Vector3.RIGHT)
+	# Traçant : trait lumineux qui file du canon vers l'impact (épaisseur selon l'arme).
+	Fx.tracant(world, from, end, data.tracer_color, data.tracer_width)
 	_muzzle_flash(world, from)
 	_impacts.spawn_impact(world, end, kind)
 	if _w.player.avatar:
@@ -72,19 +68,7 @@ func show_shot(origin: Vector3, end: Vector3, kind: int) -> void:
 
 
 func _muzzle_flash(world: Node3D, pos: Vector3) -> void:
-	var data := _w.data
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.05 * data.muzzle_flash_scale
-	sphere.height = sphere.radius * 2.0
-	_spawn_mesh(world, sphere, data.tracer_color.lightened(0.4), pos, 0.05)
-	# Éclair de lumière bref : éclaire l'arme et les murs proches.
-	var light := OmniLight3D.new()
-	light.light_color = data.tracer_color.lightened(0.5)
-	light.light_energy = 2.5 * data.muzzle_flash_scale
-	light.omni_range = 4.0
-	world.add_child(light)
-	light.global_position = pos
-	_w.get_tree().create_timer(0.06).timeout.connect(light.queue_free)
+	Fx.flash(world, pos, _w.data.tracer_color, _w.data.muzzle_flash_scale, _w.get_tree())
 
 
 ## Projectile visible : il avance seul à la vitesse donnée ; le serveur annonce sa fin.

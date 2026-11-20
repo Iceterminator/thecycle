@@ -48,7 +48,7 @@ static func build_bottom_center(hud: CombatHud) -> void:
 	hud._pending_label.add_theme_color_override("font_color", CombatHud.ACCENT)
 	box.add_child(hud._pending_label)
 	hud._effects_label = HudWidgets.make_label("", 14)
-	hud._effects_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+	hud._effects_label.add_theme_color_override("font_color", CombatHud.DIM)
 	box.add_child(hud._effects_label)
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -63,12 +63,14 @@ static func build_bottom_center(hud: CombatHud) -> void:
 	hud._move_label.add_theme_color_override("font_color", CombatHud.DIM)
 	bars.add_child(hud._move_label)
 	hud._shield_bar = SegmentBar.new()
-	hud._shield_bar.custom_minimum_size = Vector2(380, 9)
+	hud._shield_bar.custom_minimum_size = Vector2(380, 6)
 	hud._shield_bar.color = CombatHud.SHIELD
+	hud._shield_bar.back_color = Color(1, 1, 1, 0.1)
 	bars.add_child(hud._shield_bar)
 	hud._health_bar = SegmentBar.new()
-	hud._health_bar.custom_minimum_size = Vector2(380, 13)
+	hud._health_bar.custom_minimum_size = Vector2(380, 9)
 	hud._health_bar.color = CombatHud.HEALTH
+	hud._health_bar.back_color = Color(1, 1, 1, 0.1)
 	bars.add_child(hud._health_bar)
 	hud._bars_label = HudWidgets.make_label("", 13)
 	hud._bars_label.add_theme_color_override("font_color", CombatHud.DIM)
@@ -83,8 +85,10 @@ static func ability_box(hud: CombatHud, key: String) -> Control:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.custom_minimum_size = Vector2(170, 62)
 	panel.clip_contents = true
-	var style := UiStyle.chamfer_box(CombatHud.PANEL, Color(CombatHud.ACCENT, 0.5), 1, 8)
-	style.border_width_bottom = 3
+	var style := StyleBoxFlat.new()  # fond semi-transparent, simple trait d'accent en bas
+	style.bg_color = CombatHud.PANEL
+	style.border_color = Color(CombatHud.ACCENT, 0.8)
+	style.border_width_bottom = 2
 	panel.add_theme_stylebox_override("panel", style)
 	col.add_child(panel)
 	var cooldown := ColorRect.new()

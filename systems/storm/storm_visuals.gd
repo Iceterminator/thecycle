@@ -21,6 +21,8 @@ static func build(storm: StormManager) -> void:
 		storm._base["sun_color"] = storm._sun.light_color
 	storm._rain = _make_rain()
 	storm.add_child(storm._rain)
+	storm._rafales = StormManager.StormEffets.rafales()
+	storm.add_child(storm._rafales)
 	var layer := CanvasLayer.new()
 	layer.layer = 5
 	storm.add_child(layer)
@@ -37,20 +39,23 @@ static func _make_rain() -> GPUParticles3D:
 	var process := ParticleProcessMaterial.new()
 	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 	process.emission_box_extents = Vector3(25.0, 1.0, 25.0)
-	process.direction = Vector3(0.1, -1.0, 0.0)
-	process.spread = 3.0
+	process.direction = Vector3(0.25, -1.0, 0.1)  # pluie poussée par le vent
+	process.spread = 4.0
 	process.initial_velocity_min = 28.0
 	process.initial_velocity_max = 32.0
 	var mat := StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-	mat.albedo_color = Color(0.78, 0.78, 0.95, 0.35)
+	mat.albedo_color = Color(0.8, 0.8, 0.95, 0.42)
+	mat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA  # gouttes collées à la caméra : invisibles
+	mat.distance_fade_min_distance = 1.0
+	mat.distance_fade_max_distance = 4.0
 	var drop := QuadMesh.new()
-	drop.size = Vector2(0.02, 0.7)
+	drop.size = Vector2(0.02, 0.9)
 	drop.material = mat
 	var rain := GPUParticles3D.new()
-	rain.amount = 3000
+	rain.amount = 4000
 	rain.lifetime = 0.9
 	rain.emitting = false
 	rain.process_material = process

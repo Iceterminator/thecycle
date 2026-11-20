@@ -7,7 +7,7 @@
 [node name="Modele" type="Node3D" parent="." unique_id=1678698504 instance=ExtResource("1_4eri0")]
 
 [node name="Poignee" type="Marker3D" parent="." unique_id=1720352736]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2513484, 0.2831435, 0.007998154)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3557849, 0.17870702, 0.021052705)
 gizmo_extents = 0.05
 
 [node name="Bouche" type="Marker3D" parent="." unique_id=1387306076]
@@ -15,5 +15,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.545263, 0.63771, -0.000640
 gizmo_extents = 0.05
 
 [node name="MainGauche" type="Marker3D" parent="." unique_id=1538134824]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35143334, 0.14824641, -0.13125044)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35143334, 0.09602818, -0.026813969)
 gizmo_extents = 0.05

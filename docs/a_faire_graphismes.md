@@ -29,14 +29,14 @@ Liste à cocher au fur et à mesure (`- [x]`). Établie le 20/11/2026.
   - [x] Herbe (touffes Poly Haven, `assets/models/nature/herbe/`) — clairsemée : à compléter par une texture d'herbe sur le terrain
   - [x] Buissons (Poly Haven, `assets/models/nature/plantes/`) : fougères, anthuriums, rooibos, branches sèches — reste : souches / rondins Quaternius, petites plantes (`small`), plantes extraterrestres
   - [x] Arbres (Poly Haven, `assets/models/nature/arbres/`) : feuillus, arbres d'île, sapin, arbres carquois — 3 000 à 5 000 triangles (écorce allégée + plaques de feuillage). Reste : plus de variantes de sapin, pins
-- [ ] Personnages réalistes : combinaisons de prospecteur, casques, équipement
+- [ ] Personnages réalistes : combinaisons de prospecteur, casques, équipement — fait : Prospecteur = astronaute Tripo (apparence du lobby) ; reste : d'autres tenues, remplacer Homme / Femme (Superhero)
 - [ ] Armes détaillées et texturées
 - [ ] Végétation dense : herbe en MultiMesh, buissons, plantes extraterrestres
-- [ ] Shader de vent sur la végétation — fait pour l'herbe (`systems/decor/herbe_vent.gdshader`)
+- [x] Shader de vent sur la végétation (`systems/decor/herbe_vent.gdshader`) : herbe, plantes, feuillage des arbres
 - [ ] LOD pour garder les performances
 
 ## Ambiance et interface
-- [ ] Particules : poussière, spores, pluie de tempête, éclairs
-- [ ] Traînées de balles, fumée des grenades
-- [ ] HUD sobre et militaire : police fine, monochrome + couleur d'accent, transparence
+- [x] Particules : ambiance par biome (`systems/rendu/ambiance_particules.gd` : pollen, poussière, flocons, lucioles), tempête (`systems/storm/storm_effets.gd` : éclairs visibles, rafales ; pluie poussée par le vent)
+- [x] Traînées de balles, fumée des grenades (`systems/combat/weapon_effects_fx.gd`, `weapon_effects_explosion.gd` : traçants lumineux, flash, étincelles, poussière d'impact, explosion avec fumée qui reste)
+- [x] HUD sobre : blanc + cuivre (+ rouge pour le danger), fonds semi-transparents sans bordure, lignes fines (`hud.gd`, `hud_widgets.gd`) — reste : police plus fine (Barlow Condensed Light/Regular non installées)
 - [ ] Direction artistique par biome : palette et lumière propres à chacun

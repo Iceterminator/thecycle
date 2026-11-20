@@ -1,5 +1,8 @@
 extends RefCounted
 ## Petits outils de construction d'interface du HUD (étiquettes, barres, puces, styles).
+## Style sobre : textes blancs à ombre légère, fonds semi-transparents, lignes fines, angles droits.
+
+const LINE := Color(1.0, 1.0, 1.0, 0.35)  ## lignes fines (contours, séparateurs)
 
 
 ## Ajoute `control` au HUD, plein cadre et sans capter la souris.
@@ -19,13 +22,13 @@ static func vbox(separation: int) -> VBoxContainer:
 static func make_label(text: String, size: int) -> Label:
 	var label := Label.new()
 	label.text = text
-	if size >= 22:
-		label.add_theme_font_override("font", UiStyle.font("SemiBold"))
+	label.add_theme_font_override("font", UiStyle.font("SemiBold" if size >= 30 else "Medium"))
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-	label.add_theme_constant_override("outline_size", 3)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.55))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
 	return label
 
 
@@ -35,10 +38,9 @@ static func chip(text: String) -> PanelContainer:
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(1, 1, 1, 0.12)
-	style.border_color = Color(1, 1, 1, 0.5)
+	style.bg_color = Color(0, 0, 0, 0.25)
+	style.border_color = LINE
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(4)
 	style.content_margin_left = 6
 	style.content_margin_right = 6
 	chip_margins(style)
@@ -73,7 +75,7 @@ static func make_bar(color: Color, max_value: float) -> ProgressBar:
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = color
 	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0, 0, 0, 0.5)
+	bg.bg_color = Color(1, 1, 1, 0.12)
 	bar.add_theme_stylebox_override("fill", fill)
 	bar.add_theme_stylebox_override("background", bg)
 	return bar

@@ -74,6 +74,10 @@ func _construire_carte() -> void:
 	var decor := MapDecor.new()
 	decor.name = "Decor"
 	map.add_child(decor)
+	if DisplayServer.get_name() != "headless":  # pollen, poussière, flocons, lucioles
+		var ambiance := AmbianceParticules.new()
+		ambiance.name = "Ambiance"
+		map.add_child(ambiance)
 
 
 func _liberer_carte() -> void:
@@ -87,6 +91,10 @@ func _liberer_carte() -> void:
 	if decor:
 		decor.name = "Decor_supprime"
 		decor.queue_free()
+	var ambiance := map.get_node_or_null("Ambiance")
+	if ambiance:
+		ambiance.name = "Ambiance_supprimee"
+		ambiance.queue_free()
 
 
 func _maj_salle_test(present: bool) -> void:

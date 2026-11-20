@@ -21,13 +21,13 @@ const HudClock := preload("res://systems/combat/hud_clock.gd")
 const HudScores := preload("res://systems/combat/hud_scores.gd")
 const HudBottom := preload("res://systems/combat/hud_bottom.gd")
 
-# --- Palette (notre style : graphite, vert menthe, ambre) ---
-const PANEL := Color(UiStyle.PANEL, 0.7)
-const ACCENT := UiStyle.ICE
-const GOLD := UiStyle.GOLD
-const SHIELD := Color(0.4, 0.78, 1.0)
-const HEALTH := Color(0.62, 0.92, 0.5)
-const DIM := UiStyle.DIM
+# --- Palette sobre : blanc, une couleur d'accent (cuivre), rouge pour le danger ---
+const PANEL := Color(0.0, 0.0, 0.0, 0.32)       ## fonds semi-transparents, sans bordure
+const ACCENT := UiStyle.ACCENT
+const GOLD := Color(1.0, 1.0, 1.0, 0.95)        ## chiffres importants : blanc (plus d'or)
+const SHIELD := Color(0.82, 0.9, 1.0, 0.95)     ## bouclier : blanc bleuté
+const HEALTH := Color(0.96, 0.96, 0.93, 0.95)   ## vie : blanc
+const DIM := Color(1.0, 1.0, 1.0, 0.55)
 const MAP_SIZE := 200.0
 
 var _player: Player

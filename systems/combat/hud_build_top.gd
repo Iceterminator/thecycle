@@ -37,7 +37,7 @@ static func build_top_left(hud: CombatHud) -> void:
 	disc.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
 	disc.position = Vector2(20, 20)
 	disc.size = Vector2(CombatHud.MAP_SIZE, CombatHud.MAP_SIZE)
-	disc.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0.05, 0.08, 0.08, 0.9), Color(0, 0, 0, 0), 0))
+	disc.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0.02, 0.03, 0.04, 0.55), Color(0, 0, 0, 0), 0))
 	hud.add_child(disc)
 	HudWidgets.tag_block(disc, "minimap")
 	hud._minimap = MapView.new()
@@ -54,7 +54,7 @@ static func build_top_left(hud: CombatHud) -> void:
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ring.position = disc.position
 	ring.size = disc.size
-	ring.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0, 0, 0, 0), CombatHud.ACCENT.darkened(0.2), 3))
+	ring.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0, 0, 0, 0), HudWidgets.LINE, 1))
 	hud.add_child(ring)
 	HudWidgets.tag_block(ring, "minimap")
 
@@ -95,7 +95,7 @@ static func build_top_center(hud: CombatHud) -> void:
 	hud._clock_sub.add_theme_color_override("font_color", CombatHud.DIM)
 	box.add_child(hud._clock_sub)
 	hud._storm_label = HudWidgets.make_label("", 18)
-	hud._storm_label.add_theme_color_override("font_color", Color(0.85, 0.6, 1.0))
+	hud._storm_label.add_theme_color_override("font_color", UiStyle.RED)
 	box.add_child(hud._storm_label)
 	# Bandeau d'annonces (contrats capturés, prime, cœur stellaire…).
 	hud._banner = HudWidgets.make_label("", 24)

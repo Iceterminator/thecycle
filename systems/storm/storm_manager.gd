@@ -9,6 +9,7 @@ extends Node3D
 ## les sauts de temps du menu admin marchent sans rien de plus. Le serveur fait les annonces.
 
 const StormVisuals := preload("res://systems/storm/storm_visuals.gd")
+const StormEffets := preload("res://systems/storm/storm_effets.gd")
 const PHASES_DIR := "res://data/storm/"
 const STORM_NAME := "Grande Marée"
 const WARNING_COLOR := Color(0.55, 0.9, 0.55)       ## annonce (bandeau vert)
@@ -35,6 +36,7 @@ var _last_elapsed: float = 0.0
 # --- Visuels (clients) ---
 var _flash: ColorRect
 var _rain: GPUParticles3D
+var _rafales: GPUParticles3D  ## poussière au ras du sol (storm_effets.gd)
 var _env: Environment
 var _sky: ShaderMaterial  ## ciel (systems/rendu/ciel.gdshader)
 var _sun: DirectionalLight3D
@@ -147,13 +149,18 @@ func _process(delta: float) -> void:
 	# Pluie autour de la caméra.
 	_rain.emitting = k > 0.05
 	_rain.amount_ratio = k
+	_rafales.emitting = k > 0.2
+	_rafales.amount_ratio = k
 	var camera := get_viewport().get_camera_3d()
 	if camera:
 		_rain.global_position = camera.global_position + Vector3.UP * RAIN_HEIGHT
+		_rafales.global_position = camera.global_position - Vector3(25.0, 1.0, 8.0)
 	# Éclairs violets.
 	if k > 0.5:
 		_lightning_left -= delta
 		if _lightning_left <= 0.0:
 			_lightning_left = randf_range(3.0, 8.0)
-			_flash.modulate.a = 0.45
+			_flash.modulate.a = 0.2  # l'éclair est aussi visible dans le ciel et éclaire le décor
+			if camera:
+				StormEffets.eclair(self, camera.global_position)
 	_flash.modulate.a = maxf(_flash.modulate.a - 3.0 * delta, 0.0)

@@ -2,6 +2,9 @@ extends RefCounted
 ## Effets visuels de Weapon : impacts (éclats, point rouge sur une cible) et explosions.
 ## Utilise les outils de dessin de WeaponEffects (matières, formes temporaires).
 
+const Fx := preload("res://systems/combat/weapon_effects_fx.gd")
+const Explosion := preload("res://systems/combat/weapon_effects_explosion.gd")
+
 var _w: Weapon
 var _fx: RefCounted  # WeaponEffects
 
@@ -29,7 +32,8 @@ func spawn_impact(world: Node3D, point: Vector3, kind: int) -> void:
 	var chip := BoxMesh.new()
 	chip.size = Vector3.ONE * 0.025 * data.impact_scale
 	sparks.mesh = chip
-	sparks.material_override = _fx._mat(color.lightened(0.2))
+	sparks.material_override = Fx.mat(color.lightened(0.3), true, 3.0)  # étincelles lumineuses
+	sparks.gravity = Vector3(0, -12.0, 0)
 	sparks.direction = Vector3.UP
 	sparks.spread = 80.0
 	sparks.initial_velocity_min = 2.0
@@ -40,29 +44,12 @@ func spawn_impact(world: Node3D, point: Vector3, kind: int) -> void:
 	world.add_child(sparks)
 	sparks.global_position = point
 	sparks.emitting = true
+	if kind == Weapon.HitKind.WORLD:  # sol, roche, décor : un peu de poussière
+		Fx.poussiere(world, point, data.impact_scale)
 
 
-## Explosion : boule de feu qui gonfle jusqu'au rayon de la zone puis s'efface.
+## Explosion : boule de feu, éclair, débris et fumée (weapon_effects_explosion.gd).
 func show_explosion(point: Vector3, radius: float) -> void:
 	var world: Node3D = _fx._effects_parent()
-	if world == null:
-		return
-	var sphere := SphereMesh.new()
-	sphere.radius = 1.0
-	sphere.height = 2.0
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color(1.0, 0.55, 0.15, 0.7)
-	var ball := MeshInstance3D.new()
-	ball.mesh = sphere
-	ball.material_override = mat
-	ball.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	world.add_child(ball)
-	ball.global_position = point
-	ball.scale = Vector3.ONE * 0.2
-	Events.camera_shake_requested.emit(point, 0.9, radius * 4.0)
-	var tween := ball.create_tween().set_parallel()
-	tween.tween_property(ball, "scale", Vector3.ONE * radius, 0.25)
-	tween.tween_property(mat, "albedo_color:a", 0.0, 0.45)
-	tween.chain().tween_callback(ball.queue_free)
+	if world:
+		Explosion.build(world, point, radius)

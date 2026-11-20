@@ -72,7 +72,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Mécanique | Code | Données | Doc |
 | --- | --- | --- | --- |
 | Joueur, déplacement | `scenes/player/`, `systems/kits/kit_movement.gd` | `data/rules/combat.tres` | DESIGN §1 |
-| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`) | `data/weapons/`, `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
+| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`, effets `weapon_effects_fx.gd` / `weapon_effects_explosion.gd`) | `data/weapons/`, `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
 | HUD | `systems/combat/hud.gd`, `systems/ui/` | — | — |
 | Personnages animés, apparences | `systems/avatar/` (`avatar_retarget.gd` : animations adaptées aux proportions de chaque modèle), choix dans `systems/lobby/lobby_ui_appearance.gd` | `assets/models/characters/` (même squelette que les Superhero), `data/appearances/` | — |
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
@@ -81,14 +81,14 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Créatures | `systems/monsters/` | `data/monsters/`, `data/camps/` | `docs/creatures.md` |
 | Quêtes, contrats (tirage) | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
-| Tempête | `systems/storm/` | `data/storm/` | `docs/tempetes.md` |
+| Tempête | `systems/storm/` (éclairs, rafales : `storm_effets.gd`) | `data/storm/` | `docs/tempetes.md` |
 | Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
 | Niveaux (ce qui est construit : briefing seul au lobby, carte en partie, salle de test), salle de test (armurerie, monstres figés, galerie) | `systems/niveaux/niveaux.gd`, `systems/salle_test/`, boutons PRÊT / SALLE DE TEST de l'onglet Décollage `systems/lobby/lobby_ui_launch.gd` | — | `docs/salle_test.md` |
 | Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
 | Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` (`map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
-| Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`, ciel `ciel.gdshader` / `ciel.tres`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |
+| Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut, particules d'ambiance) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`, `ambiance_particules.gd`, ciel `ciel.gdshader` / `ciel.tres`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |
 | Menu Échap (touches, blocs du HUD) | `systems/settings/` (`settings_store.gd` : `user://reglages.cfg`, appliqué par `Config`) ; blocs marqués par `HudWidgets.tag_block` | — | — |
 | Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |
