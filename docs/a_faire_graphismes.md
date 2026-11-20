@@ -11,13 +11,17 @@ Liste à cocher au fur et à mesure (`- [x]`). Établie le 20/11/2026.
 - [ ] Étalonnage des couleurs (LUT) — contraste / saturation faits, LUT pas encore
 - [x] Brouillard volumétrique (+ tempête)
 - [x] Ombres douces, 4 cascades sur 150 m
-- [ ] Vrai ciel : nuages, lunes / planète géante (shader de ciel perso) — couleurs et disque solaire faits
+- [x] Vrai ciel (`systems/rendu/ciel.gdshader` + `ciel.tres`) : nuages qui défilent, planète géante à anneaux, 2 lunes ; la tempête couvre et assombrit le ciel
 - [x] Post-traitement : flou de profondeur, aberration chromatique, vignette, grain (`systems/rendu/`)
 
 ## Matériaux et textures
 - [x] Textures du sol (Poly Haven, `assets/textures/sol/`) : herbe, roche, sable, neige, boue, terre — normal maps coupées en Bas
 - [x] Shader de terrain (`systems/map/terrain_sol.gdshader`) : mélange par biome, terre, vase, roche selon la pente — reste : casser la répétition des textures
 - [ ] Decals : saleté, rouille, mousse
+
+## À retoucher (avis du 20/11/2026)
+- [ ] Arbres : jugés moches (feuillus en boules touffues, sapin peu crédible) — refaire forme et feuillage
+- [ ] Sols : moyens — casser la répétition, meilleur mélange entre biomes, détails
 
 ## Modèles
 - [ ] Remplacer les modèles Quaternius low-poly par des modèles détaillés (Poly Haven, CC0, ou Blender)

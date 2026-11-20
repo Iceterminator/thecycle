@@ -10,11 +10,11 @@ static func build(storm: StormManager) -> void:
 		storm._base["fog_color"] = storm._env.fog_light_color
 		storm._base["vol_density"] = storm._env.volumetric_fog_density
 		storm._base["vol_albedo"] = storm._env.volumetric_fog_albedo
-		storm._sky = storm._env.sky.sky_material as ProceduralSkyMaterial if storm._env.sky else null
+		storm._sky = storm._env.sky.sky_material as ShaderMaterial if storm._env.sky else null
 		if storm._sky:
-			storm._base["sky_top"] = storm._sky.sky_top_color
-			storm._base["sky_horizon"] = storm._sky.sky_horizon_color
-			storm._base["ground_horizon"] = storm._sky.ground_horizon_color
+			storm._base["sky_top"] = storm._sky.get_shader_parameter("couleur_haut")
+			storm._base["sky_horizon"] = storm._sky.get_shader_parameter("couleur_horizon")
+			storm._base["couverture"] = storm._sky.get_shader_parameter("couverture")
 	storm._sun = storm._world.get_node_or_null("Sun") as DirectionalLight3D if storm._world else null
 	if storm._sun:
 		storm._base["sun_energy"] = storm._sun.light_energy

@@ -36,7 +36,7 @@ var _last_elapsed: float = 0.0
 var _flash: ColorRect
 var _rain: GPUParticles3D
 var _env: Environment
-var _sky: ProceduralSkyMaterial
+var _sky: ShaderMaterial  ## ciel (systems/rendu/ciel.gdshader)
 var _sun: DirectionalLight3D
 var _base := {}  ## valeurs d'ambiance de la scène, hors tempête
 var _lightning_left: float = 2.0
@@ -137,9 +137,10 @@ func _process(delta: float) -> void:
 		_env.volumetric_fog_density = lerpf(_base["vol_density"] * (BRIEFING_FOG if MatchManager.is_briefing() else 1.0), STORM_VOL_DENSITY, k)
 		_env.volumetric_fog_albedo = (_base["vol_albedo"] as Color).lerp(STORM_VOL_ALBEDO, k)
 	if _sky:
-		_sky.sky_top_color = (_base["sky_top"] as Color).lerp(STORM_SKY_TOP, k)
-		_sky.sky_horizon_color = (_base["sky_horizon"] as Color).lerp(STORM_SKY_HORIZON, k)
-		_sky.ground_horizon_color = (_base["ground_horizon"] as Color).lerp(STORM_SKY_HORIZON, k)
+		_sky.set_shader_parameter("couleur_haut", (_base["sky_top"] as Color).lerp(STORM_SKY_TOP, k))
+		_sky.set_shader_parameter("couleur_horizon", (_base["sky_horizon"] as Color).lerp(STORM_SKY_HORIZON, k))
+		_sky.set_shader_parameter("couverture", lerpf(_base["couverture"], 1.0, k))
+		_sky.set_shader_parameter("nuages_sombres", k)
 	if _sun:
 		_sun.light_energy = lerpf(_base["sun_energy"], STORM_SUN_ENERGY, k)
 		_sun.light_color = (_base["sun_color"] as Color).lerp(STORM_SUN_COLOR, k)

@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://systems/rendu/ciel.gdshader" id="1_ciel"]
+
+[sub_resource type="FastNoiseLite" id="Bruit_1"]
+noise_type = 1
+frequency = 0.008
+fractal_octaves = 4
+
+[sub_resource type="NoiseTexture2D" id="Tex_bruit"]
+width = 512
+height = 512
+seamless = true
+generate_mipmaps = true
+noise = SubResource("Bruit_1")
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_ciel")
+shader_parameter/couleur_haut = Color(0.12, 0.36, 0.45, 1)
+shader_parameter/couleur_horizon = Color(0.92, 0.8, 0.62, 1)
+shader_parameter/couleur_sol = Color(0.16, 0.17, 0.11, 1)
+shader_parameter/bruit = SubResource("Tex_bruit")
+shader_parameter/couverture = 0.42
+shader_parameter/planete_dir = Vector3(-0.85, 0.3, 0.45)

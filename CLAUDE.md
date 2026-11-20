@@ -85,7 +85,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
 | Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` (`map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
-| Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |
+| Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`, ciel `ciel.gdshader` / `ciel.tres`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |
 | Menu Échap (touches, blocs du HUD) | `systems/settings/` (`settings_store.gd` : `user://reglages.cfg`, appliqué par `Config`) ; blocs marqués par `HudWidgets.tag_block` | — | — |
 | Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |

@@ -1,6 +1,7 @@
 [gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scenes/world/world.gd" id="1_world"]
+[ext_resource type="Material" path="res://systems/rendu/ciel.tres" id="30_ciel"]
 [ext_resource type="Script" path="res://systems/combat/respawn_manager.gd" id="2_respawn"]
 [ext_resource type="Script" path="res://systems/loot/loot_manager.gd" id="3_loot"]
 [ext_resource type="Script" path="res://systems/monsters/monster_manager.gd" id="4_monsters"]
@@ -11,18 +12,10 @@
 [ext_resource type="Script" path="res://systems/contracts/bounty_manager.gd" id="21_bounty"]
 [ext_resource type="Script" path="res://systems/map/map_terrain.gd" id="22_terrain"]
 
-[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
-sky_top_color = Color(0.12, 0.36, 0.45, 1)
-sky_horizon_color = Color(0.92, 0.8, 0.62, 1)
-sky_curve = 0.14
-sky_energy_multiplier = 1.0
-ground_bottom_color = Color(0.16, 0.17, 0.11, 1)
-ground_horizon_color = Color(0.9, 0.72, 0.52, 1)
-sun_angle_max = 40.0
-sun_curve = 0.1
-
 [sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("Sky_mat")
+sky_material = ExtResource("30_ciel")
+process_mode = 2
+radiance_size = 1
 
 [sub_resource type="Environment" id="Env_1"]
 background_mode = 2
