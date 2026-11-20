@@ -17,6 +17,8 @@ const ANNOUNCE_COLOR := Color(0.8, 0.55, 1.0)
 const STORM_FOG_DENSITY := 0.02
 const BRIEFING_FOG := 0.2  ## brume réduite pendant le briefing : la carte se voit par la baie vitrée
 const STORM_FOG_COLOR := Color(0.3, 0.28, 0.42)
+const STORM_VOL_DENSITY := 0.03
+const STORM_VOL_ALBEDO := Color(0.28, 0.24, 0.4)
 const STORM_SKY_TOP := Color(0.13, 0.14, 0.2)
 const STORM_SKY_HORIZON := Color(0.26, 0.25, 0.34)
 const STORM_SUN_ENERGY := 0.25
@@ -132,6 +134,8 @@ func _process(delta: float) -> void:
 		var base_fog: float = _base["fog_density"] * (BRIEFING_FOG if MatchManager.is_briefing() else 1.0)
 		_env.fog_density = lerpf(base_fog, STORM_FOG_DENSITY, k)
 		_env.fog_light_color = (_base["fog_color"] as Color).lerp(STORM_FOG_COLOR, k)
+		_env.volumetric_fog_density = lerpf(_base["vol_density"] * (BRIEFING_FOG if MatchManager.is_briefing() else 1.0), STORM_VOL_DENSITY, k)
+		_env.volumetric_fog_albedo = (_base["vol_albedo"] as Color).lerp(STORM_VOL_ALBEDO, k)
 	if _sky:
 		_sky.sky_top_color = (_base["sky_top"] as Color).lerp(STORM_SKY_TOP, k)
 		_sky.sky_horizon_color = (_base["sky_horizon"] as Color).lerp(STORM_SKY_HORIZON, k)

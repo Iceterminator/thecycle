@@ -104,4 +104,7 @@ signal briefing_synced(left: float, votes: Array, room: Array)
 ## Client : réglages du HUD changés (menu Échap) — blocs à afficher / cacher.
 signal hud_settings_changed
 
+## Réglages graphiques changés (menu Échap) : le monde réapplique la qualité.
+signal reglages_graphiques_changes
+
 @warning_ignore_restore("unused_signal")

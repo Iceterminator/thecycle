@@ -7,6 +7,7 @@ extends CanvasLayer
 const Store := preload("res://systems/settings/settings_store.gd")
 const KeysTab := preload("res://systems/settings/pause_menu_keys.gd")
 const HudTab := preload("res://systems/settings/pause_menu_hud.gd")
+const GraphicsTab := preload("res://systems/settings/pause_menu_graphics.gd")
 
 var _player: Player
 var _key_buttons: Dictionary = {}  ## action -> Button
@@ -133,6 +134,7 @@ func _build() -> void:
 	box.add_child(tabs)
 	tabs.add_child(KeysTab.build(self, _key_buttons))
 	tabs.add_child(HudTab.build())
+	tabs.add_child(GraphicsTab.build())
 
 	_status = Label.new()
 	_status.add_theme_color_override("font_color", UiStyle.GOLD)

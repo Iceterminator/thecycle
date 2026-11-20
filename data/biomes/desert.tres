@@ -18,37 +18,24 @@ bush_density = 0.35
 grass_density = 0.06
 small_density = 0.6
 trees = {
-"res://assets/models/nature/desert/PalmTree_1.fbx": 2.2,
-"res://assets/models/nature/desert/PalmTree_2.fbx": 2.2,
-"res://assets/models/nature/desert/PalmTree_3.fbx": 2.2,
-"res://assets/models/nature/desert/PalmTree_4.fbx": 2.2,
-"res://assets/models/nature/desert/Cactus_1.fbx": 2.0,
-"res://assets/models/nature/desert/Cactus_2.fbx": 2.0,
-"res://assets/models/nature/desert/Cactus_3.fbx": 2.0,
-"res://assets/models/nature/desert/Cactus_4.fbx": 2.0,
-"res://assets/models/nature/desert/Cactus_5.fbx": 2.0,
-"res://assets/models/nature/desert/CommonTree_Dead_1.fbx": 2.0,
-"res://assets/models/nature/desert/CommonTree_Dead_2.fbx": 2.0,
+"res://assets/models/nature/arbres/arbre_carquois_1.glb": 1.6,
+"res://assets/models/nature/arbres/arbre_carquois_2.glb": 2.2
 }
 big_trees = {
-"res://assets/models/nature/desert/PalmTree_1.fbx": 3.0,
-"res://assets/models/nature/desert/PalmTree_3.fbx": 3.0,
-"res://assets/models/nature/desert/CommonTree_Dead_3.fbx": 2.6,
+"res://assets/models/nature/arbres/arbre_carquois_1.glb": 2.4
 }
 rocks = {
-"res://assets/models/nature/desert/Rock_Desert_1.gltf": 1.0,
-"res://assets/models/nature/desert/Rock_Desert_2.gltf": 1.0,
-"res://assets/models/nature/desert/Rock_Desert_3.gltf": 1.0,
+"res://assets/models/nature/rochers/rocher_desert_1.glb": 1.0,
+"res://assets/models/nature/rochers/rocher_desert_2.glb": 1.0,
+"res://assets/models/nature/rochers/rocher_desert_3.glb": 1.0
 }
 bushes = {
-"res://assets/models/nature/desert/CactusFlowers_2.fbx": 1.6,
-"res://assets/models/nature/desert/CactusFlowers_3.fbx": 1.6,
-"res://assets/models/nature/desert/CactusFlowers_4.fbx": 1.6,
-"res://assets/models/nature/desert/CactusFlowers_5.fbx": 1.6,
-"res://assets/models/nature/desert/CactusFlower_1.fbx": 1.6,
+"res://assets/models/nature/plantes/rooibos_2.glb": 2.2,
+"res://assets/models/nature/plantes/rooibos_3.glb": 2.4,
+"res://assets/models/nature/plantes/branches_seches_2.glb": 1.0
 }
 grass = {
-"res://assets/models/nature/Grass_Wispy_Tall.gltf": 0.8,
+"res://assets/models/nature/herbe/herbe_seche.glb": 8.0
 }
 small = {
 "res://assets/models/nature/Pebble_Round_1.gltf": 1.0,

@@ -7,44 +7,29 @@ script = ExtResource("1_biome")
 display_name = "Prairies d'Ambre"
 map_color = Color(0.2, 0.27, 0.15, 1)
 trees = {
-"res://assets/models/nature/CommonTree_1.gltf": 1.0,
-"res://assets/models/nature/CommonTree_2.gltf": 1.0,
-"res://assets/models/nature/CommonTree_3.gltf": 1.0,
-"res://assets/models/nature/CommonTree_4.gltf": 1.0,
-"res://assets/models/nature/CommonTree_5.gltf": 1.0,
-"res://assets/models/nature/Pine_1.gltf": 1.0,
-"res://assets/models/nature/Pine_2.gltf": 1.0,
-"res://assets/models/nature/Pine_3.gltf": 1.0,
-"res://assets/models/nature/Pine_4.gltf": 1.0,
-"res://assets/models/nature/Pine_5.gltf": 1.0,
-"res://assets/models/nature/DeadTree_1.gltf": 1.0,
-"res://assets/models/nature/plaine/BirchTree_1.fbx": 2.0,
-"res://assets/models/nature/plaine/BirchTree_2.fbx": 2.0,
-"res://assets/models/nature/plaine/BirchTree_3.fbx": 2.0,
+"res://assets/models/nature/arbres/arbre_feuillu_1.glb": 1.3,
+"res://assets/models/nature/arbres/arbre_ile_2.glb": 1.4
 }
 big_trees = {
-"res://assets/models/nature/TwistedTree_1.gltf": 1.0,
-"res://assets/models/nature/TwistedTree_2.gltf": 1.0,
+"res://assets/models/nature/arbres/arbre_ile_1.glb": 1.8,
+"res://assets/models/nature/arbres/arbre_feuillu_1.glb": 2.0
 }
 rocks = {
-"res://assets/models/nature/Rock_Medium_1.gltf": 1.0,
-"res://assets/models/nature/Rock_Medium_2.gltf": 1.0,
-"res://assets/models/nature/Rock_Medium_3.gltf": 1.0,
+"res://assets/models/nature/rochers/rocher_plaine_1.glb": 1.0,
+"res://assets/models/nature/rochers/rocher_plaine_2.glb": 1.0,
+"res://assets/models/nature/rochers/rocher_plaine_3.glb": 1.0
 }
 bushes = {
-"res://assets/models/nature/Bush_Common.gltf": 1.0,
-"res://assets/models/nature/Bush_Common_Flowers.gltf": 1.0,
-"res://assets/models/nature/Fern_1.gltf": 1.0,
-"res://assets/models/nature/Plant_1_Big.gltf": 1.0,
-"res://assets/models/nature/Flower_3_Group.gltf": 1.0,
-"res://assets/models/nature/plaine/BushBerries_1.fbx": 1.4,
-"res://assets/models/nature/plaine/BushBerries_2.fbx": 1.4,
-"res://assets/models/nature/plaine/Flowers.fbx": 1.6,
+"res://assets/models/nature/plantes/fougere_1.glb": 1.6,
+"res://assets/models/nature/plantes/fougere_2.glb": 1.6,
+"res://assets/models/nature/plantes/anthurium_1.glb": 1.2,
+"res://assets/models/nature/plantes/anthurium_2.glb": 1.2,
+"res://assets/models/nature/plantes/anthurium_3.glb": 1.4
 }
 grass = {
-"res://assets/models/nature/Grass_Common_Short.gltf": 1.0,
-"res://assets/models/nature/Grass_Common_Tall.gltf": 1.0,
-"res://assets/models/nature/Grass_Wispy_Tall.gltf": 1.0,
+"res://assets/models/nature/herbe/herbe_verte_1.glb": 4.5,
+"res://assets/models/nature/herbe/herbe_verte_2.glb": 4.5,
+"res://assets/models/nature/herbe/herbe_haute.glb": 8.0
 }
 small = {
 "res://assets/models/nature/Mushroom_Common.gltf": 1.0,

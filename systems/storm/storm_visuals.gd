@@ -8,6 +8,8 @@ static func build(storm: StormManager) -> void:
 		storm._env = env_node.environment
 		storm._base["fog_density"] = storm._env.fog_density
 		storm._base["fog_color"] = storm._env.fog_light_color
+		storm._base["vol_density"] = storm._env.volumetric_fog_density
+		storm._base["vol_albedo"] = storm._env.volumetric_fog_albedo
 		storm._sky = storm._env.sky.sky_material as ProceduralSkyMaterial if storm._env.sky else null
 		if storm._sky:
 			storm._base["sky_top"] = storm._sky.sky_top_color

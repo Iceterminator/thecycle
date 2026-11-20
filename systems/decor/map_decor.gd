@@ -24,18 +24,18 @@ const SMALL_CLEAR_PARENTS := ["LumicepSpots"]  ## repères à petit rayon dégag
 const SMALL_CLEAR_RADIUS := 3.0
 
 ## Portées de visibilité (m) : au-delà, le décor est masqué (brume dense, gain GPU). 0 = illimitée.
-const TREE_RANGE := 150.0       ## arbres dans la carte (la forêt extérieure reste visible : elle ferme l'horizon)
+const TREE_RANGE := 130.0       ## arbres dans la carte (la forêt extérieure reste visible : elle ferme l'horizon)
 const ROCK_RANGE := 110.0
 const BUSH_RANGE := 100.0
-const GRASS_RANGE := 60.0
+const GRASS_RANGE := 50.0
 const SMALL_RANGE := 50.0
 
 const TREE_COUNT := 250
 const ROCK_COUNT := 100
 const BUSH_COUNT := 580
-const GRASS_COUNT := 7000
+const GRASS_COUNT := 14000
 const SMALL_COUNT := 650
-const OUTSIDE_TREE_COUNT := 1050  ## tirages : environ la moitié tombe dans la bande extérieure
+const OUTSIDE_TREE_COUNT := 700  ## tirages : environ la moitié tombe dans la bande extérieure
 const WATER_PLANT_TRIES := 6000  ## tirages : seuls ceux qui tombent dans une mare sont gardés
 const WATER_RANGE := 60.0
 
@@ -82,7 +82,7 @@ func _outside_forest(half: float) -> void:
 		var category := &"big_trees" if _rng.randf() < 0.12 else &"trees"
 		var choice := MapDecorPick.pick(_rng, category, x, z, 0.5)
 		if not choice.is_empty():
-			_place_visual(choice[0], Vector3(x, MapTerrain.height_at(x, z), z), choice[1] * _rng.randf_range(0.9, 1.6))
+			DecorModels.no_shadow(_place_visual(choice[0], Vector3(x, MapTerrain.height_at(x, z), z), choice[1] * _rng.randf_range(0.9, 1.6)))
 
 
 ## Point au sol, loin des points d'intérêt et sous une pente maximale ; Vector3.INF après 20 essais.

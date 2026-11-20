@@ -8,14 +8,12 @@ const INNER_STEP := 2.0
 const OUTER_STEP := 6.0
 const OUTSIDE_EXTENT := 60.0     ## le terrain se prolonge au-delà des murs (horizon)
 const MUD := Color("#3a3424")  ## fond des mares du marais
+const SOL_MATERIAL := "res://assets/textures/sol/terrain_sol.tres"
 
 
-static func make_material() -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.vertex_color_is_srgb = true
-	mat.roughness = 1.0
-	return mat
+## Matériau du sol : textures Poly Haven mélangées par biome (systems/map/terrain_sol.gdshader).
+static func make_material() -> Material:
+	return load(SOL_MATERIAL) as Material
 
 
 ## Coordonnées d'un axe : grossier dehors, fin dans la carte.
@@ -46,6 +44,8 @@ static func build_visual() -> ArrayMesh:
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
+	var biomes := PackedFloat32Array()  ## CUSTOM0 : poids des 4 biomes
+	var masques := PackedFloat32Array() ## CUSTOM1 : terre, vase
 	for j in n:
 		for i in n:
 			var x := axis[i]
@@ -54,7 +54,12 @@ static func build_visual() -> ArrayMesh:
 			var normal := MapTerrain.normal_at(x, z)
 			vertices.append(Vector3(x, h, z))
 			normals.append(normal)
-			colors.append(_color(x, z, h, normal, patches.get_noise_2d(x, z)))
+			var patch := patches.get_noise_2d(x, z)
+			var w := MapBiomes.weights_at(x, z)
+			colors.append(_color(x, z, h, normal, patch))
+			biomes.append_array([w[0], w[1], w[2], w[3]])
+			var vase := smoothstep(MapBiomes.WATER_LEVEL + 0.4, MapBiomes.WATER_LEVEL - 0.2, h) * w[MapBiomes.MARAIS]
+			masques.append_array([smoothstep(0.1, 0.6, patch), vase, 0.0, 0.0])
 	var indices := PackedInt32Array()
 	for j in n - 1:
 		for i in n - 1:
@@ -66,8 +71,11 @@ static func build_visual() -> ArrayMesh:
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_INDEX] = indices
+	arrays[Mesh.ARRAY_CUSTOM0] = biomes
+	arrays[Mesh.ARRAY_CUSTOM1] = masques
 	var mesh := ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var format := (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, format)
 	return mesh
 
 

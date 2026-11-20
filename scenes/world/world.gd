@@ -13,6 +13,7 @@ const ABILITY_MANAGER_SCRIPT := preload("res://systems/abilities/ability_manager
 const PACT_SCRIPT := preload("res://systems/pacts/pact_manager.gd")
 const PROFILE_SCRIPT := preload("res://systems/profiles/profile_manager.gd")
 const SQUAD_SCRIPT := preload("res://systems/squads/squad_manager.gd")
+const QualiteGraphique := preload("res://systems/rendu/qualite_graphique.gd")
 
 @onready var players: Node3D = $Players
 @onready var spawn_points: Node3D = $SpawnPoints
@@ -24,6 +25,12 @@ var evac_ship: EvacShip
 
 func _ready() -> void:
 	_build_border()
+	var post := PostTraitement.new()
+	post.name = "PostTraitement"
+	add_child(post)
+	if not Net.is_dedicated_server:
+		_appliquer_qualite()
+		Events.reglages_graphiques_changes.connect(_appliquer_qualite)
 	var decor := MapDecor.new()
 	decor.name = "Decor"
 	$Map.add_child(decor)
@@ -122,3 +129,8 @@ func _build_border() -> void:
 		shape.shape = box
 		shape.position = side * (half + thick / 2.0) + Vector3.UP * (height / 2.0 - 10.0)
 		body.add_child(shape)
+
+
+## Applique la qualité graphique enregistrée (menu Échap) à l'environnement, au soleil et au post-traitement.
+func _appliquer_qualite() -> void:
+	QualiteGraphique.appliquer_monde(self, Config.SettingsStore.quality())

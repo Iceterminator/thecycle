@@ -9,12 +9,38 @@ const CELL_SIZE := 40.0   ## m : taille des cases de MultiMesh (culling et port�
 
 
 static var _scenes: Dictionary = {}
+static var _remplacements: Dictionary = {}  ## chemin .tres -> Material (ou null si absent)
+
+
+## Matériau de remplacement : <dossier du modèle>/<nom du matériau>.tres s'il existe
+## (ex. herbe, feuillage Poly Haven → shader de vent), sinon null.
+static func _override_for(model: String, mat: Material) -> Material:
+	if mat == null or mat.resource_name.is_empty():
+		return null
+	var path := model.get_base_dir() + "/" + mat.resource_name + ".tres"
+	if not _remplacements.has(path):
+		_remplacements[path] = load(path) as Material if ResourceLoader.exists(path) else null
+	return _remplacements[path]
 
 
 static func scene(model: String) -> PackedScene:
 	if not _scenes.has(model):
-		_scenes[model] = load(model if model.begins_with("res://") else DIR + model + ".gltf")
+		var packed := load(model if model.begins_with("res://") else DIR + model + ".gltf") as PackedScene
+		_apply_overrides(model, packed)
+		_scenes[model] = packed
 	return _scenes[model]
+
+
+## Remplace, dans les maillages du modèle (partagés par toutes ses copies), les matériaux qui ont un .tres.
+static func _apply_overrides(model: String, packed: PackedScene) -> void:
+	var source := packed.instantiate()
+	for node in source.find_children("*", "MeshInstance3D", true, false):
+		var mesh := (node as MeshInstance3D).mesh
+		for i in mesh.get_surface_count() if mesh else 0:
+			var remplace := _override_for(model, mesh.surface_get_material(i))
+			if remplace:
+				mesh.surface_set_material(i, remplace)
+	source.free()
 
 
 ## Arbre (collision = tronc) ou rocher (collision = forme convexe du modèle).
@@ -83,3 +109,9 @@ static func _local_xform(node: Node3D, root: Node3D) -> Transform3D:
 		xf = (n as Node3D).transform * xf
 		n = n.get_parent()
 	return xf
+
+
+## Coupe les ombres portées d'un modèle posé (forêt hors carte : loin des ombres, coûteuse avec le feuillage).
+static func no_shadow(inst: Node3D) -> void:
+	for node in inst.find_children("*", "GeometryInstance3D", true, false):
+		(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

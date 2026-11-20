@@ -3,6 +3,7 @@ extends Node
 ## Accès depuis n'importe quel script : Config.match_rules.match_duration, etc.
 
 const SettingsStore := preload("res://systems/settings/settings_store.gd")  ## touches et HUD du joueur
+const QualiteGraphique := preload("res://systems/rendu/qualite_graphique.gd")
 
 ## Touches déclarées en code (touche physique), en plus de celles de project.godot :
 ## l'éditeur Godot, s'il est ouvert, peut réécrire project.godot et les effacer.
@@ -26,6 +27,7 @@ func _ready() -> void:
 		key.physical_keycode = CODE_KEY_ACTIONS[action]
 		InputMap.action_add_event(action, key)
 	SettingsStore.load_and_apply()
+	QualiteGraphique.appliquer_global()
 
 ## Règles de jeu (équilibrage) : dans data/rules/, chargées ici.
 var economy: EconomyRules = preload("res://data/rules/economy.tres")

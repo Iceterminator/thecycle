@@ -15,3 +15,10 @@ assets/models/**/*.png
 
 # Packs d'assets bruts téléchargés (non versionnés)
 packs_telecharges/
+
+# Assets graphiques Poly Haven (lourds, non versionnés : à garder en local)
+assets/textures/
+assets/models/nature/arbres/
+assets/models/nature/herbe/
+assets/models/nature/plantes/
+assets/models/nature/rochers/

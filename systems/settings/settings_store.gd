@@ -46,6 +46,7 @@ const HUD_BLOCKS := {
 }
 
 static var _hud: Dictionary = {}  ## id -> bool (absent = affiché)
+static var _qualite: int = 0  ## qualité graphique (0 Bas, 1 Moyen, 2 Haut) ; Bas par défaut (GPU intégrés)
 static var _defaults: Dictionary = {}  ## action -> Array[InputEvent], copiés avant les réglages
 
 
@@ -62,6 +63,7 @@ static func load_and_apply() -> void:
 			_set_events(action, Codec.decode_all(file.get_value("touches", action, [])))
 	for id: String in HUD_BLOCKS:
 		_hud[id] = bool(file.get_value("hud", id, true))
+	_qualite = clampi(int(file.get_value("graphisme", "qualite", 0)), 0, 2)
 
 
 static func save() -> void:
@@ -71,6 +73,7 @@ static func save() -> void:
 			file.set_value("touches", action, Codec.encode_all(InputMap.action_get_events(action)))
 	for id: String in _hud:
 		file.set_value("hud", id, _hud[id])
+	file.set_value("graphisme", "qualite", _qualite)
 	file.save(PATH)
 
 
@@ -133,3 +136,13 @@ static func _same_as_default(action: StringName) -> bool:
 	return Codec.encode_all(InputMap.action_get_events(action)) == Codec.encode_all(_defaults.get(action, []))
 
 
+# --- Qualité graphique ---
+
+static func quality() -> int:
+	return _qualite
+
+
+static func set_quality(niveau: int) -> void:
+	_qualite = clampi(niveau, 0, 2)
+	save()
+	Events.reglages_graphiques_changes.emit()
