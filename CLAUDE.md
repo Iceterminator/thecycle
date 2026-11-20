@@ -81,7 +81,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
 | Tempête | `systems/storm/` | `data/storm/` | `docs/tempetes.md` |
 | Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
-| Niveaux (ce qui est construit : briefing seul au lobby, carte en partie, salle de test), salle de test (armurerie, monstres figés, galerie) | `systems/niveaux/niveaux.gd`, `systems/salle_test/`, choix du mode `systems/lobby/lobby_ui_mode.gd` | — | `docs/salle_test.md` |
+| Niveaux (ce qui est construit : briefing seul au lobby, carte en partie, salle de test), salle de test (armurerie, monstres figés, galerie) | `systems/niveaux/niveaux.gd`, `systems/salle_test/`, boutons PRÊT / SALLE DE TEST de l'onglet Décollage `systems/lobby/lobby_ui_launch.gd` | — | `docs/salle_test.md` |
 | Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |

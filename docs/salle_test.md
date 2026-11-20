@@ -15,8 +15,8 @@ Le serveur décide, chaque peer construit lui-même (rien de lourd sur le résea
 - Le relief (`MapTerrain.height_at`) est connu même sans carte construite ; `MapTerrain.construire()` / `detruire()` font la collision et le rendu.
 
 ## Choix du mode
-PRÊT au lobby ouvre la fenêtre « mode de jeu » (`systems/lobby/lobby_ui_mode.gd`) : partie normale
-(`request_lobby_ready`) ou salle de test (`Niveaux.request_salle_test`). Si le briefing est déjà ouvert, PRÊT rejoint la partie.
+Onglet Décollage du lobby (`systems/lobby/lobby_ui_launch.gd`) : PRÊT = partie normale (`request_lobby_ready`) ;
+à droite, SALLE DE TEST (`Niveaux.request_salle_test`, seulement au lobby).
 
 ## Salle de test (`systems/salle_test/`)
 Plateforme hors carte (`SalleTest.ORIGIN`), plan dans `salle_test_plan.gd` :

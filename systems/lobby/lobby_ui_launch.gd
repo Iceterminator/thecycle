@@ -2,6 +2,7 @@ extends RefCounted
 ## Onglet Décollage du lobby : horloge, joueurs prêts, résumé de l'équipement.
 
 const W := preload("res://systems/lobby/lobby_ui_widgets.gd")
+const Access := preload("res://systems/lobby/lobby_ui_access.gd")
 const ACCENT := UiStyle.ACCENT
 const GOLD := UiStyle.GOLD
 const DIM := UiStyle.DIM
@@ -26,10 +27,16 @@ func build(lobby: LobbyUi) -> Control:
 	left.add_child(clock)
 	ready_label = W.label("", 20, ACCENT)
 	left.add_child(ready_label)
+	var boutons := HBoxContainer.new()
+	boutons.add_theme_constant_override("separation", 16)
+	left.add_child(boutons)
 	ready_button = W.ready_toggle(Vector2(320, 64), 28, func(on: bool) -> void: lobby._set_ready(on, true))
-	ready_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	left.add_child(ready_button)
-	left.add_child(W.label("PRÊT : vous embarquez dans la salle de briefing. La partie part %d s après le premier prêt, ou plus tôt au vote." % roundi(Config.match_rules.briefing_time), 14, DIM))
+	boutons.add_child(ready_button)
+	var test := W.big_button("SALLE DE TEST", false, func() -> void: Access.salle_test(lobby))
+	test.custom_minimum_size = Vector2(260, 64)
+	boutons.add_child(test)
+	left.add_child(W.label("PRÊT : partie normale, vous embarquez dans la salle de briefing. La partie part %d s après le premier prêt, ou plus tôt au vote." % roundi(Config.match_rules.briefing_time), 14, DIM))
+	left.add_child(W.label("SALLE DE TEST : armes, gadgets et capacités au sol, monstres figés, galerie du décor. Tout le serveur y part.", 14, DIM))
 	left.add_child(HSeparator.new())
 	left.add_child(W.label("PROSPECTEURS", 16, DIM))
 	players_box = VBoxContainer.new()

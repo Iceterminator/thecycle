@@ -9,7 +9,6 @@ const DIM := UiStyle.DIM
 var nav: Array[Button] = []
 var squad_chip: Label
 var countdown: Label
-var ready_button: Button
 var status: Label
 
 
@@ -59,9 +58,6 @@ func build(lobby: LobbyUi) -> Control:
 	countdown.custom_minimum_size = Vector2(150, 0)
 	countdown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	row.add_child(countdown)
-	ready_button = W.ready_toggle(Vector2(150, 44), 20, func(on: bool) -> void: lobby._set_ready(on, true))
-	ready_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(ready_button)
 	return bar
 
 
