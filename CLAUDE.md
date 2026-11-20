@@ -55,6 +55,8 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --path . -s tools/render_weapon_icons.gd
 # Scène « tenue en main » (repères Poignee / Bouche) pour un nouveau modèle d'arme
 <godot> --headless --path . -s tools/make_held_scenes.gd
+# Export Windows (export_presets.cfg ; modèles d'export 4.7.2 installés) -> export/TheCycle/ (+ LISEZMOI.txt à garder)
+<godot> --headless --path . --export-release "Windows Desktop" export/TheCycle/TheCycle.exe
 ```
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
 Tests réseau automatisés (13 tests, ~5 min ; port 7777 : un seul lancement à la fois) :
