@@ -2,6 +2,8 @@ extends Node
 ## Réglages techniques globaux. Les règles de jeu (prix, Fame, timings, stats) sont dans data/rules/.
 ## Accès depuis n'importe quel script : Config.match_rules.match_duration, etc.
 
+const SettingsStore := preload("res://systems/settings/settings_store.gd")  ## touches et HUD du joueur
+
 ## Touches déclarées en code (touche physique), en plus de celles de project.godot :
 ## l'éditeur Godot, s'il est ouvert, peut réécrire project.godot et les effacer.
 const CODE_KEY_ACTIONS := {
@@ -23,6 +25,7 @@ func _ready() -> void:
 		var key := InputEventKey.new()
 		key.physical_keycode = CODE_KEY_ACTIONS[action]
 		InputMap.action_add_event(action, key)
+	SettingsStore.load_and_apply()
 
 ## Règles de jeu (équilibrage) : dans data/rules/, chargées ici.
 var economy: EconomyRules = preload("res://data/rules/economy.tres")

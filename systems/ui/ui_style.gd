@@ -37,6 +37,12 @@ static func font(weight: String = "Medium") -> Font:
 	return load(path) as Font if ResourceLoader.exists(path) else ThemeDB.fallback_font
 
 
+## Police non condensée (Barlow) : liste des quêtes du HUD.
+static func text_font(weight: String = "Medium") -> Font:
+	var path := "res://assets/fonts/barlow/Barlow-%s.ttf" % weight
+	return load(path) as Font if ResourceLoader.exists(path) else font(weight)
+
+
 ## Police par défaut de toute l'interface (y compris les Label créés sans thème).
 static func apply_fonts() -> void:
 	ThemeDB.fallback_font = font("Medium")

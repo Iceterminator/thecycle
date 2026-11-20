@@ -27,6 +27,9 @@ func _ready() -> void:
 	var decor := MapDecor.new()
 	decor.name = "Decor"
 	$Map.add_child(decor)
+	var briefing_room := BriefingRoom.new()
+	briefing_room.name = "BriefingRoom"
+	add_child(briefing_room)
 	evac_ship = EVAC_SCRIPT.new()
 	evac_ship.name = "EvacShip"
 	evac_ship.players_root = players

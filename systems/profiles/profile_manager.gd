@@ -86,6 +86,10 @@ static func shop_of(peer: int) -> Dictionary:
 	var shop := PublicReader.shop_of(_public_of_current(), peer)
 	return shop if not shop.is_empty() else default_shop()
 
+## Apparence choisie dans le lobby ("" = automatique, voir PlayerAvatar.model_scene).
+static func appearance_of(peer: int) -> String:
+	return PublicReader.appearance(_public_of_current(), peer)
+
 static func _public_of_current() -> Dictionary:
 	return _current.public if _current else {}
 

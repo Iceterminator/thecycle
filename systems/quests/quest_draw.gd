@@ -67,7 +67,9 @@ static func draw(draws: Array[QuestDrawData], quest_points: Array[Vector3],
 		if placed == 0:
 			continue
 		parts.append("%s ×%d" % [d.display_name, placed])
-		list.append({"name": d.display_name, "count": placed, "later": d.spawn_delay > 0.0 or d.spawns_with_storm})
+		list.append({"name": d.display_name, "count": placed, "later": d.spawn_delay > 0.0 or d.spawns_with_storm,
+				"icon": d.resource_path.get_file().get_basename(), "color": d.variants[0].get("color"),
+				"objective": String(d.objective_id)})
 		if d.objective_id != &"" and not objectives.has(String(d.objective_id)):
 			objectives.append(String(d.objective_id))
 		if d.objective_id == LUMICEP_OBJECTIVE:

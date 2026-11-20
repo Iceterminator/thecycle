@@ -7,6 +7,7 @@ const HudWidgets := preload("res://systems/combat/hud_widgets.gd")
 static func build_center(hud: CombatHud) -> void:
 	var center := CenterContainer.new()
 	HudWidgets.add_full_rect(hud, center)
+	HudWidgets.tag_block(center, "viseur")
 	hud._crosshair = HudWidgets.make_label("+", 26)
 	center.add_child(hud._crosshair)
 	hud._hitmarker = HudWidgets.make_label("×", 32)
@@ -38,6 +39,7 @@ static func build_top_left(hud: CombatHud) -> void:
 	disc.size = Vector2(CombatHud.MAP_SIZE, CombatHud.MAP_SIZE)
 	disc.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0.05, 0.08, 0.08, 0.9), Color(0, 0, 0, 0), 0))
 	hud.add_child(disc)
+	HudWidgets.tag_block(disc, "minimap")
 	hud._minimap = MapView.new()
 	hud._minimap.player = hud._player
 	hud._minimap.world = hud._player.get_parent().get_parent() as Node3D
@@ -54,12 +56,14 @@ static func build_top_left(hud: CombatHud) -> void:
 	ring.size = disc.size
 	ring.add_theme_stylebox_override("panel", HudWidgets.round_style(Color(0, 0, 0, 0), CombatHud.ACCENT.darkened(0.2), 3))
 	hud.add_child(ring)
+	HudWidgets.tag_block(ring, "minimap")
 
 	var info := HBoxContainer.new()
 	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	info.add_theme_constant_override("separation", 14)
 	info.position = Vector2(36 + CombatHud.MAP_SIZE, 30)
 	hud.add_child(info)
+	HudWidgets.tag_block(info, "rang")
 	info.add_child(HudWidgets.chip("TAB"))
 	hud._rank_label = HudWidgets.make_label("1er", 30)
 	info.add_child(hud._rank_label)
@@ -69,16 +73,19 @@ static func build_top_left(hud: CombatHud) -> void:
 	var fps_counter := FpsCounter.new()
 	fps_counter.position = Vector2(36 + CombatHud.MAP_SIZE, 74)
 	hud.add_child(fps_counter)
+	HudWidgets.tag_block(fps_counter, "fps")
 
-	hud._objectives_box = HudWidgets.vbox(6)
+	hud._objectives_box = HudWidgets.vbox(8)
 	hud._objectives_box.position = Vector2(24, 36 + CombatHud.MAP_SIZE)
 	hud.add_child(hud._objectives_box)
+	HudWidgets.tag_block(hud._objectives_box, "objectifs")
 
 
 
 static func build_top_center(hud: CombatHud) -> void:
 	var box := HudWidgets.vbox(0)
 	hud.add_child(box)
+	HudWidgets.tag_block(box, "horloge")
 	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	box.offset_top = 12
@@ -104,6 +111,7 @@ static func build_top_right(hud: CombatHud) -> void:
 	var box := HudWidgets.vbox(6)
 	box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	hud.add_child(box)
+	HudWidgets.tag_block(box, "classement")
 	box.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	box.offset_right = -28

@@ -16,6 +16,13 @@ static func draw_markers(v: MapView) -> void:
 		var p := v.to_map(pos)
 		var color: Color = info.get("color", Color.WHITE)
 		var title: String = String(info.get("text", "")).get_slice("\n", 0)
+		var icon: Texture2D = info.get("icon")
+		if icon:
+			# Quête : son logo, teinté à sa couleur, à la place du nom.
+			var half := Vector2(11, 11) * clampf(v._scale, 1.0, 1.6)
+			v.draw_texture_rect(icon, Rect2(p - half - Vector2(1, 1), half * 2.0 + Vector2(2, 2)), false, Color(0, 0, 0, 0.8))
+			v.draw_texture_rect(icon, Rect2(p - half, half * 2.0), false, color)
+			continue
 		match kind:
 			"evac":
 				v.draw_arc(p, 12.0 * v._scale, 0, TAU, 32, color, 2.5)

@@ -70,4 +70,10 @@ static func check_request(peer: int, loadout: Dictionary, stored_kit_mods: Dicti
 		"weapon_mods": weapon_mods,
 		"start_weapon": start,
 		"shop": shop,
+		"appearance": appearance_ok(String(loadout.get("appearance", ""))),
 	}}
+
+
+## Apparence valable (id d'un fichier de data/appearances/), sinon "" (choix automatique).
+static func appearance_ok(id: String) -> String:
+	return id if AppearanceData.get_by_id(id) != null else ""

@@ -50,14 +50,19 @@ static func refresh_quests(o: MapOverlay) -> void:
 		var tier := track.tiers_reached(pts)
 		var previous := track.threshold(tier - 1) if tier > 0 else 0
 		var next := track.threshold(tier)
-		var text := "%s  %d / %d  → +%d" % [track.display_name, pts, next, track.reward(tier)]
+		var text := "%s%d / %d  → +%d" % ["" if track.icon else track.display_name + "  ", pts, next, track.reward(tier)]
 		var rate: float = rates.get(track.resource_path, 0.0)
 		if rate > 0.0:
 			text += "  (+%.1f/s)" % rate
 		# Couleur de l'objectif, éclaircie pour rester lisible sur le fond.
 		var label := o._label(text, 16)
 		label.add_theme_color_override("font_color", track.color.lightened(0.35))
-		o._quests_box.add_child(label)
+		# Logo de la quête à la place du nom.
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		row.add_child(QuestIcons.rect(track.icon, track.color.lightened(0.2), 30))
+		row.add_child(label)
+		o._quests_box.add_child(row)
 		var bar := ProgressBar.new()
 		bar.show_percentage = false
 		bar.custom_minimum_size = Vector2(0, 6)

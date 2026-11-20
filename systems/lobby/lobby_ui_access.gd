@@ -74,9 +74,12 @@ static func show_page(ui: LobbyUi, page: int) -> void:
 	ui._refresh()
 
 
-## Entrée / sortie de la phase LOBBY : visibilité, souris, remise à zéro de l'état « prêt ».
+## Lobby affiché au LOBBY, et pendant le BRIEFING pour ceux qui ne sont pas encore dans la salle
+## (« prêt » = embarquer). Souris libre dans le lobby ; « prêt » remis à zéro en y revenant.
 static func on_clock(ui: LobbyUi, phase: int) -> void:
-	var lobby := phase == MatchManager.Phase.LOBBY
+	ui._phase = phase
+	var in_room: bool = ui._ready_players.get(ui._me(), false)
+	var lobby := phase == MatchManager.Phase.LOBBY or (phase == MatchManager.Phase.BRIEFING and not in_room)
 	if lobby == ui.visible:
 		return
 	ui.visible = lobby

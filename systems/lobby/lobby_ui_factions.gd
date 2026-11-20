@@ -1,10 +1,12 @@
 extends RefCounted
-## Onglet Factions du lobby : faction de prédilection, réputation et déblocages par niveau.
+## Onglet Factions du lobby : apparence, faction de prédilection, réputation et déblocages par niveau.
 
 const W := preload("res://systems/lobby/lobby_ui_widgets.gd")
+const AppearancePicker := preload("res://systems/lobby/lobby_ui_appearance.gd")
 const Catalog := preload("res://systems/lobby/lobby_ui_catalog.gd")
 const DIM := UiStyle.DIM
 
+var appearance := AppearancePicker.new()
 var faction_cards: Array[Dictionary] = []   # { id, card }
 var progress_columns: Array[Dictionary] = []
 
@@ -16,6 +18,7 @@ func build(lobby: LobbyUi) -> Control:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", 10)
 	scroll.add_child(box)
+	box.add_child(appearance.build(lobby))
 	box.add_child(W.label("FACTION DE PRÉDILECTION — +%d %% de réputation avec elle" % roundi(Config.economy.preferred_faction_bonus * 100.0), 16, DIM))
 	var factions := HBoxContainer.new()
 	factions.add_theme_constant_override("separation", 10)
@@ -97,6 +100,7 @@ func _build_column(columns: HBoxContainer, f: FactionData, faction_unlocks: Dict
 
 
 func refresh(lobby: LobbyUi) -> void:
+	appearance.refresh(lobby)
 	for e in faction_cards:
 		(e["card"] as UiCard).set_state(int(e["id"]) == lobby._preferred, false)
 	for col in progress_columns:

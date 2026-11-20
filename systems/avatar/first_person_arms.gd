@@ -1,7 +1,7 @@
 class_name FirstPersonArms
 extends Node3D
 ## Bras du joueur local, vus à la première personne : son propre personnage
-## (PlayerAvatar.load_model) en pose « arme en main », la caméra dans sa tête. Vue de
+## (PlayerAvatar.model_scene) en pose « arme en main », la caméra dans sa tête. Vue de
 ## l'intérieur, la tête n'est pas dessinée (faces arrière) : on voit les bras tendus.
 ## Enfant de WeaponModel : le corps suit le recul et le balancement de l'arme ; la tête
 ## reste calée sur la caméra et l'arme est posée au centre de la paume droite (hand_local).
@@ -20,10 +20,19 @@ var _head := -1
 var _anim: AnimationPlayer
 var _reloading := false
 var _left_hand: LeftHandIk
+var _player: Player
+var _model: Node3D
+var _model_path := ""
+var _check_left := 0.0
 
 
 func setup(p: Player) -> void:
-	var model := PlayerAvatar.load_model(p)
+	_player = p
+	var scene := PlayerAvatar.model_scene(p)
+	_model_path = scene.resource_path
+	var model := scene.instantiate() as Node3D
+	_model = model
+	_reloading = false
 	add_child(model)
 	model.rotation.y = PI  # le glTF regarde vers +Z, Godot vers -Z
 	var top := 0.0
@@ -38,10 +47,22 @@ func setup(p: Player) -> void:
 	_head = _skeleton.find_bone(HEAD_BONE)
 	_anim = AnimationPlayer.new()
 	model.add_child(_anim)
-	_anim.add_animation_library("", PlayerAvatar.animation_library())
+	_anim.add_animation_library("", PlayerAvatar.animation_library_for(_model_path, _skeleton))
 	_anim.play(AIM)
 	_left_hand = LeftHandIk.new()
 	_left_hand.setup(_skeleton)
+
+
+## Apparence changée dans le lobby : on refait les bras avec le nouveau modèle.
+func _process(delta: float) -> void:
+	_check_left -= delta
+	if _check_left > 0.0 or _player == null:
+		return
+	_check_left = PlayerAvatar.APPEARANCE_CHECK
+	if PlayerAvatar.model_scene(_player).resource_path != _model_path:
+		remove_child(_model)
+		_model.queue_free()
+		setup(_player)
 
 
 ## Main gauche sur `target` (position globale) ; null = pose d'animation.

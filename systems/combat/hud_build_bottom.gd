@@ -7,6 +7,7 @@ const HudWidgets := preload("res://systems/combat/hud_widgets.gd")
 static func build_bottom_left(hud: CombatHud) -> void:
 	var box := HudWidgets.vbox(6)
 	hud.add_child(box)
+	HudWidgets.tag_block(box, "infos")
 	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	box.grow_horizontal = Control.GROW_DIRECTION_END
 	box.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -37,6 +38,7 @@ static func build_bottom_left(hud: CombatHud) -> void:
 static func build_bottom_center(hud: CombatHud) -> void:
 	var box := HudWidgets.vbox(4)
 	hud.add_child(box)
+	HudWidgets.tag_block(box, "barres")
 	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	box.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -125,6 +127,7 @@ static func ability_box(hud: CombatHud, key: String) -> Control:
 static func build_bottom_right(hud: CombatHud) -> void:
 	var box := HudWidgets.vbox(4)
 	hud.add_child(box)
+	HudWidgets.tag_block(box, "arme")
 	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	box.grow_vertical = Control.GROW_DIRECTION_BEGIN

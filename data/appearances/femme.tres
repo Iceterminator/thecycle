@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="AppearanceData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/appearance_data.gd" id="1_appearance"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/Superhero_Female_FullBody.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_appearance")
+display_name = "Femme"
+model = ExtResource("2_model")
+order = 2

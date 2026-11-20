@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="ObjectiveTrack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
 
 [ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/biomass_collector.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_t")
 id = &"biomasse"
 display_name = "Biomasse"
 color = Color(0.95, 0.5, 0.15, 1)
+icon = ExtResource("2_icon")
 thresholds = PackedInt32Array(50, 120, 220, 350)
 rewards = PackedInt32Array(10, 15, 20, 25)
 faction = 3

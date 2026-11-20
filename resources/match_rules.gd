@@ -39,7 +39,7 @@ extends Resource
 @export var quest_spread_new_quadrant_bonus: float = 60.0  ## répartition : bonus si le quart de carte n'a pas encore ce type
 @export var quest_spread_opposite_bonus: float = 60.0  ## répartition : bonus pour le quart opposé au 1er exemplaire du type
 @export var quest_spread_load_penalty: float = 25.0  ## répartition : malus par quête déjà présente dans le quart
-@export var drop_screen_time: float = 15.0  ## largage : écran carte + quêtes avant la descente (s)
+@export var briefing_time: float = 60.0  ## salle de briefing : durée max après le premier « prêt » (s)
 @export var drop_edge_min: float = 15.0  ## point de largage : distance min aux murs de la carte (m)
 @export var drop_edge_max: float = 30.0  ## point de largage : distance max aux murs de la carte (m)
 @export var drop_camp_distance: float = 20.0  ## point de largage : distance min à un camp de monstres (m)

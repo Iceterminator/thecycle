@@ -76,3 +76,26 @@ static func palm_global(skeleton: Skeleton3D, bones: PackedInt32Array) -> Vector
 			center += normal.normalized() * PlayerAvatar.PALM_DEPTH
 	return center
 
+
+
+## Modèle d'un joueur : apparence de son profil, sinon un de `fallback` selon son id.
+static func model_scene(p: Player, fallback: Array) -> PackedScene:
+	var chosen := AppearanceData.get_by_id(ProfileManager.appearance_of(p.get_peer_id()))
+	if chosen and chosen.model:
+		return chosen.model
+	return load(fallback[absi(p.name.to_int()) % fallback.size()]) as PackedScene
+
+
+static var _library: AnimationLibrary
+
+## Bibliothèque d'animations `path` (chargée une fois), animations `looped` en boucle.
+static func animation_library(path: String, looped: Array) -> AnimationLibrary:
+	if _library == null:
+		var source := (load(path) as PackedScene).instantiate()
+		var ap := source.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+		_library = ap.get_animation_library("")
+		for anim_name: String in looped:
+			if _library.has_animation(anim_name):
+				_library.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+		source.free()
+	return _library

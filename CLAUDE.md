@@ -35,7 +35,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 - `resources/` : scripts des types de données (`WeaponData`, `KitData`, `MonsterData`, règles…)
 - `data/` : équilibrage en `.tres` — `rules/` (prix, Fame, timings, déplacement, départ),
   `weapons/`, `kits/`, `abilities/`, `items/`, `monsters/`, `camps/`, `quests/`, `contracts/`,
-  `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/` ; `reference/` = chiffres du jeu d'origine
+  `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/`, `biomes/` ; `reference/` = chiffres du jeu d'origine
 - `assets/` : modèles (Quaternius, CC0), polices, icônes ; `tools/` : scripts d'outillage
 - `docs/` : design, fiches par mécanique, captures
 - `tests/` : tests réseau automatisés (hôte + client headless), lancés par `tools/run_tests.sh`
@@ -57,7 +57,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --headless --path . -s tools/make_held_scenes.gd
 ```
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
-Tests réseau automatisés (9 tests, ~4 min ; port 7777 : un seul lancement à la fois) :
+Tests réseau automatisés (11 tests, ~4 min ; port 7777 : un seul lancement à la fois) :
 ```
 bash tools/run_tests.sh            # tous ; OK / ÉCHEC par test, journaux dans .test_logs/
 bash tools/run_tests.sh 03 09      # seulement les tests dont le nom contient 03 ou 09
@@ -72,7 +72,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Joueur, déplacement | `scenes/player/`, `systems/kits/kit_movement.gd` | `data/rules/combat.tres` | DESIGN §1 |
 | Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`) | `data/weapons/`, `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
 | HUD | `systems/combat/hud.gd`, `systems/ui/` | — | — |
-| Personnages animés | `systems/avatar/` | `assets/models/characters/` | — |
+| Personnages animés, apparences | `systems/avatar/` (`avatar_retarget.gd` : animations adaptées aux proportions de chaque modèle), choix dans `systems/lobby/lobby_ui_appearance.gd` | `assets/models/characters/` (même squelette que les Superhero), `data/appearances/` | — |
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
 | Kits | `systems/kits/` | `data/kits/` | DESIGN §12 |
 | Capacités, gadgets | `systems/abilities/` | `data/abilities/` | DESIGN §11 |
@@ -80,10 +80,12 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Quêtes, contrats (tirage) | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
 | Tempête | `systems/storm/` | `data/storm/` | `docs/tempetes.md` |
-| Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule, écran de largage) | `data/rules/match.tres` | `docs/extraction.md` |
+| Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
+| Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
-| Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` | `assets/models/nature/` | — |
+| Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` (`map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
+| Menu Échap (touches, blocs du HUD) | `systems/settings/` (`settings_store.gd` : `user://reglages.cfg`, appliqué par `Config`) ; blocs marqués par `HudWidgets.tag_block` | — | — |
 | Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |
 | Crafting | non implémenté | — | `docs/crafting.md` |
 | Tests réseau | `tests/` (`net_test.gd`, `net_test_aides.gd`, `runner.gd`, `test_NN_*.gd`), `tools/run_tests.sh` | — | ci-dessus (Commandes) |

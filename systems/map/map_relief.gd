@@ -2,12 +2,12 @@ class_name MapRelief
 extends RefCounted
 ## Texture de relief des cartes (écran de largage, Tab, minimap), générée une seule fois par
 ## processus à partir de MapTerrain.height_at : teinte selon l'altitude, ombrage (lumière
-## nord-ouest) et courbes de niveau légères. Jamais construite en serveur dédié (aucune carte dessinée).
+## nord-ouest) et courbes de niveau légères ; couleur de chaque biome (MapBiomes), mares en bleu.
+## Jamais construite en serveur dédié (aucune carte dessinée).
 
 const SIZE := 256
 const CONTOUR_STEP := 2.0  ## équidistance des courbes de niveau (m)
-const LOW_COLOR := Color(0.12, 0.17, 0.13)
-const HIGH_COLOR := Color(0.5, 0.5, 0.38)
+const WATER_COLOR := Color(0.14, 0.27, 0.3)  ## mares du marais
 const LIGHT := Vector3(-0.6, 0.8, -0.6)  ## vers la lumière (nord-ouest, en haut)
 const SHADE_GAIN := 1.6
 const CONTOUR_DARKEN := 0.88
@@ -45,7 +45,10 @@ static func _build() -> Image:
 			var gx := (heights[k + 1] - heights[k - 1]) / (2.0 * cell)
 			var gz := (heights[k + stride] - heights[k - stride]) / (2.0 * cell)
 			var shade := Vector3(-gx, 1.0, -gz).normalized().dot(light)
-			var color := LOW_COLOR.lerp(HIGH_COLOR, inverse_lerp(low, high, h))
+			var wx := -half + (i + 0.5) * cell
+			var wz := -half + (j + 0.5) * cell
+			var biome_color := MapBiomes.blend_color(MapBiomes.weights_at(wx, wz), func(b: BiomeData) -> Color: return b.map_color)
+			var color := WATER_COLOR if MapBiomes.is_water(wx, wz, h) else biome_color * lerpf(0.8, 1.4, inverse_lerp(low, high, h))
 			color = color * clampf(1.0 + (shade - light.y) * SHADE_GAIN, 0.4, 1.5)
 			var level := floori(h / CONTOUR_STEP)
 			if floori(heights[k + 1] / CONTOUR_STEP) != level or floori(heights[k + stride] / CONTOUR_STEP) != level:

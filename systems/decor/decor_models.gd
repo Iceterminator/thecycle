@@ -1,26 +1,19 @@
 class_name DecorModels
 extends RefCounted
-## Modèles du décor (Stylized Nature MegaKit, Quaternius, CC0) : listes par catégorie,
+## Modèles du décor (packs CC0 : Quaternius, Asset Quest, Kenney ; listes par biome dans data/biomes/) :
 ## chargement mis en cache, collisions des arbres / rochers et MultiMesh des petites plantes.
 ## Utilisé par MapDecor (qui décide où les poser).
 
 const DIR := "res://assets/models/nature/"
 const CELL_SIZE := 40.0   ## m : taille des cases de MultiMesh (culling et portée de visibilité)
 
-const TREES := ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5",
-		"Pine_1", "Pine_2", "Pine_3", "Pine_4", "Pine_5", "DeadTree_1", "DeadTree_2", "DeadTree_3"]
-const BIG_TREES := ["TwistedTree_1", "TwistedTree_2"]
-const ROCKS := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
-const BUSHES := ["Bush_Common", "Bush_Common_Flowers", "Fern_1", "Plant_1_Big", "Flower_3_Group"]
-const GRASS := ["Grass_Common_Short", "Grass_Common_Tall", "Grass_Wispy_Tall"]
-const SMALL := ["Mushroom_Common", "Pebble_Round_1", "Pebble_Round_2"]
 
 static var _scenes: Dictionary = {}
 
 
 static func scene(model: String) -> PackedScene:
 	if not _scenes.has(model):
-		_scenes[model] = load(DIR + model + ".gltf")
+		_scenes[model] = load(model if model.begins_with("res://") else DIR + model + ".gltf")
 	return _scenes[model]
 
 

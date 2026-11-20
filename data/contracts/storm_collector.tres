@@ -8,7 +8,7 @@
 script = ExtResource("1_c")
 id = &"storm_collector"
 display_name = "Collecteur d'éclats d'orage"
-color = Color(0.75, 0.45, 1, 1)
+color = Color(0.88, 0.36, 1, 1)
 points = 30
 resource_item = ExtResource("2_item")
 track = ExtResource("3_track")

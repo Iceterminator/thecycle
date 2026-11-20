@@ -50,3 +50,14 @@ func advance(to: float) -> void:
 		Events.crystal_upgrade_requested.emit()
 	if elapsed >= Config.match_rules.match_duration:
 		_m._cycle.end_match()
+
+
+## Menu admin : on ne peut qu'avancer (revenir en arrière défairait l'évac).
+func set_time(seconds: float) -> void:
+	var phase := _m.phase
+	if phase == MatchManager.Phase.ENDED or phase == MatchManager.Phase.LOBBY or phase == MatchManager.Phase.BRIEFING \
+			or not is_finite(seconds) or seconds <= _m.elapsed:
+		return
+	advance(seconds)
+	if _m.phase != MatchManager.Phase.ENDED:
+		_m._broadcast_clock()

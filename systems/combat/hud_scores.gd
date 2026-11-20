@@ -2,6 +2,7 @@ extends RefCounted
 ## Mises à jour du HUD : classement, objectifs de Fame, escouade, textes flottants des quêtes.
 
 const HudWidgets := preload("res://systems/combat/hud_widgets.gd")
+const HudQuests := preload("res://systems/combat/hud_quests.gd")
 
 
 static func update_leaders(hud: CombatHud) -> void:
@@ -26,46 +27,7 @@ static func update_leaders(hud: CombatHud) -> void:
 
 static func on_score_changed(hud: CombatHud) -> void:
 	hud._fame_label.text = "★ %d" % hud._player.score.rank_points
-	# Une ligne par objectif commencé : progression vers le prochain palier.
-	for child in hud._objectives_box.get_children():
-		child.queue_free()
-	var objectives: Dictionary = hud._player.score.objective_points
-	var rates: Dictionary = hud._player.score.objective_rates
-	var paths: Array = objectives.keys()
-	for path: String in rates:
-		if not paths.has(path):
-			paths.append(path)
-	for path: String in paths:
-		var track := load(path) as ObjectiveTrack
-		if track == null:
-			continue
-		var pts: int = objectives.get(path, 0)
-		var tier := track.tiers_reached(pts)
-		var goal := track.threshold(tier)
-		var row := HBoxContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_theme_constant_override("separation", 8)
-		var dot := ColorRect.new()
-		dot.color = track.color
-		dot.custom_minimum_size = Vector2(10, 10)
-		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(dot)
-		var col := VBoxContainer.new()
-		col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		col.add_theme_constant_override("separation", 1)
-		row.add_child(col)
-		var rate: float = rates.get(path, 0.0)
-		var line := HudWidgets.make_label("%s   %d / %d   ★ +%d%s" % [track.display_name, pts, goal, track.reward(tier),
-				"   (+%.1f/s)" % rate if rate > 0.0 else ""], 14)
-		line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		col.add_child(line)
-		var bar := HudWidgets.make_bar(track.color, maxf(goal, 1.0))
-		bar.custom_minimum_size = Vector2(190, 4)
-		bar.value = pts
-		col.add_child(bar)
-		hud._objectives_box.add_child(row)
-
+	HudQuests.rebuild(hud)
 
 
 static func update_squad(hud: CombatHud) -> void:

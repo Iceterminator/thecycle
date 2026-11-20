@@ -13,6 +13,8 @@ extends Node3D
 ## rien de plus ne passe par le réseau, sauf le tir qui réutilise l'effet de tir existant.
 
 const PlayerAvatarTools := preload("res://systems/avatar/player_avatar_tools.gd")
+const Retarget := preload("res://systems/avatar/avatar_retarget.gd")
+const APPEARANCE_CHECK := 0.5  ## s entre deux vérifications de l'apparence choisie
 
 const MODELS := [
 	"res://assets/models/characters/Superhero_Male_FullBody.gltf",
@@ -35,8 +37,6 @@ const BLEND := 0.2             ## fondu entre deux animations des jambes (s)
 const MOVE_MIN := 0.4          ## m/s : en dessous, le joueur est immobile
 const SPRINT_MIN := 7.5        ## m/s : au-dessus, il sprinte
 
-static var _library: AnimationLibrary
-
 var player: Player
 var _body: MeshInstance3D
 var _tree: AnimationTree
@@ -47,13 +47,28 @@ var _meshes: Array[MeshInstance3D] = []
 var _last_pos: Vector3
 var _speed := 0.0
 var _loco := ""
+var _model: Node3D
+var _model_path := ""
+var _check_left := 0.0
 
 
-## Remplace la capsule `body` par le personnage (modèle choisi d'après l'id du joueur).
+## Remplace la capsule `body` par le personnage (apparence du profil, sinon d'après l'id du joueur).
 func setup(owner_player: Player, body: MeshInstance3D) -> void:
 	player = owner_player
 	_body = body
-	var model := load_model(player)
+	_build_model()
+	body.mesh = null
+	_last_pos = player.global_position
+
+
+## Construit le modèle, son squelette et ses animations ; refait si l'apparence change.
+func _build_model() -> void:
+	var scene := model_scene(player)
+	_model_path = scene.resource_path
+	var model := scene.instantiate() as Node3D
+	_model = model
+	_meshes.clear()
+	_loco = ""
 	add_child(model)
 	model.rotation.y = PI  # le glTF regarde vers +Z, Godot vers -Z
 	var top := 0.0
@@ -62,42 +77,46 @@ func setup(owner_player: Player, body: MeshInstance3D) -> void:
 		_meshes.append(mi)
 		top = maxf(top, mi.get_aabb().end.y)
 	scale = Vector3.ONE * (BODY_HEIGHT / top if top > 0.0 else 1.0)
-	position.y = -body.position.y  # le BodyMesh est centré sur la capsule : pieds au sol
+	position.y = -_body.position.y  # le BodyMesh est centré sur la capsule : pieds au sol
 	_skeleton = model.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
 	_palm = palm_bones(_skeleton)
 	_left_hand = LeftHandIk.new()
 	_left_hand.setup(_skeleton)
 	var anim := AnimationPlayer.new()
 	model.add_child(anim)  # root_node ".." = le modèle : pistes « Armature/Skeleton3D:os »
-	anim.add_animation_library("", animation_library())
+	anim.add_animation_library("", animation_library_for(_model_path, _skeleton))
 	_tree = AnimationTree.new()
 	model.add_child(_tree)
 	_tree.anim_player = _tree.get_path_to(anim)
-	_tree.tree_root = _build_tree(model.get_path_to(_skeleton))
+	_tree.tree_root = PlayerAvatarTools.build_tree(_skeleton, model.get_path_to(_skeleton))
 	_tree.active = true
-	body.mesh = null
-	_last_pos = player.global_position
 
 
-## Personnage du joueur (homme ou femme selon son id), le même partout.
-static func load_model(p: Player) -> Node3D:
-	return (load(MODELS[absi(p.name.to_int()) % MODELS.size()]) as PackedScene).instantiate() as Node3D
+## Apparence changée dans le lobby : on reconstruit le modèle (vérifié toutes les APPEARANCE_CHECK s).
+func _check_appearance(delta: float) -> void:
+	_check_left -= delta
+	if _check_left > 0.0:
+		return
+	_check_left = APPEARANCE_CHECK
+	if model_scene(player).resource_path != _model_path:
+		remove_child(_model)
+		_model.queue_free()
+		_build_model()
 
 
+## Modèle du joueur : apparence choisie dans le lobby, sinon homme ou femme selon son id.
+static func model_scene(p: Player) -> PackedScene:
+	return PlayerAvatarTools.model_scene(p, MODELS)
+
+
+## Animations adaptées aux proportions du squelette du modèle (voir avatar_retarget.gd).
+static func animation_library_for(model_path: String, skeleton: Skeleton3D) -> AnimationLibrary:
+	return Retarget.library_for(model_path, skeleton, animation_library())
+
+
+## Animations de la bibliothèque Quaternius (boucles réglées), chargées une fois.
 static func animation_library() -> AnimationLibrary:
-	if _library == null:
-		var source := (load(ANIMS) as PackedScene).instantiate()
-		var ap := source.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
-		_library = ap.get_animation_library("")
-		for anim_name: String in LOOPED:
-			if _library.has_animation(anim_name):
-				_library.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
-		source.free()
-	return _library
-
-
-func _build_tree(skeleton_path: NodePath) -> AnimationNodeBlendTree:
-	return PlayerAvatarTools.build_tree(_skeleton, skeleton_path)
+	return PlayerAvatarTools.animation_library(ANIMS, LOOPED)
 
 
 ## Un coup de feu de ce joueur (appelé sur tous les peers par l'effet de tir).
@@ -129,6 +148,7 @@ static func palm_global(skeleton: Skeleton3D, bones: PackedInt32Array) -> Vector
 
 
 func _process(delta: float) -> void:
+	_check_appearance(delta)
 	var pos := player.global_position
 	var moved := pos - _last_pos
 	_last_pos = pos

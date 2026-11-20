@@ -6,7 +6,7 @@ Code : `systems/profiles/profile_manager.gd`, `systems/lobby/` · Données : `da
 - 3 factions (nos noms + équivalent d'origine en référence).
 - Réputation = Fame des contrats de la faction, +50 % pour la faction de prédilection ; 10 niveaux.
 - Déblocages par niveau : kits, capacités, armes de la boutique, mods de kit, mods d'arme.
-- Profil JSON par pseudo côté serveur (`user://profiles/`) : réputation, équipement, stats.
+- Profil JSON par pseudo côté serveur (`user://profiles/`) : réputation, équipement, apparence (`data/appearances/`, choisie dans l'onglet Factions du lobby, "" = automatique), stats.
 - Lobby à onglets : Décollage, Équipement, Arsenal, Factions, Escouade.
 
 ## Reste à faire

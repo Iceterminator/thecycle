@@ -1,15 +1,10 @@
 class_name MatchManager
 extends Node
 ## Déroulé d'une partie (étape 6), décidé par le SERVEUR (créé en code par World sur tous les peers) :
-##   0:00 -> 19:10 prospection (annonce de l'évac à 16:10) ; 19:10 l'évac se pose ; 20:00 décollage, fin ;
-##   écran de fin (Config.match_rules.match_restart_delay), puis retour au lobby.
-## Les clients reçoivent l'horloge (temps + phase) au début, à chaque changement et toutes les
-## Config.MATCH_CLOCK_RESYNC s ; le HUD l'avance seul entre deux envois.
-## Embarquement (voir EvacShip) : premier embarqué +EVAC_FIRST_BONUS, suivants +EVAC_OTHER_BONUS ;
-## au décollage, les joueurs restés au sol perdent EVAC_MISSED_PENALTY.
-## LOBBY : équipement, escouades, « prêt » ; la partie démarre quand tous les joueurs sont prêts.
-## DROP : écran de largage (carte + quêtes), puis chute en capsule ; le chrono démarre à la fin de l'écran.
-enum Phase { PLAYING, EVAC, ENDED, LOBBY, DROP }
+##   LOBBY (équipement, « prêt ») -> BRIEFING (salle 3D, match_briefing.gd) -> 0:00 largage ; 16:10 annonce
+##   de l'évac ; 19:10 elle se pose ; 20:00 décollage, fin -> écran de fin -> LOBBY. Horloge envoyée
+##   aux clients à chaque changement et toutes les Config.MATCH_CLOCK_RESYNC s ; bonus d'embarquement : EvacShip.
+enum Phase { PLAYING, EVAC, ENDED, LOBBY, BRIEFING }
 
 static var _current: MatchManager
 
@@ -19,6 +14,7 @@ const EVAC_COLOR := Color(1.0, 0.42, 0.38)  ## annonces de l'évac (bandeau roug
 const MatchClock := preload("res://systems/match/match_clock.gd")
 const MatchCycle := preload("res://systems/match/match_cycle.gd")
 const MatchEvac := preload("res://systems/match/match_evac.gd")
+const MatchBriefing := preload("res://systems/match/match_briefing.gd")
 
 @onready var world: World = get_parent()
 
@@ -33,7 +29,9 @@ var pad_blocked: bool = false
 
 var _resync_left: float = 0.0
 var _restart_left: float = 0.0
-var _drop_left: float = 0.0
+var briefing_left: float = 0.0  ## salle de briefing : secondes restantes
+var briefing_votes: Array = []  ## peers ayant voté « départ »
+var briefing_room: Array = []   ## peers dans la salle
 var _drop_points: Dictionary = {}  # peer -> point de largage
 ## Serveur : clients connectés pendant une partie, sans joueur jusqu'au prochain lobby.
 var waiting: Array[int] = []
@@ -42,25 +40,30 @@ var _results: Array = []
 var _clock: MatchClock
 var _cycle: MatchCycle
 var _evac: MatchEvac
+var _briefing: MatchBriefing
 
 
 func _ready() -> void:
 	_clock = MatchClock.new(self)
 	_cycle = MatchCycle.new(self)
 	_evac = MatchEvac.new(self)
+	_briefing = MatchBriefing.new(self)
 	_current = self
 	Events.match_clock_requested.connect(func() -> void: Events.match_clock_synced.emit(elapsed, phase))
 	set_physics_process(multiplayer.is_server())
 	set_process(not multiplayer.is_server())
-	if not multiplayer.is_server():
+	if not Net.is_dedicated_server:
 		_waiting_screen = WaitingScreen.new()
 		add_child(_waiting_screen)
+	if not multiplayer.is_server():
 		return
-	Events.time_skip_requested.connect(func(seconds: float) -> void: _set_time(elapsed + seconds))
-	Events.match_time_set_requested.connect(_set_time)
+	Events.time_skip_requested.connect(func(seconds: float) -> void: _clock.set_time(elapsed + seconds))
+	Events.match_time_set_requested.connect(_clock.set_time)
 	Events.player_evacuated.connect(_evac.on_player_evacuated)
-	Events.player_joined.connect(_on_player_joined)
-	Events.player_left.connect(func(peer: int) -> void: waiting.erase(peer))
+	Events.player_joined.connect(_cycle.on_player_joined)
+	Events.player_left.connect(func(peer: int) -> void:
+		waiting.erase(peer)
+		_briefing.leave(peer))
 	Events.evac_pad_cleared.connect(_evac.on_evac_pad_cleared)
 	_broadcast_clock.call_deferred()
 
@@ -71,17 +74,10 @@ func _physics_process(delta: float) -> void:
 
 ## Clients : copie locale de l'horloge, avancée entre deux envois du serveur.
 func _process(delta: float) -> void:
-	if phase != Phase.ENDED and phase != Phase.LOBBY and phase != Phase.DROP:
+	if phase == Phase.BRIEFING:
+		briefing_left = maxf(briefing_left - delta, 0.0)
+	elif phase != Phase.ENDED and phase != Phase.LOBBY:
 		elapsed = minf(elapsed + delta, Config.match_rules.match_duration)
-
-
-## Menu admin : on ne peut qu'avancer (revenir en arrière défairait l'évac).
-func _set_time(seconds: float) -> void:
-	if phase == Phase.ENDED or phase == Phase.LOBBY or phase == Phase.DROP or not is_finite(seconds) or seconds <= elapsed:
-		return
-	_clock.advance(seconds)
-	if phase != Phase.ENDED:
-		_broadcast_clock()
 
 
 func _set_pad_blocked(blocked: bool) -> void:
@@ -89,19 +85,10 @@ func _set_pad_blocked(blocked: bool) -> void:
 	_sync_pad.rpc(blocked)
 
 
-## Un joueur arrive en cours de partie : horloge, joueurs déjà embarqués, classement.
-## Petit délai : son client doit d'abord recevoir le monde et les joueurs.
-func _on_player_joined(peer_id: int) -> void:
-	await get_tree().create_timer(1.0).timeout
-	if not peer_id in multiplayer.get_peers():
-		return
-	_cycle.sync_new_player(peer_id)
-
-
 func _broadcast_clock() -> void:
 	_resync_left = 1.0 if phase == Phase.LOBBY else Config.MATCH_CLOCK_RESYNC
 	_sync_clock.rpc(elapsed, phase)
-	if phase == Phase.LOBBY:
+	if phase == Phase.LOBBY or phase == Phase.BRIEFING:
 		_sync_lobby.rpc(ready_players)
 
 
@@ -128,9 +115,9 @@ func _show_results(results: Array, restart_in: float) -> void:
 	Events.match_results_received.emit(results, restart_in)
 
 
-## Serveur : un nouvel arrivant devient joueur seulement au lobby.
+## Serveur : un nouvel arrivant devient joueur au lobby ou pendant le briefing.
 func accepts_new_players() -> bool:
-	return phase == Phase.LOBBY
+	return phase == Phase.LOBBY or phase == Phase.BRIEFING
 
 
 func add_waiting(peer_id: int) -> void:
@@ -144,28 +131,31 @@ func _show_waiting(value: bool) -> void:
 		_waiting_screen.show_waiting(value)
 
 
-static func is_drop_phase() -> bool:
-	return _current != null and _current.phase == Phase.DROP
+static func is_briefing() -> bool:
+	return _current != null and _current.phase == Phase.BRIEFING
 
 
 static func is_lobby() -> bool:
 	return _current != null and _current.phase == Phase.LOBBY
 
 
+## Lobby : « prêt » ouvre la salle de briefing et y téléporte le joueur (MatchBriefing.on_ready).
 @rpc("any_peer", "call_local", "reliable")
 func request_lobby_ready(value: bool) -> void:
-	if not multiplayer.is_server() or phase != Phase.LOBBY or world.get_player(multiplayer.get_remote_sender_id()) == null:
-		return
-	var d := ready_players.duplicate()
-	d[multiplayer.get_remote_sender_id()] = value
-	ready_players = d
-	_broadcast_clock()
+	if multiplayer.is_server():
+		_briefing.on_ready(multiplayer.get_remote_sender_id(), value)
 
 
-## Menu admin : lancer la partie tout de suite.
+## Salle de briefing : vote « départ immédiat » (majorité des joueurs présents).
+@rpc("any_peer", "call_local", "reliable")
+func request_briefing_vote(value: bool) -> void:
+	if multiplayer.is_server() and phase == Phase.BRIEFING:
+		_briefing.vote(multiplayer.get_remote_sender_id(), value)
+
+
+## Menu admin : lancer la partie (MatchBriefing.force_start).
 func server_force_start() -> void:
-	if phase == Phase.LOBBY:
-		_cycle.restart()
+	_briefing.force_start()
 
 
 @rpc("authority", "call_local", "reliable")
@@ -175,7 +165,16 @@ func _sync_lobby(ready: Dictionary) -> void:
 	Events.lobby_synced.emit(ready)
 
 
-## Client : écran de largage (points visibles : le sien et ceux de son escouade).
+@rpc("authority", "call_local", "reliable")
+func _sync_briefing(left: float, votes: Array, room: Array) -> void:
+	if not multiplayer.is_server():
+		briefing_left = left
+		briefing_votes = votes
+		briefing_room = room
+	Events.briefing_synced.emit(left, votes, room)
+
+
+## Client : départ de la partie, points de largage (le sien et ceux de son escouade).
 @rpc("authority", "call_local", "reliable")
 func _show_drop(points: Array, seconds: float) -> void:
 	Events.drop_phase_started.emit(points, seconds)

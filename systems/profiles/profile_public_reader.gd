@@ -51,4 +51,10 @@ static func public_entry(profile: Dictionary) -> Dictionary:
 		"weapon_mods": profile["loadout"].get("weapon_mods", {}),
 		"start_weapon": String(profile["loadout"].get("start_weapon", Config.start_loadout.base_weapon)),
 		"shop": profile["loadout"].get("shop", ProfileManager.default_shop()),
+		"appearance": String(profile["loadout"].get("appearance", "")),
 	}
+
+
+## Apparence choisie ("" = automatique).
+static func appearance(pub: Dictionary, peer: int) -> String:
+	return String(pub[peer].get("appearance", "")) if pub.has(peer) else ""

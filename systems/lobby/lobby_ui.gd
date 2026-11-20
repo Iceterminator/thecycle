@@ -1,13 +1,11 @@
 class_name LobbyUi
 extends CanvasLayer
-## Écran du lobby (étape 9, joueur local), affiché pendant la phase LOBBY du MatchManager.
-## Barre du haut : escouade, onglets, pseudo, compte à rebours, bouton PRÊT. Onglets : Décollage
-## (joueurs prêts, résumé), Équipement (LoadoutPage : départ + boutique, fiche, sélecteur), Arsenal
-## (catégories, filtres, cartes débloquées puis verrouillées par niveau de faction, fiche et actions),
-## Factions (prédilection, déblocages par réputation), Escouade (créer, rejoindre, quitter).
-## Chaque changement est envoyé au serveur (ProfileManager.request_set_loadout), qui vérifie tout.
-## Ce script garde l'état de l'équipement et orchestre ; un onglet = lobby_ui_<onglet>.gd (launch,
-## arsenal, factions, squad), plus : top_bar, sync (envoi), catalog, widgets, build, access.
+## Écran du lobby (étape 9, joueur local) : phase LOBBY du MatchManager, et BRIEFING tant que le
+## joueur n'est pas dans la salle. Barre du haut : escouade, onglets, pseudo, compteur, PRÊT. Onglets :
+## Décollage (joueurs prêts, résumé), Équipement (LoadoutPage : départ + boutique, fiche, sélecteur), Arsenal
+## (catégories, filtres, cartes par niveau de faction, fiche, actions), Factions, Escouade. Chaque
+## changement est envoyé au serveur (ProfileManager.request_set_loadout), qui vérifie tout.
+## Ce script orchestre ; un onglet = lobby_ui_<onglet>.gd, plus top_bar, sync, catalog, widgets, build, access.
 
 const Catalog := preload("res://systems/lobby/lobby_ui_catalog.gd")
 const Sync := preload("res://systems/lobby/lobby_ui_sync.gd")
@@ -35,10 +33,12 @@ const TYPE_NAMES := ["Pistolet-mitrailleur", "Fusil d'assaut", "Fusil de combat"
 		"Fusil à pompe", "Mitrailleuse", "Pistolet", "Lance-missiles", "Arme lourde", "Gadget"]
 
 var _player: Player
+var _phase: int = MatchManager.Phase.LOBBY
 var _world: Node
 
 # --- État de l'équipement (envoyé au serveur) ---
 var _preferred: int = 0
+var _appearance: String = ""          # id de data/appearances/, "" = automatique
 var _kit_id: String = String(Config.start_loadout.default_kit)
 var _kit_mods: Dictionary = {}       # id de kit -> id de mod
 var _weapon_mods: Dictionary = {}    # id d'arme -> id de mod
@@ -75,7 +75,9 @@ func setup(player: Player) -> void:
 	Build.build(self)
 	_show_page(Page.LAUNCH)
 	Events.match_clock_synced.connect(_on_clock)
-	Events.lobby_synced.connect(func(ready: Dictionary) -> void: _ready_players = ready)
+	Events.lobby_synced.connect(func(ready: Dictionary) -> void:
+		_ready_players = ready
+		Access.on_clock(self, _phase))
 	Events.local_loadout_received.connect(_apply_saved)
 	Events.match_clock_requested.emit()
 	# Sur l'hôte, le profil peut être arrivé avant la création de cet écran.

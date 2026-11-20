@@ -8,6 +8,7 @@ extends StaticBody3D
 ## - _enter_tree : enregistre les zones plates puis pose les Marker3D au sol, AVANT que
 ##   MapDecor, MonsterManager, QuestManager… ne lisent leurs positions.
 ## - Collision : HeightMapShape3D à 1 m. Rendu : MapTerrainMesh (absent en serveur dédié).
+## - Biomes (MapBiomes) : le relief de base est adapté à chaque biome ; mares du marais (MapWater).
 
 const SEED := 20261119
 const COLLISION_MARGIN := 6      ## la collision déborde de la carte (m)
@@ -58,7 +59,7 @@ static func normal_at(x: float, z: float) -> Vector3:
 
 static func _raw_height(x: float, z: float) -> float:
 	var ridge := 1.0 - absf(_ridges.get_noise_2d(x, z))
-	var h := _hills.get_noise_2d(x, z) * 5.0 + ridge * ridge * 16.0 - 6.0
+	var h := MapBiomes.shape_height(x, z, _hills.get_noise_2d(x, z) * 5.0 + ridge * ridge * 16.0 - 6.0)
 	var d := maxf(absf(x), absf(z)) - (Config.MAP_HALF_SIZE - RISE_START)
 	if d > 0.0:
 		h += RISE_INSIDE * pow(minf(d, RISE_START) / RISE_START, 2.0) + RISE_OUTSIDE * maxf(d - RISE_START, 0.0)
@@ -117,3 +118,4 @@ func _ready() -> void:
 		visual.mesh = MapTerrainMesh.build_visual()
 		visual.material_override = MapTerrainMesh.make_material()
 		add_child(visual)
+		add_child(MapWater.build())

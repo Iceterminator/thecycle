@@ -118,6 +118,7 @@ func _announce(text: String, color: Color) -> void:
 func _set_objectives(ids: PackedStringArray, list: Array) -> void:
 	active_objectives = ids
 	drawn_list = list
+	Events.objectives_synced.emit()
 
 
 @rpc("any_peer", "reliable")

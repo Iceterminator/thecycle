@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="ObjectiveTrack" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
 
 [ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/uplink.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_t")
 id = &"relais"
 display_name = "Relais satellite"
-color = Color(1, 0.85, 0.2, 1)
+color = Color(1, 0.42, 0.3, 1)
+icon = ExtResource("2_icon")
 thresholds = PackedInt32Array(120, 300, 540, 840)
 rewards = PackedInt32Array(10, 15, 20, 25)
 faction = 2

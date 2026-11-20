@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/models/nature/marais/Textures/Pond_Plants_Atlas.tga" id="1_atlas"]
+
+[resource]
+resource_name = "Pond_Plants_Atlas_MAT"
+transparency = 2
+alpha_scissor_threshold = 0.5
+cull_mode = 2
+albedo_texture = ExtResource("1_atlas")
+roughness = 0.9

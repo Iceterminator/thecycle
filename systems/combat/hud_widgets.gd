@@ -77,3 +77,15 @@ static func make_bar(color: Color, max_value: float) -> ProgressBar:
 	bar.add_theme_stylebox_override("fill", fill)
 	bar.add_theme_stylebox_override("background", bg)
 	return bar
+
+
+## Marque un enfant direct du HUD comme bloc réglable (menu Échap → HUD, ids de SettingsStore).
+static func tag_block(node: Control, id: String) -> void:
+	node.set_meta(&"hud_block", id)
+
+
+## Affiche / cache chaque bloc marqué selon les réglages du joueur.
+static func apply_blocks(hud: CombatHud) -> void:
+	for child: Node in hud.get_children():
+		if child.has_meta(&"hud_block"):
+			(child as CanvasItem).visible = Config.SettingsStore.hud_shown(str(child.get_meta(&"hud_block")))

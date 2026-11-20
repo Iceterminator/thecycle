@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="BiomeData" format=3]
+
+[ext_resource type="Script" path="res://resources/biome_data.gd" id="1_biome"]
+
+[resource]
+script = ExtResource("1_biome")
+display_name = "Prairies d'Ambre"
+map_color = Color(0.2, 0.27, 0.15, 1)
+trees = {
+"res://assets/models/nature/CommonTree_1.gltf": 1.0,
+"res://assets/models/nature/CommonTree_2.gltf": 1.0,
+"res://assets/models/nature/CommonTree_3.gltf": 1.0,
+"res://assets/models/nature/CommonTree_4.gltf": 1.0,
+"res://assets/models/nature/CommonTree_5.gltf": 1.0,
+"res://assets/models/nature/Pine_1.gltf": 1.0,
+"res://assets/models/nature/Pine_2.gltf": 1.0,
+"res://assets/models/nature/Pine_3.gltf": 1.0,
+"res://assets/models/nature/Pine_4.gltf": 1.0,
+"res://assets/models/nature/Pine_5.gltf": 1.0,
+"res://assets/models/nature/DeadTree_1.gltf": 1.0,
+"res://assets/models/nature/plaine/BirchTree_1.fbx": 2.0,
+"res://assets/models/nature/plaine/BirchTree_2.fbx": 2.0,
+"res://assets/models/nature/plaine/BirchTree_3.fbx": 2.0,
+}
+big_trees = {
+"res://assets/models/nature/TwistedTree_1.gltf": 1.0,
+"res://assets/models/nature/TwistedTree_2.gltf": 1.0,
+}
+rocks = {
+"res://assets/models/nature/Rock_Medium_1.gltf": 1.0,
+"res://assets/models/nature/Rock_Medium_2.gltf": 1.0,
+"res://assets/models/nature/Rock_Medium_3.gltf": 1.0,
+}
+bushes = {
+"res://assets/models/nature/Bush_Common.gltf": 1.0,
+"res://assets/models/nature/Bush_Common_Flowers.gltf": 1.0,
+"res://assets/models/nature/Fern_1.gltf": 1.0,
+"res://assets/models/nature/Plant_1_Big.gltf": 1.0,
+"res://assets/models/nature/Flower_3_Group.gltf": 1.0,
+"res://assets/models/nature/plaine/BushBerries_1.fbx": 1.4,
+"res://assets/models/nature/plaine/BushBerries_2.fbx": 1.4,
+"res://assets/models/nature/plaine/Flowers.fbx": 1.6,
+}
+grass = {
+"res://assets/models/nature/Grass_Common_Short.gltf": 1.0,
+"res://assets/models/nature/Grass_Common_Tall.gltf": 1.0,
+"res://assets/models/nature/Grass_Wispy_Tall.gltf": 1.0,
+}
+small = {
+"res://assets/models/nature/Mushroom_Common.gltf": 1.0,
+"res://assets/models/nature/Pebble_Round_1.gltf": 1.0,
+"res://assets/models/nature/Pebble_Round_2.gltf": 1.0,
+}

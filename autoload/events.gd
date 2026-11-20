@@ -35,6 +35,8 @@ signal wave_spawn_requested(objective: Node3D, monster_data: MonsterData, positi
 signal quest_started(quest_name: StringName, peer_id: int)
 signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
+## Liste des quêtes tirées / objectifs actifs reçue (QuestManager) : le HUD se met à jour.
+signal objectives_synced()
 ## Fame (le score : variable rank_points dans Score, pour la synchro réseau).
 signal rank_points_changed(peer_id: int, total: int)
 ## Serveur, menu admin : poser un cristal (chemin du CrystalData) à une position.
@@ -94,7 +96,12 @@ signal profile_loaded(peer_id: int)
 signal local_loadout_received(loadout: Dictionary)
 ## Client : état du lobby (joueurs prêts, secondes avant le départ).
 signal lobby_synced(ready: Dictionary)
-## Client : début de la phase de largage (points [peer, position] visibles, secondes de l'écran).
+## Client : départ de la partie, points de largage visibles ([peer, position] : le sien et son escouade).
 signal drop_phase_started(points: Array, seconds: float)
+## Client : état de la salle de briefing (secondes restantes, votants, joueurs dans la salle).
+signal briefing_synced(left: float, votes: Array, room: Array)
+
+## Client : réglages du HUD changés (menu Échap) — blocs à afficher / cacher.
+signal hud_settings_changed
 
 @warning_ignore_restore("unused_signal")

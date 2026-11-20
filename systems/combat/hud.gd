@@ -108,6 +108,7 @@ func setup(player: Player) -> void:
 	player.weapon_pickup.hold_progress.connect(func(ratio: float) -> void: _hold_ratio = ratio)
 	player.weapon.charge_changed.connect(func(ratio: float) -> void: _charge_ratio = ratio)
 	player.score.changed.connect(func() -> void: HudScores.on_score_changed(self))
+	Events.objectives_synced.connect(func() -> void: HudScores.on_score_changed(self))
 	HudScores.on_score_changed(self)
 	Events.announcement.connect(_on_announcement)
 	HudBottom.on_health_changed(self)
@@ -119,6 +120,7 @@ func setup(player: Player) -> void:
 	Events.evac_board_progress.connect(_on_board_progress)
 	Events.match_results_received.connect(_on_results)
 	player.evacuated_changed.connect(func(aboard: bool) -> void: _aboard_label.visible = aboard)
+	Events.hud_settings_changed.connect(_on_hud_settings)
 	Events.match_clock_requested.emit()
 
 
@@ -156,6 +158,10 @@ func _on_board_progress(ratio: float) -> void:
 	HudScreens.on_board_progress(self, ratio)
 
 
+func _on_hud_settings() -> void:
+	HudWidgets.apply_blocks(self)
+
+
 func _on_results(results: Array, restart_in: float) -> void:
 	HudScreens.on_results(self, results, restart_in)
 
@@ -172,3 +178,4 @@ func _build() -> void:
 	HudBuildBottom.build_bottom_center(self)
 	HudBuildBottom.build_bottom_right(self)
 	HudScreens.build_screens(self)
+	HudWidgets.apply_blocks(self)

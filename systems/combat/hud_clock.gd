@@ -26,11 +26,14 @@ static func update_clock(hud: CombatHud, delta: float) -> void:
 	if hud._clock_phase == MatchManager.Phase.LOBBY:
 		var ready := hud._lobby_ready.values().count(true)
 		hud._clock_label.text = "%d / %d" % [ready, hud._player.get_parent().get_child_count()]
-		hud._clock_sub.text = "LOBBY — EN ATTENTE QUE TOUT LE MONDE SOIT PRÊT"
+		hud._clock_sub.text = "LOBBY — LE PREMIER PRÊT OUVRE LA SALLE DE BRIEFING"
 		hud._storm_label.text = ""
 		hud._status_label.text = ""
 		return
-	hud._clock_elapsed = 0.0 if hud._clock_phase == MatchManager.Phase.DROP else minf(hud._clock_elapsed + delta, Config.match_rules.match_duration)
+	if hud._clock_phase == MatchManager.Phase.BRIEFING:
+		update_briefing(hud)
+		return
+	hud._clock_elapsed = minf(hud._clock_elapsed + delta, Config.match_rules.match_duration)
 	hud._storm_label.text = StormManager.hud_text(hud._player.global_position).replace("\n", "  —  ") + scanner_text(hud)
 	HudScreens.update_downed(hud)
 	if hud._clock_phase == MatchManager.Phase.EVAC:
@@ -68,3 +71,21 @@ static func scanner_text(hud: CombatHud) -> String:
 	if nearest > Config.combat.scanner_range:
 		return ""
 	return "   ⚠ Prospecteur à %d m" % roundi(nearest)
+
+
+## Salle de briefing : temps avant le départ et votes (majorité des joueurs de la salle).
+static func update_briefing(hud: CombatHud) -> void:
+	var manager := hud._player.get_parent().get_parent().get_node_or_null("MatchManager") as MatchManager
+	if manager == null:
+		return
+	hud._clock_label.text = fmt(manager.briefing_left)
+	hud._clock_label.add_theme_color_override("font_color", CombatHud.ACCENT)
+	hud._storm_label.text = ""
+	hud._status_label.text = ""
+	var me := hud._player.get_peer_id()
+	if not me in manager.briefing_room:
+		hud._clock_sub.text = "SALLE DE BRIEFING — DÉPART DE LA PARTIE"
+		return
+	var needed := floori(manager.briefing_room.size() / 2.0) + 1
+	hud._clock_sub.text = "BRIEFING — DÉPART : %d / %d VOTES   ·   [E] %s" % [manager.briefing_votes.size(), needed,
+			"annuler mon vote" if me in manager.briefing_votes else "voter le départ"]

@@ -94,8 +94,8 @@ func _process(delta: float) -> void:
 	_motion.apply_cloak()
 
 func _physics_process(delta: float) -> void:
-	# Largage (écran de départ ou capsule) : figé, trajectoire de DropPodRide.
-	if is_dropping():
+	# Capsule de largage : figé, trajectoire de DropPodRide (dans la salle de briefing, on marche).
+	if drop != null and drop.is_active():
 		drop.step()
 		return
 	if is_evacuated:
@@ -152,9 +152,9 @@ func set_evacuated(value: bool) -> void:
 
 
 ## Interface « damageable » (armes, monstres) — côté serveur.
-## Largage en cours (écran de départ ou capsule) : ni déplacement, ni action, ni dégâts.
+## Briefing ou capsule en cours : ni tir, ni action, ni dégâts (dans la salle on peut marcher).
 func is_dropping() -> bool:
-	return drop != null and (drop.is_active() or MatchManager.is_drop_phase())
+	return drop != null and (drop.is_active() or MatchManager.is_briefing())
 
 
 func can_be_hit() -> bool:

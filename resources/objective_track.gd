@@ -9,6 +9,7 @@ extends Resource
 @export var id: StringName
 @export var display_name: String
 @export var color: Color = Color.WHITE
+@export var icon: Texture2D  ## logo (blanc, teinté par color) : assets/icons/quests/
 ## Faction de l'objectif (WeaponData.Faction) : la Fame de ses paliers devient de la réputation.
 @export var faction: int = 0
 @export var thresholds: PackedInt32Array = PackedInt32Array([100, 250, 500])  ## points d'objectif cumulés

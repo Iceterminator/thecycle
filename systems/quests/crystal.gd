@@ -168,7 +168,8 @@ func _update_label() -> void:
 func map_info() -> Dictionary:
 	var label := _visual.label if _visual else null
 	var color: Color = label.modulate if label else data.color
-	return {"text": label.text if label else data.display_name, "color": color, "kind": "crystal"}
+	return {"text": label.text if label else data.display_name, "color": color, "kind": "crystal",
+			"icon": QuestIcons.of(data.resource_path)}
 
 
 ## Texte flottant visible seulement de près (appelé par le HUD du joueur local).

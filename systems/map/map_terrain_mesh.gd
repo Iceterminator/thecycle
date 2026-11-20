@@ -7,10 +7,7 @@ extends RefCounted
 const INNER_STEP := 2.0
 const OUTER_STEP := 6.0
 const OUTSIDE_EXTENT := 60.0     ## le terrain se prolonge au-delà des murs (horizon)
-const GRASS := Color("#4f5a22")
-const DIRT := Color("#9a7d3f")
-const ROCK := Color("#7d766c")
-const PEAK := Color("#b4aea2")
+const MUD := Color("#3a3424")  ## fond des mares du marais
 
 
 static func make_material() -> StandardMaterial3D:
@@ -57,7 +54,7 @@ static func build_visual() -> ArrayMesh:
 			var normal := MapTerrain.normal_at(x, z)
 			vertices.append(Vector3(x, h, z))
 			normals.append(normal)
-			colors.append(_color(h, normal, patches.get_noise_2d(x, z)))
+			colors.append(_color(x, z, h, normal, patches.get_noise_2d(x, z)))
 	var indices := PackedInt32Array()
 	for j in n - 1:
 		for i in n - 1:
@@ -74,10 +71,15 @@ static func build_visual() -> ArrayMesh:
 	return mesh
 
 
-static func _color(h: float, normal: Vector3, patch: float) -> Color:
-	var c := GRASS.lerp(DIRT, smoothstep(-0.1, 0.5, patch))
-	c = c.lerp(ROCK, smoothstep(0.82, 0.68, normal.y))
-	return c.lerp(PEAK, smoothstep(12.0, 19.0, h) * 0.6)
+## Couleurs du biome (mélangées aux frontières), puis terre / roche / sommet / vase sous l'eau.
+static func _color(x: float, z: float, h: float, normal: Vector3, patch: float) -> Color:
+	var w := MapBiomes.weights_at(x, z)
+	var grass := MapBiomes.blend_color(w, func(b: BiomeData) -> Color: return b.grass_color)
+	var dirt := MapBiomes.blend_color(w, func(b: BiomeData) -> Color: return b.dirt_color)
+	var c := grass.lerp(dirt, smoothstep(-0.1, 0.5, patch))
+	c = c.lerp(MapBiomes.blend_color(w, func(b: BiomeData) -> Color: return b.rock_color), smoothstep(0.82, 0.68, normal.y))
+	c = c.lerp(MapBiomes.blend_color(w, func(b: BiomeData) -> Color: return b.peak_color), smoothstep(12.0, 19.0, h) * 0.6)
+	return c.lerp(MUD, smoothstep(MapBiomes.WATER_LEVEL + 0.4, MapBiomes.WATER_LEVEL - 0.2, h) * w[MapBiomes.MARAIS])
 
 
 ## Triangles de la zone jouable (pas de 2 m), pour le navmesh du serveur.

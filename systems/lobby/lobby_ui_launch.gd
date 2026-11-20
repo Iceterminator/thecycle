@@ -29,7 +29,7 @@ func build(lobby: LobbyUi) -> Control:
 	ready_button = W.ready_toggle(Vector2(320, 64), 28, func(on: bool) -> void: lobby._set_ready(on, true))
 	ready_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	left.add_child(ready_button)
-	left.add_child(W.label("La partie démarre seulement quand tous les prospecteurs sont prêts.", 14, DIM))
+	left.add_child(W.label("PRÊT : vous embarquez dans la salle de briefing. La partie part %d s après le premier prêt, ou plus tôt au vote." % roundi(Config.match_rules.briefing_time), 14, DIM))
 	left.add_child(HSeparator.new())
 	left.add_child(W.label("PROSPECTEURS", 16, DIM))
 	players_box = VBoxContainer.new()

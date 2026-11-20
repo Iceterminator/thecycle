@@ -10,9 +10,9 @@ const MOVEMENT_SCRIPT := preload("res://systems/kits/kit_movement.gd")
 const BUFFS_SCRIPT := preload("res://systems/abilities/buff_controller.gd")
 const ABILITIES_SCRIPT := preload("res://systems/abilities/ability_controller.gd")
 const PACT_UI_SCRIPT := preload("res://systems/pacts/pact_ui.gd")
+const PAUSE_MENU_SCRIPT := preload("res://systems/settings/pause_menu.gd")
 const LOBBY_UI_SCRIPT := preload("res://systems/lobby/lobby_ui.gd")
 const DROP_POD_SCRIPT := preload("res://systems/match/drop_pod_ride.gd")
-const DROP_SCREEN_SCRIPT := preload("res://systems/match/drop_screen.gd")
 
 
 ## Composants communs à tous les peers (admin, kit, mouvement, buffs, capacités, largage, arme, avatar, balise).
@@ -72,14 +72,14 @@ static func build_local_ui(p: Player) -> void:
 	pact_ui.name = "PactUi"
 	p.add_child(pact_ui)
 	pact_ui.setup(p)
+	var pause_menu: PauseMenu = PAUSE_MENU_SCRIPT.new()
+	pause_menu.name = "PauseMenu"
+	p.add_child(pause_menu)
+	pause_menu.setup(p)
 	var lobby_ui: LobbyUi = LOBBY_UI_SCRIPT.new()
 	lobby_ui.name = "LobbyUi"
 	p.add_child(lobby_ui)
 	lobby_ui.setup(p)
-	var drop_screen: DropScreen = DROP_SCREEN_SCRIPT.new()
-	drop_screen.name = "DropScreen"
-	p.add_child(drop_screen)
-	drop_screen.setup(p)
 
 
 ## Balise au-dessus des AUTRES joueurs, visible de loin et à travers le décor,

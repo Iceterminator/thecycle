@@ -1,5 +1,5 @@
 extends "res://tests/net_test.gd"
-## Connexion de 2 joueurs, profils chargés, lobby (prêts), écran de largage, capsules ouvertes.
+## Connexion de 2 joueurs, profils chargés, lobby (prêts), salle de briefing (vote), capsules ouvertes.
 
 var _drop_points: Array = []
 
@@ -27,7 +27,7 @@ func run_client() -> void:
 	events.drop_phase_started.connect(func(points: Array, _s: float) -> void: _drop_points = points)
 	if not await start_match():
 		return
-	if not check(_drop_points.size() >= 1, "écran de largage reçu avec mon point"):
+	if not check(_drop_points.size() >= 1, "points de largage reçus avec le mien"):
 		return
 	check(int(_drop_points[0][0]) == my_id(), "le point de largage reçu est le mien")
 	check(ProfileManager.name_of(1) == "ZzTestHote", "pseudo de l'hôte reçu")

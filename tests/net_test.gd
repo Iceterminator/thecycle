@@ -55,7 +55,7 @@ func run_client() -> void:
 ## Raccourcis de test (mémoire seulement).
 func _speed_up() -> void:
 	var rules: MatchRules = config.match_rules
-	rules.drop_screen_time = 2.0
+	rules.briefing_time = 30.0  # les tests partent au vote (start_match)
 	rules.drop_pod_fall_time = 1.0
 	rules.drop_pod_open_delay = 0.5
 	rules.respawn_delay = 1.0
@@ -87,6 +87,10 @@ func _finish(code: int) -> void:
 		# On laisse le temps au client de finir avant de couper le serveur.
 		await get_tree().create_timer(2.0).timeout
 		_clean_profiles()
+	else:
+		# Le client vient souvent d'envoyer sa dernière étape (« fin_client ») : quitter tout de
+		# suite peut couper la connexion avant l'envoi du paquet, l'hôte ne la reçoit jamais.
+		await get_tree().create_timer(1.0).timeout
 	get_tree().quit(code)
 
 
@@ -182,7 +186,11 @@ func start_match() -> bool:
 		return false
 	# Le profil doit être chargé avant le départ (sinon l'équipement arrive pendant la partie).
 	await wait(1.0)
+	# Prêt -> salle de briefing ; quand les 2 joueurs y sont, chacun vote le départ (majorité : 2 / 2).
 	match_manager().request_lobby_ready.rpc_id(1, true)
+	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.BRIEFING and match_manager().briefing_room.size() == 2, 30.0, "les 2 joueurs dans la salle de briefing"):
+		return false
+	match_manager().request_briefing_vote.rpc_id(1, true)
 	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.PLAYING, 30.0, "début de partie"):
 		return false
 	# L'horloge (PLAYING) peut arriver avant le début de la capsule : on attend aussi que le

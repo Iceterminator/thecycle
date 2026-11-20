@@ -4,10 +4,12 @@ extends Node3D
 ## hasard avec une graine fixe, posés sur le relief (MapTerrain.height_at). Chaque peer
 ## construit le même décor de son côté : rien ne passe par le réseau.
 ## Arbres et rochers ont une collision ; MonsterManager._bake_navmesh en tient compte.
-## L'herbe et les petites plantes n'en ont pas (MultiMesh, très peu coûteux).
-## Rien n'est posé près des points d'intérêt (Marker3D du monde, QuestSpots compris ; petit
-## rayon pour les LumicepSpots) ni de l'évac. Arbres évités sur les fortes pentes, rochers plutôt sur les
-## pentes et les crêtes. Créé par World, enfant de Map.
+## L'herbe et les petites plantes n'en ont pas (MultiMesh). Rien près des points d'intérêt
+## (Marker3D, QuestSpots ; petit rayon pour les LumicepSpots) ni de l'évac. Arbres évités
+## sur les fortes pentes, rochers plutôt sur les pentes et les crêtes. Modèles et densités selon le biome (MapDecorPick, data/biomes/) ;
+## plantes d'eau à la surface des mares du marais. Créé par World, enfant de Map.
+
+const MapDecorPick := preload("res://systems/decor/map_decor_pick.gd")
 
 const SEED := 20261118
 const CLEAR_RADIUS := 13.0      ## zone dégagée autour de chaque point d'intérêt (m)
@@ -34,6 +36,8 @@ const BUSH_COUNT := 580
 const GRASS_COUNT := 7000
 const SMALL_COUNT := 650
 const OUTSIDE_TREE_COUNT := 1050  ## tirages : environ la moitié tombe dans la bande extérieure
+const WATER_PLANT_TRIES := 6000  ## tirages : seuls ceux qui tombent dans une mare sont gardés
+const WATER_RANGE := 60.0
 
 var _rng := RandomNumberGenerator.new()
 var _clear_points: Array[Vector3] = []
@@ -50,31 +54,35 @@ func _ready() -> void:
 	var half := Config.MAP_HALF_SIZE
 	for i in TREE_COUNT:
 		var pos := _free_spot(half - EDGE_MARGIN, TREE_MAX_SLOPE)
-		if pos != Vector3.INF:
-			_place_solid(_pick(DecorModels.TREES), pos, _rng.randf_range(0.8, 1.4), true, TREE_RANGE)
+		var choice := [] if pos == Vector3.INF else MapDecorPick.pick(_rng, &"trees", pos.x, pos.z)
+		if not choice.is_empty():
+			_place_solid(choice[0], pos, choice[1] * _rng.randf_range(0.8, 1.4), true, TREE_RANGE)
 	for i in ROCK_COUNT:
 		var pos := _rock_spot(half - EDGE_MARGIN)
-		if pos != Vector3.INF:
-			var s := _rng.randf_range(0.7, 2.2)
+		var choice := [] if pos == Vector3.INF else MapDecorPick.pick(_rng, &"rocks", pos.x, pos.z)
+		if not choice.is_empty():
+			var s: float = choice[1] * _rng.randf_range(0.7, 2.2)
 			pos.y -= 0.15 * s  # légèrement enfoncé dans la pente
-			_place_solid(_pick(DecorModels.ROCKS), pos, s, false, ROCK_RANGE)
-	# Forêt dense hors des murs : ferme l'horizon (pas de collision, on ne peut pas y aller).
+			_place_solid(choice[0], pos, s, false, ROCK_RANGE)
+	_outside_forest(half)
+	_scatter_multimesh(&"bushes", BUSH_COUNT, half, Vector2(0.7, 1.4), true, BUSH_RANGE)
+	_scatter_multimesh(&"grass", GRASS_COUNT, half, Vector2(0.35, 0.7), false, GRASS_RANGE)
+	_scatter_multimesh(&"small", SMALL_COUNT, half, Vector2(0.6, 1.5), false, SMALL_RANGE)
+	_scatter_water_plants(half)
+
+
+## Forêt dense hors des murs : ferme l'horizon (pas de collision, on ne peut pas y aller).
+func _outside_forest(half: float) -> void:
 	var outer := half + OUTSIDE_RING
 	for i in OUTSIDE_TREE_COUNT:
 		var x := _rng.randf_range(-outer, outer)
 		var z := _rng.randf_range(-outer, outer)
 		if maxf(absf(x), absf(z)) < half + 4.0:
 			continue  # dans la carte : seulement la bande extérieure
-		var big := _rng.randf() < 0.12
-		_place_visual(_pick(DecorModels.BIG_TREES if big else DecorModels.TREES),
-				Vector3(x, MapTerrain.height_at(x, z), z), _rng.randf_range(0.9, 1.6))
-	_scatter_multimesh(DecorModels.BUSHES, BUSH_COUNT, half, Vector2(0.7, 1.4), true, BUSH_RANGE)
-	_scatter_multimesh(DecorModels.GRASS, GRASS_COUNT, half, Vector2(0.35, 0.7), false, GRASS_RANGE)
-	_scatter_multimesh(DecorModels.SMALL, SMALL_COUNT, half, Vector2(0.6, 1.5), false, SMALL_RANGE)
-
-
-func _pick(list: Array) -> String:
-	return list[_rng.randi() % list.size()]
+		var category := &"big_trees" if _rng.randf() < 0.12 else &"trees"
+		var choice := MapDecorPick.pick(_rng, category, x, z, 0.5)
+		if not choice.is_empty():
+			_place_visual(choice[0], Vector3(x, MapTerrain.height_at(x, z), z), choice[1] * _rng.randf_range(0.9, 1.6))
 
 
 ## Point au sol, loin des points d'intérêt et sous une pente maximale ; Vector3.INF après 20 essais.
@@ -82,7 +90,8 @@ func _free_spot(half: float, max_slope: float = 99.0) -> Vector3:
 	for attempt in 20:
 		var x := _rng.randf_range(-half, half)
 		var z := _rng.randf_range(-half, half)
-		if Vector2(x, z).length() < EVAC_CLEAR or MapTerrain.slope_at(x, z) > max_slope:
+		if Vector2(x, z).length() < EVAC_CLEAR or MapTerrain.slope_at(x, z) > max_slope \
+				or MapBiomes.is_water(x, z, MapTerrain.height_at(x, z) - 0.15):
 			continue
 		var ok := true
 		for i in _clear_points.size():
@@ -124,22 +133,49 @@ func _place_solid(model: String, pos: Vector3, s: float, is_tree: bool, view_ran
 
 
 ## Petites plantes sans collision, regroupées par maillage et par case (MultiMesh, voir DecorModels).
-func _scatter_multimesh(models: Array, count: int, half: float, scale_range: Vector2, avoid: bool, view_range: float) -> void:
+func _scatter_multimesh(category: StringName, count: int, half: float, scale_range: Vector2, avoid: bool, view_range: float) -> void:
 	var by_model: Dictionary = {}
-	for model: String in models:
-		by_model[model] = []
 	for i in count:
 		var pos := _free_spot(half, BUSH_MAX_SLOPE) if avoid else _random_spot(half)
 		if pos == Vector3.INF or (not avoid and Vector2(pos.x, pos.z).length() < 11.0):
 			continue  # rien sur la plateforme d'évac (rayon 10)
-		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(scale_range.x, scale_range.y))
-		(by_model[_pick(models)] as Array).append(Transform3D(basis, pos))
+		var choice := MapDecorPick.pick(_rng, category, pos.x, pos.z)
+		if not choice.is_empty():
+			_add_instance(by_model, choice, pos, scale_range)
+	_build_multimeshes(by_model, view_range)
+
+
+## Nénuphars et plantes flottantes : à la surface des mares (marais seulement).
+func _scatter_water_plants(half: float) -> void:
+	var models: Dictionary = MapBiomes.DATA[MapBiomes.MARAIS].water_plants
+	var by_model: Dictionary = {}
+	for i in WATER_PLANT_TRIES:
+		var x := _rng.randf_range(-half, half)
+		var z := _rng.randf_range(-half, half)
+		if not MapBiomes.is_water(x, z, MapTerrain.height_at(x, z) + 0.1):
+			continue  # au moins 10 cm d'eau
+		var choice := MapDecorPick.from_dict(_rng, models)
+		if not choice.is_empty():
+			_add_instance(by_model, choice, Vector3(x, MapBiomes.WATER_LEVEL + 0.01, z), Vector2(0.7, 1.3))
+	_build_multimeshes(by_model, WATER_RANGE)
+
+
+func _add_instance(by_model: Dictionary, choice: Array, pos: Vector3, scale_range: Vector2) -> void:
+	var s: float = choice[1] * _rng.randf_range(scale_range.x, scale_range.y)
+	var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s)
+	if not by_model.has(choice[0]):
+		by_model[choice[0]] = []
+	(by_model[choice[0]] as Array).append(Transform3D(basis, pos))
+
+
+func _build_multimeshes(by_model: Dictionary, view_range: float) -> void:
 	for model: String in by_model:
-		if not (by_model[model] as Array).is_empty():
-			DecorModels.add_multimeshes(self, model, by_model[model], view_range)
+		DecorModels.add_multimeshes(self, model, by_model[model], view_range)
 
 
+## Point au hasard sur le sol ; Vector3.INF dans une mare.
 func _random_spot(half: float) -> Vector3:
 	var x := _rng.randf_range(-half, half)
 	var z := _rng.randf_range(-half, half)
-	return Vector3(x, MapTerrain.height_at(x, z), z)
+	var h := MapTerrain.height_at(x, z)
+	return Vector3.INF if MapBiomes.is_water(x, z, h - 0.15) else Vector3(x, h, z)

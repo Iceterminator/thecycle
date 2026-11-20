@@ -1,0 +1,57 @@
+[gd_resource type="Resource" script_class="BiomeData" format=3]
+
+[ext_resource type="Script" path="res://resources/biome_data.gd" id="1_biome"]
+
+[resource]
+script = ExtResource("1_biome")
+display_name = "Dunes de Sel"
+grass_color = Color(0.79, 0.66, 0.42, 1)
+dirt_color = Color(0.72, 0.56, 0.34, 1)
+rock_color = Color(0.6, 0.47, 0.35, 1)
+peak_color = Color(0.85, 0.76, 0.6, 1)
+map_color = Color(0.52, 0.42, 0.25, 1)
+height_scale = 0.55
+dunes = 1.8
+tree_density = 0.4
+rock_density = 0.8
+bush_density = 0.35
+grass_density = 0.06
+small_density = 0.6
+trees = {
+"res://assets/models/nature/desert/PalmTree_1.fbx": 2.2,
+"res://assets/models/nature/desert/PalmTree_2.fbx": 2.2,
+"res://assets/models/nature/desert/PalmTree_3.fbx": 2.2,
+"res://assets/models/nature/desert/PalmTree_4.fbx": 2.2,
+"res://assets/models/nature/desert/Cactus_1.fbx": 2.0,
+"res://assets/models/nature/desert/Cactus_2.fbx": 2.0,
+"res://assets/models/nature/desert/Cactus_3.fbx": 2.0,
+"res://assets/models/nature/desert/Cactus_4.fbx": 2.0,
+"res://assets/models/nature/desert/Cactus_5.fbx": 2.0,
+"res://assets/models/nature/desert/CommonTree_Dead_1.fbx": 2.0,
+"res://assets/models/nature/desert/CommonTree_Dead_2.fbx": 2.0,
+}
+big_trees = {
+"res://assets/models/nature/desert/PalmTree_1.fbx": 3.0,
+"res://assets/models/nature/desert/PalmTree_3.fbx": 3.0,
+"res://assets/models/nature/desert/CommonTree_Dead_3.fbx": 2.6,
+}
+rocks = {
+"res://assets/models/nature/desert/Rock_Desert_1.gltf": 1.0,
+"res://assets/models/nature/desert/Rock_Desert_2.gltf": 1.0,
+"res://assets/models/nature/desert/Rock_Desert_3.gltf": 1.0,
+}
+bushes = {
+"res://assets/models/nature/desert/CactusFlowers_2.fbx": 1.6,
+"res://assets/models/nature/desert/CactusFlowers_3.fbx": 1.6,
+"res://assets/models/nature/desert/CactusFlowers_4.fbx": 1.6,
+"res://assets/models/nature/desert/CactusFlowers_5.fbx": 1.6,
+"res://assets/models/nature/desert/CactusFlower_1.fbx": 1.6,
+}
+grass = {
+"res://assets/models/nature/Grass_Wispy_Tall.gltf": 0.8,
+}
+small = {
+"res://assets/models/nature/Pebble_Round_1.gltf": 1.0,
+"res://assets/models/nature/Pebble_Round_2.gltf": 1.0,
+"res://assets/models/nature/desert/Rock_Desert_2.gltf": 0.35,
+}

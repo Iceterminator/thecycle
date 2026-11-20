@@ -27,6 +27,7 @@ static func default_profile(name: String) -> Dictionary:
 			"weapon_mods": {},
 			"start_weapon": String(Config.start_loadout.base_weapon),
 			"shop": ProfileManager.default_shop(),
+			"appearance": "",
 		},
 		"stats": {"matches": 0, "evacs": 0, "kills": 0, "best_fame": 0},
 	}

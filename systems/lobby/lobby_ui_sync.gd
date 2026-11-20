@@ -13,6 +13,7 @@ static func padded(list: Array, size: int) -> Array:
 ## Équipement sauvegardé (envoyé par le serveur à l'arrivée).
 static func apply_saved(lobby: LobbyUi, loadout: Dictionary) -> void:
 	lobby._preferred = int(loadout.get("preferred", 0))
+	lobby._appearance = String(loadout.get("appearance", ""))
 	lobby._kit_id = String(loadout.get("kit", Config.start_loadout.default_kit))
 	lobby._kit_mods = loadout.get("kit_mods", {}).duplicate()
 	lobby._weapon_mods = loadout.get("weapon_mods", {}).duplicate()
@@ -33,5 +34,6 @@ static func send(lobby: LobbyUi) -> void:
 		"weapon_mods": lobby._weapon_mods,
 		"start_weapon": lobby._start_weapon,
 		"shop": {"weapons": lobby._shop_weapons, "gadgets": lobby._shop_gadgets},
+		"appearance": lobby._appearance,
 	}, lobby._preferred)
 	lobby._set_status("Équipement enregistré", UiStyle.ACCENT)

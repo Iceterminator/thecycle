@@ -129,7 +129,8 @@ static func make_mesh(mesh: Mesh, color: Color, emissive: bool = false) -> MeshI
 
 ## Écran Tab : texte de l'état (le même que le texte flottant), couleur, type de repère.
 func map_info() -> Dictionary:
-	return {"text": _label.text if _label else data.display_name, "color": data.color, "kind": "contract"}
+	return {"text": _label.text if _label else data.display_name, "color": data.color, "kind": "contract",
+			"icon": QuestIcons.of(data.resource_path)}
 
 
 ## Texte flottant visible seulement de près (appelé par le HUD du joueur local).

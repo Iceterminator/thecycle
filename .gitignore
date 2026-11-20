@@ -8,6 +8,10 @@ assets/models/**/*.png
 # … sauf les textures des .gltf Quaternius, qui sont des fichiers sources
 !assets/models/weapons/quaternius/*.png
 !assets/models/nature/*.png
+!assets/models/nature/**/*.png
 !assets/models/monsters/*.png
 !assets/models/characters/*.png
 .test_logs/
+
+# Packs d'assets bruts téléchargés (non versionnés)
+packs_telecharges/
