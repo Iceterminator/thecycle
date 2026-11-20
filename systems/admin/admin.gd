@@ -35,7 +35,7 @@ static func get_crystal_datas() -> Array[CrystalData]:
 # Serveur
 # =========================================================================
 
-## Une arme (amount ignoré) ou des crédits (amount = montant), au sol devant le joueur.
+## Une arme ou une capacité (amount ignoré) ou des crédits (amount = montant), au sol devant le joueur.
 @rpc("any_peer", "call_local", "reliable")
 func request_spawn_item(item_id: String, amount: int) -> void:
 	if not _server_allowed():
@@ -46,7 +46,7 @@ func request_spawn_item(item_id: String, amount: int) -> void:
 		return
 	var message := ""
 	match item.kind:
-		ItemData.Kind.WEAPON:
+		ItemData.Kind.WEAPON, ItemData.Kind.ABILITY:
 			amount = 1
 			message = "%s posé devant vous" % item.display_name
 		ItemData.Kind.CREDITS:

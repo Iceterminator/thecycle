@@ -16,6 +16,8 @@ func take(item: ItemData, amount: int, ammo: int) -> bool:
 			if item.weapon.gadget != WeaponData.GadgetKind.NONE:
 				return _inv.player.abilities.server_offer(String(item.id)) == ""
 			_inv.player.weapon_pickup.server_take(item, amount, ammo, -1)
+		ItemData.Kind.ABILITY:  # capacité ramassée : attend Q ou F, comme un gadget
+			return _inv.player.abilities.server_offer(String(item.id)) == ""
 		ItemData.Kind.CREDITS:
 			_inv.add_credits(amount)
 		ItemData.Kind.SHIELD_UPGRADE:

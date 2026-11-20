@@ -5,6 +5,8 @@ extends Node
 ##
 ## Chaque arme de data/weapons/ sans fichier dans data/items/ reçoit un objet créé en
 ## mémoire (même id que l'arme, pas en vente) : toutes les armes peuvent être au sol.
+## Chaque capacité de data/abilities/ reçoit aussi un objet (Kind.ABILITY, même id) : elle se
+## ramasse au sol puis se met sur Q ou F, comme un gadget.
 ## Tous les peers construisent le même registre, les ids restent donc valables en réseau.
 
 const ITEMS_DIR := "res://data/items/"
@@ -31,6 +33,7 @@ func _ready() -> void:
 			continue
 		_items[item.id] = item
 	_add_missing_weapons()
+	_add_abilities()
 	if Config.SHOW_REFERENCE_WEAPON_NAMES:
 		_use_reference_names()
 	print("[Items] %d objets chargés" % _items.size())
@@ -91,3 +94,16 @@ func get_shop_items() -> Array[ItemData]:
 			return a.kind < b.kind
 		return a.price < b.price)
 	return result
+
+
+func _add_abilities() -> void:
+	for ability in AbilityController.list_abilities():
+		if ability.id == &"" or _items.has(ability.id):
+			continue
+		var item := ItemData.new()
+		item.id = ability.id
+		item.display_name = ability.get_display_name()
+		item.kind = ItemData.Kind.ABILITY
+		item.ability = ability
+		item.color = FACTION_COLORS[clampi(ability.faction, 0, FACTION_COLORS.size() - 1)].lightened(0.2)
+		_items[item.id] = item

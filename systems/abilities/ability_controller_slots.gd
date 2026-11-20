@@ -26,6 +26,17 @@ func set_slot(slot: int, id: String) -> bool:
 	return true
 
 
+## Serveur : le contenu de Q (0) / F (1) tombe au sol avant d'être remplacé (comme une arme) :
+## capacité, ou gadget avec ses munitions restantes. Rien dans le lobby.
+func drop_slot(slot: int) -> void:
+	var id := c.loadout[slot]
+	if id == "" or MatchManager.is_lobby() or Items.get_item(StringName(id)) == null:
+		return
+	var ammo := c.player.inventory.slot_ammo[Inventory.WEAPON_SLOTS + slot] if AbilityController.is_gadget(id) else -1
+	var pos := c.player.global_position - c.player.global_basis.z + Vector3(0, 0.5, 0)
+	Events.loot_drop_requested.emit(StringName(id), 1, ammo, pos, false)
+
+
 ## Serveur : vide Q (0) ou F (1) (gadget épuisé, remplacement, mort).
 func clear_slot(slot: int) -> void:
 	if AbilityController.is_gadget(c.loadout[slot]):

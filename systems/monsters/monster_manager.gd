@@ -31,20 +31,18 @@ func _ready() -> void:
 	Events.match_reset_requested.connect(_on_match_reset)
 	Events.evac_announced.connect(_spawn_evac_pad_camp)
 	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.match_rules.monster_level_health_mult.size()))
-	_setup.call_deferred()
+	Events.carte_chargee.connect(_setup)  # la carte n'existe qu'en partie (Niveaux)
+	Events.carte_liberee.connect(_vider)
+	for node in camps.get_children():
+		if node is MonsterCamp:
+			(node as MonsterCamp).cleared.connect(_on_camp_cleared)
 
 
 func _setup() -> void:
 	# Les CSG créent leurs collisions en différé : on attend avant de générer le navmesh.
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	MonsterNavmesh.bake(nav_region, map)
-	for node in camps.get_children():
-		var camp := node as MonsterCamp
-		if camp == null:
-			continue
-		camp.cleared.connect(_on_camp_cleared)
-		_spawn_camp(camp)
+	MonsterNavmesh.bake(nav_region, map)  # les camps sont peuplés par match_reset_requested
 
 
 func _spawn_camp(camp: MonsterCamp) -> void:
@@ -103,7 +101,15 @@ func _spawn_node(data: Dictionary) -> Node:
 	monster.setup(load(data["data"]) as MonsterData, data.get("hp", 1.0), data.get("lvl", 1))
 	monster.position = data["pos"]
 	monster.rotation.y = data["rot"]
+	if data.get("fige", false):  # salle de test : ni IA ni déplacement (le serveur seul les fait tourner)
+		monster.ready.connect(monster.set_physics_process.bind(false))
 	return monster
+
+
+## Salle de test : un monstre figé au niveau donné (salle_test_stock.gd).
+func server_spawn_fige(data_path: String, pos: Vector3, lvl: int) -> void:
+	var mult: Array = Config.match_rules.monster_level_health_mult
+	spawner.spawn({"uid": _new_uid(), "data": data_path, "pos": pos, "rot": PI, "hp": mult[clampi(lvl - 1, 0, mult.size() - 1)], "lvl": lvl, "fige": true})
 
 
 func _ground(pos: Vector3) -> Vector3:
@@ -122,7 +128,8 @@ func _new_uid() -> int:
 
 ## Nouvelle partie : tous les monstres disparaissent (le spawner les retire chez les
 ## clients), puis chaque camp est repeuplé.
-func _on_match_reset() -> void:
+## Retour au lobby : plus de carte, plus de monstres.
+func _vider() -> void:
 	_generation += 1
 	if is_instance_valid(_pad_camp):
 		_pad_camp.queue_free()
@@ -130,10 +137,15 @@ func _on_match_reset() -> void:
 	for node in spawner.get_node(spawner.spawn_path).get_children():
 		node.queue_free()
 	for node in camps.get_children():
-		var camp := node as MonsterCamp
-		if camp:
-			camp.alive.clear()
-			_spawn_camp(camp)
+		if node is MonsterCamp:
+			(node as MonsterCamp).alive.clear()
+
+
+func _on_match_reset() -> void:
+	_vider()
+	for node in camps.get_children():
+		if node is MonsterCamp:
+			_spawn_camp(node as MonsterCamp)
 
 
 func _level_mult(table: Array) -> float:

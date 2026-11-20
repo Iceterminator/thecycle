@@ -56,6 +56,7 @@ func begin_drop() -> void:
 		if player:
 			_send_drop_points(peer)
 			player.drop.server_start(_m._drop_points[peer])
+	_m.world.niveaux.server_retirer_briefing()  # tout le monde est dans sa capsule
 	Events.announce_requested.emit("Nouvelle partie !", MatchManager.ANNOUNCE_COLOR)
 	print("[Partie] Nouvelle partie : largage")
 
@@ -80,6 +81,7 @@ func reset_player(player: Player) -> void:
 ## Après l'écran de fin : retour au lobby (les joueurs restent dans le monde, sans dégâts).
 func enter_lobby() -> void:
 	_m.phase = MatchManager.Phase.LOBBY
+	_m.world.niveaux.server_charger(Niveaux.Niveau.LOBBY)  # carte supprimée, salle de briefing recréée
 	_m.ready_players = {}
 	_m.briefing_room = []
 	_m.briefing_votes = []
@@ -94,6 +96,7 @@ func enter_lobby() -> void:
 			player.set_evacuated.rpc(false)
 			player.health.server_reset()
 			player.drop.server_cancel()
+			player.teleport.rpc(_m.world.pick_spawn_point())
 	_m._broadcast_clock()
 	Events.announce_requested.emit("Lobby : préparez votre équipement, le premier prêt ouvre la salle de briefing", MatchManager.ANNOUNCE_COLOR)
 
@@ -125,6 +128,8 @@ func server_lobby(delta: float) -> void:
 
 ## Pas de physique serveur : minuteur de la phase en cours, ou avancée de l'horloge de partie.
 func server_tick(delta: float) -> void:
+	if _m.phase == MatchManager.Phase.SALLE_TEST:  # pas d'horloge : ni tempête, ni évac
+		return
 	if _m.phase == MatchManager.Phase.LOBBY:
 		server_lobby(delta)
 		return

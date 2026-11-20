@@ -15,8 +15,10 @@ func _init(manager: MatchManager) -> void:
 	_m = manager
 
 
-## Premier « prêt » : remise à zéro de la carte (tirage des quêtes, monstres), puis salle ouverte.
+## Premier « prêt » : la carte est générée (Niveaux), remise à zéro (tirage des quêtes, monstres),
+## puis salle ouverte.
 func start() -> void:
+	_m.world.niveaux.server_charger(Niveaux.Niveau.PARTIE)
 	_m._cycle.reset_world()
 	_m.phase = MatchManager.Phase.BRIEFING
 	_m.elapsed = 0.0

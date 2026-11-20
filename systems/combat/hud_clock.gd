@@ -30,6 +30,12 @@ static func update_clock(hud: CombatHud, delta: float) -> void:
 		hud._storm_label.text = ""
 		hud._status_label.text = ""
 		return
+	if hud._clock_phase == MatchManager.Phase.SALLE_TEST:
+		hud._clock_label.text = "TEST"
+		hud._clock_sub.text = "SALLE DE TEST — LE TÉLÉPORTEUR BLEU RAMÈNE AU LOBBY"
+		hud._storm_label.text = ""
+		hud._status_label.text = ""
+		return
 	if hud._clock_phase == MatchManager.Phase.BRIEFING:
 		update_briefing(hud)
 		return

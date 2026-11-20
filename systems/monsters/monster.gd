@@ -140,7 +140,8 @@ func _physics_process(delta: float) -> void:
 		_die(0)  # tombé hors de la carte : pas de crédits
 		return
 	velocity.y = 0.0 if is_on_floor() else velocity.y - _gravity * delta
-	_ai.step(delta)
+	if _motion.ai_due(delta):  # allégée loin des joueurs (MonsterLod)
+		_ai.step(_motion.ai_elapsed)
 	_motion.move_body(delta)
 	if not _projectiles.is_empty():
 		_projectiles.step(delta)

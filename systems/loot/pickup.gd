@@ -49,6 +49,8 @@ func get_prompt(player: Player) -> String:
 			if inv.slot_ids.slice(0, Inventory.WEAPON_SLOTS).has(""):
 				return "E : Ramasser %s   (1 / 2 : choisir l'emplacement)" % item.display_name
 			return "Maintenir E / 1 / 2 : remplacer par %s" % item.display_name
+		ItemData.Kind.ABILITY:
+			return "E : Ramasser la capacité %s (puis Q ou F)" % item.display_name
 		ItemData.Kind.CREDITS:
 			return "E : Ramasser %d crédits" % amount
 		ItemData.Kind.RESOURCE:
@@ -109,6 +111,10 @@ func _build_visual() -> void:
 		var box := BoxMesh.new()
 		box.size = Vector3(0.7, 0.18, 0.18)
 		mesh.mesh = box
+	elif item.kind == ItemData.Kind.ABILITY:  # capacité : cristal de données (prisme)
+		var prism := PrismMesh.new()
+		prism.size = Vector3(0.32, 0.4, 0.32)
+		mesh.mesh = prism
 	else:
 		var sphere := SphereMesh.new()
 		sphere.radius = 0.18

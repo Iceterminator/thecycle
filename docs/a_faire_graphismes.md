@@ -20,8 +20,8 @@ Liste à cocher au fur et à mesure (`- [x]`). Établie le 20/11/2026.
 - [ ] Decals : saleté, rouille, mousse
 
 ## À retoucher (avis du 20/11/2026)
-- [ ] Arbres : jugés moches (feuillus en boules touffues, sapin peu crédible) — refaire forme et feuillage
-- [ ] Sols : moyens — casser la répétition, meilleur mélange entre biomes, détails
+- [ ] Arbres : jugés moches (« textures 2D partout ») — fait : plaques 3× plus nombreuses et plus petites, orientées au hasard, normales sphériques, fondu de profil (`herbe_vent.gdshader` : `normale_haut`, `fondu_profil`). Si insuffisant : vraies feuilles 3D de près (LOD)
+- [ ] Sols : trop répétitifs — fait : variante tournée par zones, seconde échelle, taches de couleur (`terrain_sol.gdshader`). À juger en jeu
 
 ## Modèles
 - [ ] Remplacer les modèles Quaternius low-poly par des modèles détaillés (Poly Haven, CC0, ou Blender)

@@ -5,7 +5,7 @@ extends RefCounted
 var idle_left: float = 0.0
 var _m: Monster
 var _has_patrol_point: bool = false
-var _scan_left: float = 0.0
+var _scan_left: float = randf() * Monster.SCAN_INTERVAL  ## décalé entre monstres
 
 
 func _init(monster: Monster) -> void:

@@ -6,8 +6,10 @@ var _m: Monster
 var _slow_mult: float = 1.0       ## Entrave : vitesse réduite jusqu'à _slow_until_ms
 var _slow_until_ms: int = 0
 var _far: bool = false           ## loin de tout joueur (MonsterLod)
-var _far_check_left: float = 0.0
+var _far_check_left: float = randf() * MonsterLod.CHECK_INTERVAL  ## décalé entre monstres (pas de pic)
 var _force_slide: bool = true    ## un move_and_slide est nécessaire (reprise après le mode loin)
+var ai_elapsed: float = 0.0       ## temps à donner à l'IA quand ai_due() est vrai
+var _ai_accum: float = randf() * MonsterLod.FAR_AI_INTERVAL
 
 
 func _init(monster: Monster) -> void:
@@ -20,6 +22,17 @@ func apply_slow(mult: float, duration: float) -> void:
 	_slow_until_ms = Time.get_ticks_msec() + int(duration * 1000.0)
 
 
+## IA allégée (MonsterLod) : en patrouille loin de tout joueur, l'IA ne réfléchit que toutes les
+## MonsterLod.FAR_AI_INTERVAL s (avec le temps cumulé) ; sinon à chaque image.
+func ai_due(delta: float) -> bool:
+	_ai_accum += delta
+	if _far and _m.state == Monster.State.PATROL and _ai_accum < MonsterLod.FAR_AI_INTERVAL:
+		return false
+	ai_elapsed = _ai_accum
+	_ai_accum = 0.0
+	return true
+
+
 ## Déplacement physique, allégé (MonsterLod) : sans collision en patrouille loin des joueurs,
 ## aucun calcul à l'arrêt au sol, move_and_slide sinon.
 func move_body(delta: float) -> void:
@@ -28,7 +41,9 @@ func move_body(delta: float) -> void:
 		_far_check_left = MonsterLod.CHECK_INTERVAL
 		_far = MonsterLod.is_far(_m, _m.players_root)
 	if _far and _m.state == Monster.State.PATROL:
-		MonsterLod.step_far(_m, delta)
+		_m.velocity.y = 0.0  # posé sur le relief : pas de chute accumulée (elle traverserait le sol au retour)
+		if _m.velocity.x != 0.0 or _m.velocity.z != 0.0:
+			MonsterLod.step_far(_m, delta)
 		_force_slide = true
 		return
 	var at_rest := _m.velocity.length_squared() < 0.0001 and _m.is_on_floor()

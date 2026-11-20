@@ -54,7 +54,7 @@ func _ready() -> void:
 			_spawn({"kind": kind, "data": data_path, "pos": position}))
 	Events.match_reset_requested.connect(_on_match_reset)
 	Events.crystal_upgrade_requested.connect(_on_crystal_upgrade)
-	_spawn_all.call_deferred()
+	Events.carte_liberee.connect(_vider)  # objectifs tirés à chaque match_reset_requested (début de partie)
 
 
 ## Menu admin : un cristal de plus, à la position demandée (le chemin est déjà vérifié).
@@ -130,10 +130,14 @@ func _request_objectives() -> void:
 ## Nouvelle partie : cristaux et contrats sont recréés neufs (nouveau tirage). Les Lumicèpes
 ## au sol sont retirés par le LootManager ; on les fait repousser tout de suite.
 func _on_match_reset() -> void:
+	_vider()
+	_spawn_all.call_deferred()
+
+
+func _vider() -> void:
 	_delayed.clear()
 	for node in spawner.get_node(spawner.spawn_path).get_children():
 		node.queue_free()
-	_spawn_all.call_deferred()
 
 ## 10:00 : les cristaux pas encore commencés montent d'un niveau (voir QuestManagerUpgrade).
 func _on_crystal_upgrade() -> void:

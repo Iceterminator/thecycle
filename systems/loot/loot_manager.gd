@@ -24,6 +24,7 @@ func _ready() -> void:
 	Events.loot_drop_requested.connect(_on_drop_requested)
 	Events.drop_pod_requested.connect(_on_drop_pod_requested)
 	Events.match_reset_requested.connect(_on_match_reset)
+	Events.carte_liberee.connect(_on_match_reset)  # retour au lobby : plus rien au sol
 
 
 ## Nouvelle partie : plus rien au sol (le spawner retire aussi les objets chez les clients).

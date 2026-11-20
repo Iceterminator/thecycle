@@ -120,6 +120,7 @@ func request_assign(slot: int) -> void:
 		return
 	var id := pending
 	pending = ""
+	_slots.drop_slot(slot)  # l'ancien contenu tombe au sol
 	server_set_slot(slot, id)
 	player.score.notify.rpc_id(player.get_peer_id(), "%s équipé sur %s" % [Shop.entry_name(id), ["Q", "F"][slot]], Color(0.6, 1.0, 0.6))
 

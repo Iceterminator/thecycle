@@ -11,6 +11,10 @@ var _anim_last_pos: Vector3
 var _anim_speed := 0.0
 var _anim_last_health := -1.0
 var _hit_left := 0.0
+## Loin de la caméra (au-delà de ANIM_DISTANCE, vérifié toutes les ANIM_CHECK s) : animation en pause.
+const ANIM_DISTANCE := 70.0
+const ANIM_CHECK := 0.5
+var _anim_check_left := randf() * ANIM_CHECK  ## décalé : pas tous les monstres sur la même image
 
 
 func _init(monster: Monster) -> void:
@@ -37,6 +41,13 @@ func build() -> void:
 ## Animation du modèle d'après le déplacement observé et l'état synchronisé (tous les peers).
 func animate(delta: float) -> void:
 	if _anim == null or delta <= 0.0:
+		return
+	_anim_check_left -= delta
+	if _anim_check_left <= 0.0:
+		_anim_check_left = ANIM_CHECK
+		var cam := _m.get_viewport().get_camera_3d()
+		_anim.active = cam == null or cam.global_position.distance_squared_to(_m.global_position) < ANIM_DISTANCE * ANIM_DISTANCE
+	if not _anim.active:
 		return
 	var pos := _m.global_position
 	var moved := pos - _anim_last_pos

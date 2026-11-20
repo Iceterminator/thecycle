@@ -1,5 +1,5 @@
 shader_type spatial;
-// Herbe du décor (touffes Poly Haven) : texture + masque alpha séparé, vent, normales vers le haut
+// Végétation du décor (herbe, plantes, feuillage des arbres) : texture + alpha, vent, normales vers le haut
 // (éclairage doux, pas de faces sombres), pied plus sombre. Utilisé via les .tres de assets/models/nature/herbe/.
 render_mode cull_disabled, depth_prepass_alpha;
 
@@ -11,6 +11,8 @@ uniform float vent_force = 0.04;
 uniform float vent_vitesse = 1.6;
 uniform float seuil_alpha = 0.3;
 uniform bool alpha_dans_albedo = false;  // feuillage des arbres : alpha dans la même image
+uniform float normale_haut = 0.75;  // normales poussées vers le haut (herbe) ; arbres : normales sphériques du modèle, peu poussées
+uniform float fondu_profil = 0.0;  // arbres : les plaques vues de profil disparaissent (on ne voit plus de rectangles)
 
 varying float v_hauteur;
 
@@ -21,7 +23,7 @@ void vertex() {
 	float souffle = (sin(phase) + 0.4 * sin(phase * 2.3 + 1.7)) * vent_force * v_hauteur * v_hauteur;
 	VERTEX.x += souffle;
 	VERTEX.z += souffle * 0.6;
-	NORMAL = normalize(mix(NORMAL, vec3(0.0, 1.0, 0.0), 0.75));
+	NORMAL = normalize(mix(NORMAL, vec3(0.0, 1.0, 0.0), normale_haut));
 }
 
 void fragment() {
@@ -29,7 +31,9 @@ void fragment() {
 	vec3 couleur = tex.rgb * teinte.rgb;
 	ALBEDO = couleur * mix(0.7, 1.15, v_hauteur);
 	ALPHA = alpha_dans_albedo ? tex.a : texture(texture_alpha, UV).r;
-	ALPHA_SCISSOR_THRESHOLD = seuil_alpha;
+	// Face réelle de la plaque (les normales du modèle sont lissées) : vue de profil, seuil relevé.
+	float profil = abs(dot(normalize(cross(dFdx(VERTEX), dFdy(VERTEX))), VIEW));
+	ALPHA_SCISSOR_THRESHOLD = mix(seuil_alpha, 0.98, fondu_profil * (1.0 - smoothstep(0.1, 0.45, profil)));
 	ROUGHNESS = 0.9;
 	SPECULAR = 0.2;
 	BACKLIGHT = couleur * 0.35;

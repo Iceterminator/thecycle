@@ -4,7 +4,7 @@ extends Node
 ##   LOBBY (équipement, « prêt ») -> BRIEFING (salle 3D, match_briefing.gd) -> 0:00 largage ; 16:10 annonce
 ##   de l'évac ; 19:10 elle se pose ; 20:00 décollage, fin -> écran de fin -> LOBBY. Horloge envoyée
 ##   aux clients à chaque changement et toutes les Config.MATCH_CLOCK_RESYNC s ; bonus d'embarquement : EvacShip.
-enum Phase { PLAYING, EVAC, ENDED, LOBBY, BRIEFING }
+enum Phase { PLAYING, EVAC, ENDED, LOBBY, BRIEFING, SALLE_TEST }  ## SALLE_TEST : systems/salle_test/, sans horloge
 
 static var _current: MatchManager
 
@@ -117,7 +117,7 @@ func _show_results(results: Array, restart_in: float) -> void:
 
 ## Serveur : un nouvel arrivant devient joueur au lobby ou pendant le briefing.
 func accepts_new_players() -> bool:
-	return phase == Phase.LOBBY or phase == Phase.BRIEFING
+	return phase in [Phase.LOBBY, Phase.BRIEFING, Phase.SALLE_TEST]
 
 
 func add_waiting(peer_id: int) -> void:

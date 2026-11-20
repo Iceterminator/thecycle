@@ -20,6 +20,7 @@ const QualiteGraphique := preload("res://systems/rendu/qualite_graphique.gd")
 
 ## Créés en code sur tous les peers (mêmes noms partout, pour les RPC).
 var match_manager: MatchManager
+var niveaux: Niveaux
 var evac_ship: EvacShip
 
 
@@ -31,12 +32,9 @@ func _ready() -> void:
 	if not Net.is_dedicated_server:
 		_appliquer_qualite()
 		Events.reglages_graphiques_changes.connect(_appliquer_qualite)
-	var decor := MapDecor.new()
-	decor.name = "Decor"
-	$Map.add_child(decor)
-	var briefing_room := BriefingRoom.new()
-	briefing_room.name = "BriefingRoom"
-	add_child(briefing_room)
+	niveaux = Niveaux.new()  # salle de briefing, carte ou salle de test selon l'activité
+	niveaux.name = "Niveaux"
+	add_child(niveaux)
 	evac_ship = EVAC_SCRIPT.new()
 	evac_ship.name = "EvacShip"
 	evac_ship.players_root = players
@@ -103,6 +101,10 @@ func get_player(peer_id: int) -> Player:
 
 func pick_spawn_point() -> Vector3:
 	## Point aléatoire (aussi utilisé par RespawnManager). Plus tard : le joueur choisit sa zone de largage.
+	if niveaux.niveau == Niveaux.Niveau.SALLE_TEST:
+		return SalleTest.spawn_point(randi() % 5)
+	if not niveaux.carte_construite():  # lobby : dans la salle de briefing
+		return BriefingRoom.spawn_point(randi() % BriefingRoom.SPAWN_COLUMNS)
 	var points := spawn_points.get_children()
 	if points.is_empty():
 		return Vector3(0, 2, 0)

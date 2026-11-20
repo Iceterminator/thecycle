@@ -12,7 +12,7 @@ func run_host() -> void:
 	var me := player(1)
 	var target := player(cid)
 	# --- Lobby ---
-	place(1, ground(SPOT_HOST))
+	place(1, BriefingRoom.spawn_point(0))  # lobby : pas de carte, on est dans la salle de briefing
 	await wait(0.5)
 	send_step("lobby_place")
 	if not await wait_step("lobby_tir"):
@@ -22,6 +22,7 @@ func run_host() -> void:
 		return
 	if not check(me.health.shield == me.health.max_shield and me.health.health == me.health.get_max_health(), "lobby : l'hôte n'a pris aucun dégât"):
 		return
+	send_step("lobby_verifie")
 	# --- Partie ---
 	if not await start_match():
 		return
@@ -57,10 +58,12 @@ func run_client() -> void:
 	# --- Lobby : tir sans effet ---
 	if not await wait_step("lobby_place"):
 		return
-	await move_self_and_settle(ground(SPOT_CLIENT))
+	await move_self_and_settle(BriefingRoom.spawn_point(3))
 	fire_at(chest(host))
 	await wait(0.3)
 	send_step("lobby_tir")
+	if not await wait_step("lobby_verifie"):  # l'hôte vérifie avant que le briefing ne recharge l'arme
+		return
 	# --- Partie ---
 	if not await start_match():
 		return

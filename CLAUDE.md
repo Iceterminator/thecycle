@@ -57,7 +57,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --headless --path . -s tools/make_held_scenes.gd
 ```
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
-Tests réseau automatisés (11 tests, ~4 min ; port 7777 : un seul lancement à la fois) :
+Tests réseau automatisés (13 tests, ~5 min ; port 7777 : un seul lancement à la fois) :
 ```
 bash tools/run_tests.sh            # tous ; OK / ÉCHEC par test, journaux dans .test_logs/
 bash tools/run_tests.sh 03 09      # seulement les tests dont le nom contient 03 ou 09
@@ -81,6 +81,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
 | Tempête | `systems/storm/` | `data/storm/` | `docs/tempetes.md` |
 | Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
+| Niveaux (ce qui est construit : briefing seul au lobby, carte en partie, salle de test), salle de test (armurerie, monstres figés, galerie) | `systems/niveaux/niveaux.gd`, `systems/salle_test/`, choix du mode `systems/lobby/lobby_ui_mode.gd` | — | `docs/salle_test.md` |
 | Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |

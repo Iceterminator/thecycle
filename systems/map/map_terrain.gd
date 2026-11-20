@@ -7,7 +7,7 @@ extends StaticBody3D
 ## - Zones plates autour de chaque Marker3D du monde et de l'évac (centre, hauteur 0).
 ## - _enter_tree : enregistre les zones plates puis pose les Marker3D au sol, AVANT que
 ##   MapDecor, MonsterManager, QuestManager… ne lisent leurs positions.
-## - Collision : HeightMapShape3D à 1 m. Rendu : MapTerrainMesh (absent en serveur dédié).
+## - Collision : HeightMapShape3D à 1 m, construite par construire() (Niveaux), pas au chargement. Rendu : MapTerrainMesh (absent en serveur dédié).
 ## - Biomes (MapBiomes) : le relief de base est adapté à chaque biome ; mares du marais (MapWater).
 
 const SEED := 20261119
@@ -29,12 +29,31 @@ static var _hills: FastNoiseLite
 static var _ridges: FastNoiseLite
 static var _flat_zones: Array[Vector4] = []   ## x, z, rayon plein, largeur du fondu
 static var _flat_heights: PackedFloat32Array = PackedFloat32Array()
+## Hauteurs déjà calculées (grille de 1 m, remplie par construire()) : height_at y lit au lieu de
+## recalculer le bruit (monstres loin des joueurs, loot, décor : appelé des milliers de fois).
+static var _grille: PackedFloat32Array = PackedFloat32Array()
+static var _grille_n: int = 0
+static var _grille_half: int = 0
 
 
 ## Hauteur du sol en (x, z).
 static func height_at(x: float, z: float) -> float:
 	if not _configured:
 		return 0.0
+	if _grille_n > 0:
+		var gx := x + _grille_half
+		var gz := z + _grille_half
+		if gx >= 0.0 and gz >= 0.0 and gx < _grille_n - 1 and gz < _grille_n - 1:
+			var i := int(gx)
+			var j := int(gz)
+			var fx := gx - i
+			var fz := gz - j
+			var k := j * _grille_n + i
+			return lerpf(lerpf(_grille[k], _grille[k + 1], fx), lerpf(_grille[k + _grille_n], _grille[k + _grille_n + 1], fx), fz)
+	return _exact_height(x, z)
+
+
+static func _exact_height(x: float, z: float) -> float:
 	var h := _raw_height(x, z)
 	for i in _flat_zones.size():
 		var zone := _flat_zones[i]
@@ -96,7 +115,9 @@ func _enter_tree() -> void:
 		m.position.y += height_at(m.position.x, m.position.z)
 
 
-func _ready() -> void:
+## Construit la collision et le rendu (Niveaux, au début d'une partie). Le relief (height_at) est
+## disponible dès _enter_tree, même sans carte construite.
+func construire() -> void:
 	collision_layer = 1
 	collision_mask = 0
 	var half := int(Config.MAP_HALF_SIZE) + COLLISION_MARGIN
@@ -105,7 +126,10 @@ func _ready() -> void:
 	data.resize(count * count)
 	for j in count:
 		for i in count:
-			data[j * count + i] = height_at(i - half, j - half)
+			data[j * count + i] = _exact_height(i - half, j - half)
+	_grille = data
+	_grille_n = count
+	_grille_half = half
 	var shape := HeightMapShape3D.new()
 	shape.map_width = count
 	shape.map_depth = count
@@ -119,3 +143,9 @@ func _ready() -> void:
 		visual.material_override = MapTerrainMesh.make_material()
 		add_child(visual)
 		add_child(MapWater.build())
+
+
+## Supprime la collision et le rendu (retour au lobby, salle de test).
+func detruire() -> void:
+	for child in get_children():
+		child.queue_free()

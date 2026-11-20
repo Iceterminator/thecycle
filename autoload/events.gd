@@ -107,4 +107,8 @@ signal hud_settings_changed
 ## Réglages graphiques changés (menu Échap) : le monde réapplique la qualité.
 signal reglages_graphiques_changes
 
+## Serveur (Niveaux) : la carte de partie vient d'être construite / supprimée (monstres, quêtes, loot).
+signal carte_chargee
+signal carte_liberee
+
 @warning_ignore_restore("unused_signal")

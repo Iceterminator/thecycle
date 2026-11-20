@@ -2,6 +2,8 @@ extends RefCounted
 ## Accès partagés de LobbyUi (fonctions statiques) : verrouillage par faction, recherche dans le
 ## catalogue, état « prêt » des boutons. LobbyUi garde les façades appelées par les onglets.
 
+const Mode := preload("res://systems/lobby/lobby_ui_mode.gd")
+
 
 static func unlocked(ui: LobbyUi, faction: int, level: int) -> bool:
 	return ProfileManager.is_unlocked(ui._me(), faction, level)
@@ -38,13 +40,29 @@ static func ready_count(ready_players: Dictionary) -> int:
 
 ## Met à jour les deux boutons PRÊT ; `send` : prévient le serveur (MatchManager).
 static func set_ready(ui: LobbyUi, on: bool, send: bool) -> void:
-	for button in [ui._top.ready_button, ui._launch.ready_button]:
-		(button as Button).set_pressed_no_signal(on)
-		(button as Button).text = "PRÊT ✔" if on else "PRÊT"
+	if on and send and MatchManager.is_lobby():  # personne n'a encore choisi : partie ou salle de test
+		_boutons(ui, false)
+		Mode.ouvrir(ui, envoyer_pret.bind(ui), func() -> void:
+			var niveaux := ui._world.get_node_or_null("Niveaux") as Niveaux
+			if niveaux:
+				niveaux.request_salle_test.rpc_id(1))
+		return
+	envoyer_pret(ui, on, send)
+
+
+## Prêt pour une partie normale (ou annulation) : boutons et serveur.
+static func envoyer_pret(ui: LobbyUi, on: bool = true, send: bool = true) -> void:
+	_boutons(ui, on)
 	if send:
 		var match_manager := ui._world.get_node_or_null("MatchManager") as MatchManager
 		if match_manager:
 			match_manager.request_lobby_ready.rpc_id(1, on)
+
+
+static func _boutons(ui: LobbyUi, on: bool) -> void:
+	for button in [ui._top.ready_button, ui._launch.ready_button]:
+		(button as Button).set_pressed_no_signal(on)
+		(button as Button).text = "PRÊT ✔" if on else "PRÊT"
 
 
 ## Barre du haut et compte à rebours, chaque frame ; rafraîchit l'onglet toutes les 0,5 s.
