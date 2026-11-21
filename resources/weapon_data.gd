@@ -141,6 +141,8 @@ enum GadgetKind { NONE, FRAG_GRENADE, HEAL_BEAM, RECALL }
 @export var model_offset: Vector3 = Vector3.ZERO
 ## Teinte multipliée sur les couleurs du modèle (blanc = aucune) : couleur de la faction (gris départ, rouge Forge Brask, vert Lumen, bleu Consortium Vega), légèrement variée quand un même modèle revient dans une faction.
 @export var model_tint: Color = Color.WHITE
+## Pose des doigts sur cette arme (data/hand_poses/) ; vide = doigts de l'animation.
+@export var hand_pose: HandPoseData
 
 @export_group("Fiche (detailed)")
 ## Fiche de design de la référence : ce que l'arme doit faire ressentir.

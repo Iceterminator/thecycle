@@ -1,9 +1,7 @@
 class_name PlayerAvatar
 extends Node3D
-## Corps animé d'un joueur, vu par les autres (Universal Base Characters + Universal
-## Animation Library, Quaternius, CC0 : même squelette, les animations s'appliquent telles quelles).
-## Enfant du BodyMesh du Player : il en suit la visibilité (caché pour le joueur local, à
-## l'évacuation) et la transparence (camouflage).
+## Corps animé d'un joueur, vu par les autres (personnages et animations Quaternius ; prise fusil : Mixamo).
+## Enfant du BodyMesh du Player : il en suit la visibilité (caché en local, à l'évacuation) et la transparence.
 ##
 ## AnimationTree construit en code :
 ##   loco  (Transition) : jambes — repos, course (avant / arrière), sprint, accroupi, saut, mort
@@ -82,6 +80,7 @@ func _build_model() -> void:
 	_palm = palm_bones(_skeleton)
 	_left_hand = LeftHandIk.new()
 	_left_hand.setup(_skeleton)
+	HandPoseModifier.new().setup(_skeleton, player)
 	var anim := AnimationPlayer.new()
 	model.add_child(anim)  # root_node ".." = le modèle : pistes « Armature/Skeleton3D:os »
 	anim.add_animation_library("", animation_library_for(_model_path, _skeleton))
@@ -172,7 +171,8 @@ func _process(delta: float) -> void:
 	if loco != _loco:
 		_loco = loco
 		_tree.set("parameters/loco/transition_request", loco)
-	# Arme en main, sauf mort ou sprint (les bras suivent la course).
+	# Arme en main (prise pistolet ou fusil), sauf mort ou sprint (les bras suivent la course).
+	PlayerAvatarTools.apply_stance(_tree, player)
 	var armed := 0.0 if dead or loco == "Sprint" else 1.0
 	var current: float = _tree.get("parameters/upper/blend_amount")
 	_tree.set("parameters/upper/blend_amount", move_toward(current, armed, delta * 5.0))

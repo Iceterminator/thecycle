@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/hand_pose/make_hand_pose.gd" id="1_outil"]
+
+[node name="MakeHandPose" type="Node"]
+script = ExtResource("1_outil")

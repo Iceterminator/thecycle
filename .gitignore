@@ -16,6 +16,12 @@ assets/models/**/*.png
 # Packs d'assets bruts téléchargés (non versionnés)
 packs_telecharges/
 
+# Animations Mixamo (redistribution des fichiers bruts interdite)
+assets/animations/
+
+# Modèles d'armes générés (Tripo), gardés en local
+assets/models/weapons/karma_1/
+
 # Assets graphiques Poly Haven (lourds, non versionnés : à garder en local)
 assets/textures/
 assets/models/nature/arbres/

@@ -6,7 +6,8 @@ extends Node3D
 ## Enfant de WeaponModel : le corps suit le recul et le balancement de l'arme ; la tête
 ## reste calée sur la caméra et l'arme est posée au centre de la paume droite (hand_local).
 
-const AIM := "Pistol_Aim_Neutral"
+const Tools := preload("res://systems/avatar/player_avatar_tools.gd")
+const AIM := "Pistol_Aim_Neutral"  ## pose prise pistolet (fusil : Tools.RIFLE_AIM)
 const HEAD_BONE := "Head"
 ## Caméra par rapport à l'os de la tête (m, repère de l'arme) : à hauteur des yeux et
 ## juste devant le visage, qui reste ainsi derrière la caméra (matériaux à double face).
@@ -19,6 +20,8 @@ var _palm := PackedInt32Array()
 var _head := -1
 var _anim: AnimationPlayer
 var _reloading := false
+var _rifle := false  ## prise fusil (arme à deux mains en main)
+var _aiming := false  ## visée (prise fusil : arme à l'épaule ; sinon arme basse)
 var _left_hand: LeftHandIk
 var _player: Player
 var _model: Node3D
@@ -48,13 +51,21 @@ func setup(p: Player) -> void:
 	_anim = AnimationPlayer.new()
 	model.add_child(_anim)
 	_anim.add_animation_library("", PlayerAvatar.animation_library_for(_model_path, _skeleton))
-	_anim.play(AIM)
+	_rifle = Tools.holds_rifle(p)
+	_anim.play(_aim())
 	_left_hand = LeftHandIk.new()
 	_left_hand.setup(_skeleton)
+	HeadHider.new().setup(_skeleton)
+	HandPoseModifier.new().setup(_skeleton, p)
 
 
 ## Apparence changée dans le lobby : on refait les bras avec le nouveau modèle.
 func _process(delta: float) -> void:
+	if _player and (Tools.holds_rifle(_player) != _rifle or _player.weapon.is_aiming != _aiming):
+		_rifle = Tools.holds_rifle(_player)
+		_aiming = _player.weapon.is_aiming
+		if not _reloading:
+			_anim.play(_aim(), 0.15)
 	_check_left -= delta
 	if _check_left > 0.0 or _player == null:
 		return
@@ -71,16 +82,17 @@ func set_left_target(target: Variant) -> void:
 
 
 func play_shot() -> void:
-	if not _reloading:
+	if not _reloading and not _rifle:  # prise fusil : recul de l'arme seulement (voir Tools.RIFLE_SHOT)
 		_anim.play("Pistol_Shoot", 0.03)
-		_anim.queue(AIM)
+		_anim.queue(_aim())
 
 
 func set_reloading(value: bool) -> void:
 	if value == _reloading:
 		return
 	_reloading = value
-	_anim.play("Pistol_Reload" if value else AIM, 0.15)
+	var reload: String = Tools.RIFLE_RELOAD if _rifle else "Pistol_Reload"
+	_anim.play(reload if value else _aim(), 0.15)
 
 
 ## Place le corps pour que la tête tombe sur `camera_local` (caméra dans le repère du parent).
@@ -102,3 +114,10 @@ func _bone_local(bone: int) -> Vector3:
 
 func _to_parent(global: Vector3) -> Vector3:
 	return (get_parent() as Node3D).global_transform.affine_inverse() * global
+
+
+## Pose selon la prise : pistolet (une seule pose), fusil à l'épaule en visée, arme basse sinon.
+func _aim() -> String:
+	if not _rifle:
+		return AIM
+	return Tools.RIFLE_AIM if _aiming else Tools.RIFLE_HIP

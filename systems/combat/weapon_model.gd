@@ -13,6 +13,7 @@ extends Node3D
 const WeaponModelBuilder := preload("res://systems/combat/weapon_model_builder.gd")
 const WeaponModelMotion := preload("res://systems/combat/weapon_model_motion.gd")
 const WeaponModelShake := preload("res://systems/combat/weapon_model_shake.gd")
+const WeaponModelSight := preload("res://systems/combat/weapon_model_sight.gd")
 
 const HIP_POSITION := Vector3(0.24, -0.21, -0.48)
 const AIM_POSITION := Vector3(0.0, -0.13, -0.38)
@@ -111,9 +112,9 @@ func _process(delta: float) -> void:
 			position = position.lerp(HIP_POSITION + _offset, t)
 		return
 	var aiming := player.weapon.is_aiming
-	# Avec les bras, la visée ne déplace presque pas le corps (la pose tient déjà l'arme au centre).
-	var aim_pos := HIP_POSITION + ARMS_AIM_SHIFT if _arms else AIM_POSITION
-	_base = _base.lerp((aim_pos if aiming else HIP_POSITION) + _offset, t)
+	# Avec les bras : l'arme se place d'après son repère Viseur (weapon_model_sight.gd), sinon pose + petit décalage.
+	var fallback := ((HIP_POSITION + ARMS_AIM_SHIFT if _arms else AIM_POSITION) if aiming else HIP_POSITION) + _offset
+	_base = _base.lerp(WeaponModelSight.target(self, _model if _arms else null, aiming, player.weapon.is_reloading, _base, fallback), t)
 	_motion.update(delta, aiming, _base)
 	var pos := _motion.pos
 	var rot := _motion.rot
@@ -153,7 +154,7 @@ func left_hand_target() -> Variant:
 	var marker := _model.find_child("MainGauche", true, false) as Node3D if _model else null
 	if marker == null:
 		return null
-	return marker.global_position + global_basis * tune_left
+	return marker.global_position + global_basis * (tune_left + (WeaponModelSight.HIP_LEFT_SHIFT if _arms and not player.weapon.is_aiming else Vector3.ZERO))
 
 
 ## Vrai si un modèle est affiché (faux sur le serveur dédié ou sans modèle).

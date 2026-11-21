@@ -35,7 +35,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 - `resources/` : scripts des types de données (`WeaponData`, `KitData`, `MonsterData`, règles…)
 - `data/` : équilibrage en `.tres` — `rules/` (prix, Fame, timings, déplacement, départ),
   `weapons/`, `kits/`, `abilities/`, `kit_mods/`, `items/`, `monsters/`, `camps/`, `quests/`, `contracts/`,
-  `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/`, `biomes/` ; `reference/` = chiffres du jeu d'origine
+  `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/`, `biomes/`, `hand_poses/` ; `reference/` = chiffres du jeu d'origine
 - `assets/` : modèles (Quaternius, CC0), polices, icônes ; `tools/` : scripts d'outillage
 - `docs/` : design, fiches par mécanique, captures
 - `tests/` : tests réseau automatisés (hôte + client headless), lancés par `tools/run_tests.sh`
@@ -53,6 +53,10 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 <godot> --path . -- --join=127.0.0.1 --name=Test
 # Icônes d'armes (avec fenêtre, puis --import, puis -- --assign)
 <godot> --path . -s tools/render_weapon_icons.gd
+# Animations Mixamo (assets/animations/fusil/*.fbx) -> squelette des personnages (fusil_homme.res)
+<godot> --headless --path . -s tools/retarget_mixamo.gd
+# Pose des doigts d'une arme (doigts refermés jusqu'au contact) -> data/hand_poses/<arme>.tres ; captures si --capture
+<godot> --path . res://tools/hand_pose/make_hand_pose.tscn -- --arme=karma_1 --capture=doigts.png
 # Scène « tenue en main » (repères Poignee / Bouche) pour un nouveau modèle d'arme
 <godot> --headless --path . -s tools/make_held_scenes.gd
 # Export Windows (export_presets.cfg ; modèles d'export 4.7.2 installés) -> export/TheCycle/ (+ LISEZMOI.txt à garder)
@@ -74,9 +78,9 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Mécanique | Code | Données | Doc |
 | --- | --- | --- | --- |
 | Joueur, déplacement | `scenes/player/`, `systems/kits/kit_movement.gd` | `data/rules/combat.tres` | DESIGN §1 |
-| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`, effets `weapon_effects_fx.gd` / `weapon_effects_explosion.gd`, maniement : `weapon_spread.gd`) | `data/weapons/` (maniement : `node tools/wiki_2019/make_handling.mjs`), `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
+| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`, effets `weapon_effects_fx.gd` / `weapon_effects_explosion.gd`, maniement : `weapon_spread.gd`) | `data/weapons/` (maniement : `node tools/wiki_2019/make_handling.mjs`), `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn` ; Viseur, posé à la main = arrière de la lunette, place l'arme devant l'œil : `weapon_model_sight.gd` ; Detente / Pouce, posés à la main, guident l'index et le pouce droits de `tools/hand_pose/`) | DESIGN §2-3 |
 | HUD | `systems/combat/hud.gd`, `systems/ui/` | — | — |
-| Personnages animés, apparences | `systems/avatar/` (`avatar_retarget.gd` : animations adaptées aux proportions de chaque modèle), choix dans `systems/lobby/lobby_ui_appearance.gd` | `assets/models/characters/` (même squelette que les Superhero), `data/appearances/` | — |
+| Personnages animés, apparences | `systems/avatar/` (`avatar_retarget.gd` : animations adaptées aux proportions de chaque modèle ; prise pistolet / fusil selon le type d'arme : `player_avatar_tools.gd` ; doigts sur l'arme : `hand_pose_modifier.gd` ; tête cachée en vue FPS : `head_hider.gd`), choix dans `systems/lobby/lobby_ui_appearance.gd` | `assets/models/characters/` (même squelette que les Superhero), `data/appearances/` ; animations fusil Mixamo `assets/animations/fusil/` (non versionnées) converties par `tools/retarget_mixamo.gd` en `assets/animations/fusil_homme.res` ; poses des doigts `data/hand_poses/` (`HandPoseData`, une par arme) | — |
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
 | Kits | `systems/kits/` (`kit_combat_effects.gd` : effets de combat des mods) | `data/kits/` (cœurs de kit), `data/kit_mods/` (mods de niveau 1 à 3, `KitModData`) | DESIGN §12, `docs/factions.md` |
 | Capacités, gadgets | `systems/abilities/` | `data/abilities/` | DESIGN §11 |

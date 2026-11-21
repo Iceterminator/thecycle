@@ -1,19 +1,12 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Texture2D" path="res://assets/icons/weapons/karma_1.png" id="1_2taw8"]
+[ext_resource type="Resource" path="res://data/hand_poses/karma_1.tres" id="1_a5e7s"]
 [ext_resource type="Script" path="res://resources/weapon_data.gd" id="1_yul0u"]
-[ext_resource type="PackedScene" path="res://assets/models/weapons/held/Gun_Sniper_held.tscn" id="2_2taw8"]
+[ext_resource type="PackedScene" path="res://assets/models/weapons/held/karma_1_held.tscn" id="2_2taw8"]
 
 [resource]
 script = ExtResource("1_yul0u")
-move_speed_multiplier = 0.875
-ads_move_speed_multiplier = 0.5
-crouch_recoil_multiplier = 0.8
-crouch_spread_multiplier = 0.8
-moving_spread_multiplier = 1.25
-in_air_spread_multiplier = 1.5
-hip_spread_deg = 4.364
-spin_up_s = 0.75
 id = &"karma_1"
 display_name = "Tonnerre"
 reference_name = "KARMA-1"
@@ -27,7 +20,9 @@ rpm = 27.9
 fire_interval_s = 2.15
 dps = 233.0
 charge_time_s = 1.0
+spin_up_s = 0.75
 weakspot_multiplier = 2.0
+move_speed_multiplier = 0.875
 projectile_speed_mps = 300.0
 aoe_damage = 0.0
 aoe_radius_m = 1.5
@@ -37,8 +32,20 @@ ads_time_s = 0.7
 equip_time_s = 0.8
 stability = 8.32
 scope_zoom = 6.0
+hip_spread_deg = 4.364
 ads_spread_deg = 0.0
 recoil_deg = 3.0
+ads_move_speed_multiplier = 0.5
+crouch_recoil_multiplier = 0.8
+crouch_spread_multiplier = 0.8
+moving_spread_multiplier = 1.25
+in_air_spread_multiplier = 1.5
+boosts = Array[Dictionary]([{
+"damage": 0.05
+}, {
+"spin_up": 0.35
+}])
+boost_prices = Array[int]([200, 200])
 spawn_cost_credits = 800
 unlock_cost = 12000
 tracer_color = Color(1, 0.55, 0.2, 1)
@@ -52,8 +59,7 @@ hud_icon = ExtResource("1_2taw8")
 model = ExtResource("2_2taw8")
 model_rotation_deg = Vector3(0, -90, 0)
 model_length = 1.15
-model_offset = Vector3(0, -0.02, -0.12)
-model_tint = Color(1, 0.4, 0.36, 1)
+hand_pose = ExtResource("1_a5e7s")
 role = "Railgun de Korolev : tir chargé dévastateur à longue portée."
 shot_feel = "Maintenir la gâchette : l'arme se charge avec un bourdonnement montant et des arcs électriques, puis tir énorme au relâchement."
 projectile_visual = "Rayon/projectile très rapide avec traînée électrique bleue persistante, visible de loin."
@@ -64,7 +70,5 @@ best_range_m = Vector2(50, 200)
 strengths = PackedStringArray("Dégâts énormes", "Pas de baisse avec la distance", "Dégâts de zone")
 weaknesses = PackedStringArray("2 tirs par chargeur", "Temps de charge", "Révèle la position du tireur")
 counter = "Couper la ligne de vue pendant la charge, rusher entre deux tirs."
-boosts = Array[Dictionary]([{"damage": 0.05}, {"spin_up": 0.35}])
-boost_prices = Array[int]([200, 200])
 estimated_fields = PackedStringArray("charge_time_s", "projectile_speed_mps", "aoe_damage", "aoe_radius_m", "scope_zoom")
 behavior = "Railgun : maintenir la gâchette pour charger, le tir part chargé. Énorme dégâts, x2 à la tête, l'impact endommage aussi la zone autour. Seulement 2 tirs par chargeur. Pas de baisse de dégâts avec la distance."
