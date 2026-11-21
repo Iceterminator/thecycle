@@ -7,10 +7,14 @@ extends Node
 ##   * nouvelle carte (quest_spots) : tirage au sort des quêtes à chaque partie (QuestDraw) ;
 ##   * ancienne carte (spots + contract_spots) : un cristal / contrat par emplacement ;
 ##   * Lumicèpes et Tiques : voir LumicepTicks ;
-##   * quêtes différées (Cœur, collecteur d'orage) : voir QuestDelayed ;
+##   * quêtes différées (spawn_delay) : voir QuestDelayed ;
+##   * éclats d'orage portés : voir StormShards ;
+##   * surtension (cristaux avant la Grande Marée) et boss Alpha : voir SurgeCrystals, AlphaBoss ;
+##   * station centrale (ouverte par des stations réactivées) : voir CentralPower ;
 ##   * diffuse les annonces (Events.announce_requested) à tous les joueurs.
 
 const QuestManagerUpgrade := preload("res://systems/quests/quest_manager_upgrade.gd")
+const MapThread := preload("res://systems/map/map_thread.gd")
 const LUMICEP := &"lumicep"
 const CRYSTALS_DIR := "res://data/quests/"
 
@@ -27,8 +31,11 @@ var active_objectives: PackedStringArray = PackedStringArray()
 var drawn_list: Array = []
 
 var _next_uid: int = 0
+var _generation: int = 0  ## incrémenté par _vider : un tirage en cours d'apparition (par tranches) s'arrête
 var _ticks: LumicepTicks
 var _delayed: QuestDelayed
+var _shards: StormShards
+var _central: CentralPower
 
 
 func _ready() -> void:
@@ -43,6 +50,13 @@ func _ready() -> void:
 	_ticks.players_root = players_root
 	_ticks.loot_root = get_parent().get_node("Loot")
 	add_child(_ticks)
+	_central = CentralPower.new()
+	_central.spawn_callable = _spawn
+	add_child(_central)
+	_shards = StormShards.new()
+	_shards.players_root = players_root
+	add_child(_shards)
+	_add_world_events()
 	_delayed = QuestDelayed.new()
 	_delayed.world = get_parent() as World
 	_delayed.spawn_callable = _spawn
@@ -55,6 +69,24 @@ func _ready() -> void:
 	Events.match_reset_requested.connect(_on_match_reset)
 	Events.crystal_upgrade_requested.connect(_on_crystal_upgrade)
 	Events.carte_liberee.connect(_vider)  # objectifs tirés à chaque match_reset_requested (début de partie)
+
+
+## Surtension (cristaux avant la Grande Marée) et boss Alpha : événements du jeu d'origine, voir SurgeCrystals et AlphaBoss.
+func _add_world_events() -> void:
+	var quest_root := spawner.get_node(spawner.spawn_path)
+	var surge := SurgeCrystals.new()
+	surge.world = get_parent() as World
+	surge.spots_root = quest_spots
+	surge.quest_root = quest_root
+	surge.players_root = players_root
+	add_child(surge)
+	var alpha := AlphaBoss.new()
+	alpha.world = surge.world
+	alpha.monsters = get_parent().get_node("MonsterManager") as MonsterManager
+	alpha.spots_root = quest_spots
+	alpha.quest_root = quest_root
+	alpha.players_root = players_root
+	add_child(alpha)
 
 
 ## Menu admin : un cristal de plus, à la position demandée (le chemin est déjà vérifié).
@@ -74,13 +106,20 @@ func _spawn_drawn() -> void:
 	var result := QuestDraw.draw(QuestDraw.load_draws(), QuestDraw.marker_positions(quest_spots),
 			QuestDraw.marker_positions(lumicep_spots), Config.match_rules.drawn_quest_types,
 			Config.match_rules.lumicep_spots_per_collector, Config.match_rules)
+	var generation := _generation
+	var debut := Time.get_ticks_usec()
 	for quest: Dictionary in result["quests"]:
 		print("[Quête] %s en %s : %s" % [quest["name"], quest["pos"], quest["data"].get_file()])
 		if not _delayed.queue_if_delayed(quest):
 			_spawn(quest)
+		debut = await MapThread.ceder(get_tree(), debut)  # apparition par tranches, sans image longue
+		if generation != _generation:  # tirage annulé (nouvelle partie)
+			return
 	_ticks.set_spots(result["lumicep_spots"])
+	_central.reset(result["central_spot"])
 	print("[Quête] tirage : %s (%d points de Lumicèpes)" % [result["summary"], result["lumicep_spots"].size()])
 	_set_objectives.rpc(result["objectives"], result["list"])
+	Events.objectives_drawn.emit(result["objectives"])
 
 
 ## Ancienne carte (world_test) : un cristal par CrystalSpot, un contrat par ContractSpot.
@@ -135,6 +174,7 @@ func _on_match_reset() -> void:
 
 
 func _vider() -> void:
+	_generation += 1
 	_delayed.clear()
 	for node in spawner.get_node(spawner.spawn_path).get_children():
 		node.queue_free()

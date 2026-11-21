@@ -188,7 +188,8 @@ func start_match() -> bool:
 	await wait(1.0)
 	# Prêt -> salle de briefing ; quand les 2 joueurs y sont, chacun vote le départ (majorité : 2 / 2).
 	match_manager().request_lobby_ready.rpc_id(1, true)
-	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.BRIEFING and match_manager().briefing_room.size() == 2, 30.0, "les 2 joueurs dans la salle de briefing"):
+	# 60 s : la carte est construite d'un bloc chez l'hôte puis chez le client (~9 s chacun, plus sous charge).
+	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.BRIEFING and match_manager().briefing_room.size() == 2, 60.0, "les 2 joueurs dans la salle de briefing"):
 		return false
 	match_manager().request_briefing_vote.rpc_id(1, true)
 	if not await wait_until(func() -> bool: return phase() == MatchManager.Phase.PLAYING, 30.0, "début de partie"):

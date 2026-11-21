@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CampData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://resources/camp_data.gd" id="1_camp"]
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="2_monster"]
+[ext_resource type="Resource" path="res://data/monsters/rodeur.tres" id="3_rodeur"]
+[ext_resource type="Resource" path="res://data/monsters/cracheur.tres" id="4_cracheur"]
+
+[resource]
+; Meute déjà sur le site de Drone Salvage, qui attaque les drones. Composition estimée.
+script = ExtResource("1_camp")
+level = 0
+monsters = Array[ExtResource("2_monster")]([ExtResource("3_rodeur"), ExtResource("4_cracheur")])
+min_counts = PackedInt32Array(3, 1)
+max_counts = PackedInt32Array(4, 1)

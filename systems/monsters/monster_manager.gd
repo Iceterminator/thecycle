@@ -7,6 +7,8 @@ extends Node
 
 const MONSTER_SCRIPT := preload("res://systems/monsters/monster.gd")
 const MonsterNavmesh := preload("res://systems/monsters/monster_navmesh.gd")
+const MonsterGround := preload("res://systems/monsters/monster_ground.gd")
+const MonsterCampSpawn := preload("res://systems/monsters/monster_camp_spawn.gd")
 
 @export var spawner: MultiplayerSpawner
 @export var camps: Node3D
@@ -14,9 +16,12 @@ const MonsterNavmesh := preload("res://systems/monsters/monster_navmesh.gd")
 @export var nav_region: NavigationRegion3D
 @export var map: Node3D  ## géométrie de la carte (CSG) servant au navmesh
 
+var _camp_spawn: MonsterCampSpawn
 var _next_uid: int = 0
 ## Incrémenté à chaque nouvelle partie : les repeuplements en attente sont annulés.
 var _generation: int = 0
+## Incrémenté au retour au lobby (carte_liberee) : annule le navmesh en cours de cuisson.
+var _nav_generation: int = 0
 ## Niveau des monstres (1 à 3, Events.monster_level_changed) : appliqué à ceux qui apparaissent.
 var _level: int = 1
 ## Camp qui bloque la plateforme d'évac (créé à l'annonce de l'évac, jamais repeuplé).
@@ -25,6 +30,7 @@ var _pad_camp: MonsterCamp
 
 func _ready() -> void:
 	spawner.spawn_function = _spawn_node
+	_camp_spawn = MonsterCampSpawn.new(self)
 	if not multiplayer.is_server():
 		return
 	Events.wave_spawn_requested.connect(_on_wave_spawn_requested)
@@ -32,39 +38,26 @@ func _ready() -> void:
 	Events.evac_announced.connect(_spawn_evac_pad_camp)
 	Events.monster_level_changed.connect(func(level: int) -> void: _level = clampi(level, 1, Config.match_rules.monster_level_health_mult.size()))
 	Events.carte_chargee.connect(_setup)  # la carte n'existe qu'en partie (Niveaux)
-	Events.carte_liberee.connect(_vider)
+	Events.carte_liberee.connect(_on_carte_liberee)
 	for node in camps.get_children():
 		if node is MonsterCamp:
 			(node as MonsterCamp).cleared.connect(_on_camp_cleared)
 
 
 func _setup() -> void:
+	var nav_generation := _nav_generation
 	# Les CSG créent leurs collisions en différé : on attend avant de générer le navmesh.
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	MonsterNavmesh.bake(nav_region, map)  # les camps sont peuplés par match_reset_requested
+	if nav_generation != _nav_generation:
+		return
+	# Les camps sont peuplés par match_reset_requested (pas d'attente du navmesh).
+	await MonsterNavmesh.bake(nav_region, map, func() -> bool: return nav_generation == _nav_generation)
 
 
-func _spawn_camp(camp: MonsterCamp) -> void:
-	var count := 0
-	for monster_data in camp.camp_data.roll():
-		var angle := randf() * TAU
-		var dist := sqrt(randf()) * camp.radius
-		var pos := camp.global_position + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
-		var monster := spawner.spawn({
-			"uid": _new_uid(),
-			"data": monster_data.resource_path,
-			"pos": _ground(pos),
-			"rot": randf() * TAU,
-			"hp": _level_mult(Config.match_rules.monster_level_health_mult),
-			"lvl": _level,
-		}) as Monster
-		_apply_level(monster, 1.0)
-		monster.camp = camp
-		monster.players_root = players_root
-		camp.alive.append(monster)
-		count += 1
-	print("[Monstres] Camp %s (niveau %d) : %d monstres" % [camp.name, camp.camp_data.level, count])
+func _on_carte_liberee() -> void:
+	_nav_generation += 1
+	_vider()
 
 
 ## Monstre de vague (Events.wave_spawn_requested) : il attaque `objective`.
@@ -74,7 +67,7 @@ func _on_wave_spawn_requested(objective: Node3D, monster_data: MonsterData, posi
 	var monster := spawner.spawn({
 		"uid": _new_uid(),
 		"data": monster_data.resource_path,
-		"pos": _ground(position),
+		"pos": MonsterGround.point(spawner.get_parent() as Node3D, position),
 		"rot": randf() * TAU,
 		"hp": health_mult * _level_mult(Config.match_rules.monster_level_health_mult),
 		"lvl": _level,
@@ -91,7 +84,7 @@ func _on_camp_cleared(camp: MonsterCamp, _killer_id: int) -> void:
 	var generation := _generation
 	await get_tree().create_timer(Config.match_rules.camp_respawn_delay).timeout
 	if is_instance_valid(camp) and generation == _generation:
-		_spawn_camp(camp)
+		_camp_spawn.spawn_camp(camp)
 
 
 ## Appelée sur tous les peers avec les mêmes données : recrée le même monstre.
@@ -110,19 +103,6 @@ func _spawn_node(data: Dictionary) -> Node:
 func server_spawn_fige(data_path: String, pos: Vector3, lvl: int) -> void:
 	var mult: Array = Config.match_rules.monster_level_health_mult
 	spawner.spawn({"uid": _new_uid(), "data": data_path, "pos": pos, "rot": PI, "hp": mult[clampi(lvl - 1, 0, mult.size() - 1)], "lvl": lvl, "fige": true})
-
-
-func _ground(pos: Vector3) -> Vector3:
-	var world := spawner.get_parent() as Node3D
-	# Le tir part au-dessus du relief (qui peut être haut en ce point).
-	var top := maxf(pos.y, MapTerrain.height_at(pos.x, pos.z)) + 3.0
-	var query := PhysicsRayQueryParameters3D.create(Vector3(pos.x, top, pos.z), Vector3(pos.x, top - 25.0, pos.z), 1)
-	var hit := world.get_world_3d().direct_space_state.intersect_ray(query)
-	if not hit.is_empty():
-		return (hit["position"] as Vector3) + Vector3.UP * 0.05
-	# Collision du relief pas encore dans l'espace physique (camps peuplés juste après sa
-	# construction) : relief calculé + marge, sinon le monstre naît sous le sol et tombe.
-	return Vector3(pos.x, MapTerrain.height_at(pos.x, pos.z) + 0.3, pos.z)
 
 
 func _new_uid() -> int:
@@ -147,9 +127,7 @@ func _vider() -> void:
 
 func _on_match_reset() -> void:
 	_vider()
-	for node in camps.get_children():
-		if node is MonsterCamp:
-			_spawn_camp(node as MonsterCamp)
+	await _camp_spawn.spawn_all(camps)
 
 
 func _level_mult(table: Array) -> float:
@@ -178,4 +156,11 @@ func _spawn_evac_pad_camp() -> void:
 	_pad_camp.position = Config.EVAC_POSITION
 	add_child(_pad_camp)
 	_pad_camp.cleared.connect(func(_camp: MonsterCamp, killer_id: int) -> void: Events.evac_pad_cleared.emit(killer_id))
-	_spawn_camp(_pad_camp)
+	_camp_spawn.spawn_camp(_pad_camp)
+
+
+## Boss (AlphaBoss) : apparaît sans niveau de monstre (PV, dégâts et crédits de base) ; renvoie le monstre.
+func server_spawn_boss(data_path: String, pos: Vector3) -> Monster:
+	var monster := spawner.spawn({"uid": _new_uid(), "data": data_path, "pos": MonsterGround.point(spawner.get_parent() as Node3D, pos), "rot": randf() * TAU, "hp": 1.0, "lvl": 1}) as Monster
+	monster.players_root = players_root
+	return monster

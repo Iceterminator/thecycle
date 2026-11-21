@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3]
+
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Alien_Oculichrysalis.gltf" id="2_model"]
+
+[resource]
+; Origine : Warden Alpha, 8000 PV (solo). Estimé : tout le reste (vitesses, portées, dégâts de mêlée 300, préparation, zone de 80 m,
+; taille). Boss : mêlée lourde (la préparation du coup est une charge sur la cible), pas de tir à distance, hors niveaux de monstres.
+; Pas de camp : il reste dans une zone de leash_radius autour de son point d'apparition. Lâche 1 échantillon de biomasse or (450 points).
+script = ExtResource("1_monster")
+id = &"alpha"
+display_name = "Alpha"
+max_health = 8000.0
+walk_speed = 1.5
+run_speed = 3.5
+detection_radius = 35.0
+lose_radius = 90.0
+leash_radius = 80.0
+attack_range = 4.5
+attack_damage = 300.0
+attack_windup = 1.2
+attack_cooldown = 3.0
+post_hit_pause = 1.0
+credits = 0
+biomass_drop = 1
+biomass_value = 450
+radius = 1.8
+height = 4.0
+color = Color(0.6, 0.25, 0.15, 1)
+boss = true
+model = ExtResource("2_model")

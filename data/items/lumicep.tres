@@ -9,4 +9,4 @@ display_name = "Lumicèpe"
 kind = 5
 amount = 1
 color = Color(0.5, 1, 0.6, 1)
-max_carry = 10
+max_carry = 0

@@ -57,6 +57,9 @@ func _ready() -> void:
 	var profiles: ProfileManager = PROFILE_SCRIPT.new()
 	profiles.name = "ProfileManager"
 	add_child(profiles)
+	var board := ContractBoard.new()
+	board.name = "ContractBoard"
+	add_child(board)
 	var squads: SquadManager = SQUAD_SCRIPT.new()
 	squads.name = "SquadManager"
 	add_child(squads)

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
+
+[ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/facility.png" id="2_icon"]
+
+[resource]
+; Origine : Central Power (paliers 80 / 160 / 240 points, 40 Fame ; le duo à 30 est ignoré). Estimé : crédits = 2 x vp, XP = 50 x vp.
+script = ExtResource("1_t")
+id = &"station_centrale"
+display_name = "Station centrale"
+color = Color(0.45, 0.8, 1, 1)
+icon = ExtResource("2_icon")
+thresholds = PackedInt32Array(80, 160, 240)
+rewards = PackedInt32Array(40, 40, 40)
+credit_rewards = PackedInt32Array(80, 80, 80)
+xp_rewards = PackedInt32Array(2000, 2000, 2000)
+faction = 1

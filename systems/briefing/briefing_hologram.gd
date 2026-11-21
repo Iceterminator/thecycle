@@ -11,7 +11,7 @@ const STEP := 5.0              ## pas de la grille (m de carte)
 const BASE_Y := 1.15           ## hauteur du relief au-dessus du sol de la salle
 const TINT := Color(0.45, 0.9, 1.0)
 const WATER := Color(0.2, 0.55, 1.0)
-const MARKER_KINDS := ["crystal", "contract", "relic", "evac"]
+const MARKER_KINDS := ["crystal", "contract", "evac"]
 const REFRESH := 2.0
 
 var _markers: Node3D

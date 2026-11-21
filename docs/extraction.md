@@ -25,10 +25,10 @@ Code : `systems/evac/evac_ship.gd`, `systems/match/match_manager.gd` · Données
 - Embarquement : rester 5 s dans la zone de la soute. Ensuite le joueur est en sécurité.
 - Places illimitées, mais une seule rampe d'accès : c'est le point chaud de la partie.
 - *(codé, 17/11/2026)* Une fois à bord : spectateur intouchable (vol libre, Espace / Ctrl), ne tire plus et
-  n'interagit plus ; s'il portait le Cœur stellaire, il le lâche ; une prime sur lui est annulée.
+  n'interagit plus .
 - Classement : le **premier** embarqué gagne +50, les suivants +0 ; au décollage, ceux qui ne sont
   pas à bord perdent **100** points de classement (`Config.economy.evac_*`).
 - Après le décollage : écran de fin (classement) pendant 20 s, puis **nouvelle partie sur place** :
   points, crédits, inventaire et bouclier remis à zéro, loot effacé, monstres, cristaux et contrats recréés.
 - Le vaisseau : soute surélevée, une porte et une rampe ; on passe sous le plancher accroupi
-  (le Cœur stellaire est au centre). Menu admin : « Aller à 14:50 » et « Aller à 19:50 » pour tester.
+  Menu admin : « Aller à 14:50 » et « Aller à 19:50 » pour tester.

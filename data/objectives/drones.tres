@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
+
+[ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/drones.png" id="2_icon"]
+
+[resource]
+; Origine : Drone Salvage. Estimé : palier 3 estimé (total 1200) ; vp estimés 10/15/20+ ; crédits estimés (2 x vp) ; XP estimée (50 x vp).
+script = ExtResource("1_t")
+id = &"drones"
+display_name = "Drones en panne"
+color = Color(0.7, 0.85, 1, 1)
+icon = ExtResource("2_icon")
+thresholds = PackedInt32Array(200, 600, 1200)
+rewards = PackedInt32Array(10, 15, 20)
+credit_rewards = PackedInt32Array(20, 30, 40)
+xp_rewards = PackedInt32Array(500, 750, 1000)
+faction = 2

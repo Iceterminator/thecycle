@@ -44,7 +44,7 @@ static func refresh_quests(o: MapOverlay) -> void:
 	var active := quests.active_objectives if quests else PackedStringArray()
 	for track in o._tracks:
 		# Seuls les objectifs des quêtes tirées (le Forage, lui, reste toujours affiché).
-		if not active.is_empty() and track.id != FORAGE_ID and not active.has(String(track.id)):
+		if track.id == &"prime" or (not active.is_empty() and track.id != FORAGE_ID and not active.has(String(track.id))):
 			continue
 		var pts: int = points.get(track.resource_path, 0)
 		var tier := track.tiers_reached(pts)

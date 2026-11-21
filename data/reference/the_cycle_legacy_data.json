@@ -10,7 +10,8 @@
       "Les unités sont déjà converties pour Godot : mètres, secondes, mètres/seconde.",
       "'changes_from_wiki' : ce qui a été corrigé lors de la relecture du wiki archivé (ancienne valeur -> nouvelle, et pourquoi).",
       "Archive consultable hors ligne : docs/wiki_2019/index.html.",
-      "'aberrant' : valeurs gardées telles quelles mais douteuses (incohérentes, hors échelle ou copiées d’un autre jeu)."
+      "'aberrant' : valeurs gardées telles quelles mais douteuses (incohérentes, hors échelle ou copiées d’un autre jeu).",
+      "contracts[].tiers : paliers du contrat (amount = points à gagner pour ce palier, total = cumul, vp = points de classement, credits, xp). Mode solo quand le wiki en donne plusieurs."
     ],
     "units": {
       "damage": "points par balle/projectile (par plomb pour les fusils à pompe si 'pellets' > 1 : voir pellet_damage)",
@@ -10056,74 +10057,694 @@
     {
       "name": "Brightcaps",
       "type": "Side",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ABrightcaps"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ABrightcaps",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 300,
+          "total": 300,
+          "vp": 5,
+          "credits": 15,
+          "xp": 250
+        },
+        {
+          "tier": 2,
+          "amount": 400,
+          "total": 700,
+          "vp": 10,
+          "credits": 30,
+          "xp": 500
+        },
+        {
+          "tier": 3,
+          "amount": 500,
+          "total": 1200,
+          "vp": 15,
+          "credits": 45,
+          "xp": 750
+        },
+        {
+          "tier": 4,
+          "amount": 600,
+          "total": 1800,
+          "vp": 20,
+          "credits": 60,
+          "xp": 1000
+        },
+        {
+          "tier": 5,
+          "amount": 700,
+          "total": 2500,
+          "vp": 25,
+          "credits": 75,
+          "xp": 1250
+        },
+        {
+          "tier": 6,
+          "amount": 800,
+          "total": 3300,
+          "vp": 30,
+          "credits": 90,
+          "xp": 1500
+        },
+        {
+          "tier": 7,
+          "amount": 900,
+          "total": 4200,
+          "vp": 35,
+          "credits": 105,
+          "xp": 1750
+        },
+        {
+          "tier": 8,
+          "amount": 1000,
+          "total": 5200,
+          "vp": 40,
+          "credits": 120,
+          "xp": 2000
+        },
+        {
+          "tier": 9,
+          "amount": 1100,
+          "total": 6300,
+          "vp": 45,
+          "credits": 135,
+          "xp": 2250
+        },
+        {
+          "tier": 10,
+          "amount": 1200,
+          "total": 7500,
+          "vp": 50,
+          "credits": 150,
+          "xp": 2500
+        }
+      ]
     },
     {
       "name": "Central Power",
       "type": "Main",
       "trigger": "Power Facilities",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ACentral%20Power"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ACentral%20Power",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 80,
+          "total": 80,
+          "vp_duo": 30,
+          "vp": 40
+        },
+        {
+          "tier": 2,
+          "amount": 80,
+          "total": 160,
+          "vp_duo": 30,
+          "vp": 40
+        },
+        {
+          "tier": 3,
+          "amount": 80,
+          "total": 240,
+          "vp_duo": 30,
+          "vp": 40
+        }
+      ],
+      "rules": "Phase 2 : tenir une zone gardée par des Co-Bots ; points au fil du temps (Release 13 : en duo, 3 ticks de 30 VP par activation)."
     },
     {
       "name": "Bounty",
       "type": "Kills",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ABounty"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ABounty",
+      "rules": "5 VP par élimination (10 en solo avant la saison 3)."
     },
     {
       "name": "Drone Salvage",
       "type": "Side",
       "follow_up": "Drone Launch",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ADrone%20Salvage"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ADrone%20Salvage",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 200,
+          "total": 200,
+          "vp": 1
+        },
+        {
+          "tier": 2,
+          "amount": 400,
+          "total": 600,
+          "vp": 2
+        }
+      ],
+      "rules": "Par drone livré selon son état : intact 100, bon 70, endommagé 40.",
+      "aberrant": [
+        "VP des paliers à 1, 2, 3 : probablement les numéros de palier recopiés dans la colonne VP. Palier 3 sans valeurs (« missing data »)."
+      ]
     },
     {
       "name": "Letium Gas",
       "type": "Passive",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ALetium%20Gas"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ALetium%20Gas",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 500,
+          "total": 500,
+          "vp": 1
+        },
+        {
+          "tier": 2,
+          "amount": 1500,
+          "total": 2000,
+          "vp": 2
+        },
+        {
+          "tier": 3,
+          "amount": 3000,
+          "total": 5000,
+          "vp": 3
+        }
+      ],
+      "rules": "Raffineur de niveau 1 / 2 / 3 : 0,2 / 0,4 / 1 point par seconde ; niveau 2 après 60 s, niveau 3 après 120 s.",
+      "aberrant": [
+        "VP des paliers à 1, 2, 3 : probablement les numéros de palier. Le texte de la page parle de 750 pour le premier palier (valeur du mode escouade)."
+      ]
     },
     {
       "name": "Hunt",
       "type": "Side",
       "follow_up": "Alpha Boss",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AHunt"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AHunt",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 300,
+          "total": 300,
+          "vp": 10,
+          "credits": 20,
+          "xp": 500
+        },
+        {
+          "tier": 2,
+          "amount": 400,
+          "total": 700,
+          "vp": 15,
+          "credits": 30,
+          "xp": 750
+        },
+        {
+          "tier": 3,
+          "amount": 500,
+          "total": 1200,
+          "vp": 20,
+          "credits": 40,
+          "xp": 1000
+        },
+        {
+          "tier": 4,
+          "amount": 600,
+          "total": 1800,
+          "vp": 25,
+          "credits": 50,
+          "xp": 1250
+        },
+        {
+          "tier": 5,
+          "amount": 700,
+          "total": 2500,
+          "vp": 30,
+          "credits": 60,
+          "xp": 1500
+        },
+        {
+          "tier": 6,
+          "amount": 800,
+          "total": 3300,
+          "vp": 35,
+          "credits": 70,
+          "xp": 1750
+        },
+        {
+          "tier": 7,
+          "amount": 900,
+          "total": 4200,
+          "vp": 40,
+          "credits": 80,
+          "xp": 2000
+        },
+        {
+          "tier": 8,
+          "amount": 1000,
+          "total": 5200,
+          "vp": 45,
+          "credits": 90,
+          "xp": 2250
+        },
+        {
+          "tier": 9,
+          "amount": 1100,
+          "total": 6300,
+          "vp": 50,
+          "credits": 100,
+          "xp": 2500
+        },
+        {
+          "tier": 10,
+          "amount": 1200,
+          "total": 7500,
+          "vp": 55,
+          "credits": 110,
+          "xp": 2750
+        }
+      ],
+      "rules": "Créatures : 75, 150, 300 ou 450 points de contrat selon le type."
     },
     {
       "name": "Mag-Train",
       "type": "Main",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AMag-Train"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AMag-Train",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 60,
+          "total": 60,
+          "vp": 10
+        },
+        {
+          "tier": 2,
+          "amount": 80,
+          "total": 140,
+          "vp": 15
+        },
+        {
+          "tier": 3,
+          "amount": 100,
+          "total": 240,
+          "vp": 20
+        },
+        {
+          "tier": 4,
+          "amount": 120,
+          "total": 360,
+          "vp": 25
+        },
+        {
+          "tier": 5,
+          "amount": 140,
+          "total": 500,
+          "vp": 30
+        },
+        {
+          "tier": 6,
+          "amount": 160,
+          "total": 660,
+          "vp": 35
+        },
+        {
+          "tier": 7,
+          "amount": 180,
+          "total": 840,
+          "vp": 40
+        },
+        {
+          "tier": 8,
+          "amount": 200,
+          "total": 1040,
+          "vp": 45
+        },
+        {
+          "tier": 9,
+          "amount": 220,
+          "total": 1260,
+          "vp": 50
+        },
+        {
+          "tier": 10,
+          "amount": 240,
+          "total": 1500,
+          "vp": 55
+        }
+      ],
+      "rules": "Chargement 5 min, puis capture à la console ; rapporte des points pendant le trajet, triple pendant le déchargement près de l'évac."
     },
     {
       "name": "Power Facilities",
       "type": "Side",
       "follow_up": "Central Power",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3APower%20Facilities"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3APower%20Facilities",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 1,
+          "total": 1,
+          "vp": 20,
+          "credits": 40,
+          "xp": 1000
+        },
+        {
+          "tier": 2,
+          "amount": 2,
+          "total": 3,
+          "vp": 50,
+          "credits": 100,
+          "xp": 2500
+        },
+        {
+          "tier": 3,
+          "amount": 3,
+          "total": 6,
+          "vp": 100,
+          "credits": 200,
+          "xp": 5000
+        },
+        {
+          "tier": 4,
+          "amount": 4,
+          "total": 10,
+          "vp": 150,
+          "credits": 300,
+          "xp": 7500
+        },
+        {
+          "tier": 5,
+          "amount": 5,
+          "total": 15,
+          "vp": 225,
+          "credits": 450,
+          "xp": 11250
+        },
+        {
+          "tier": 6,
+          "amount": 6,
+          "total": 21,
+          "vp": 300,
+          "credits": 600,
+          "xp": 15000
+        },
+        {
+          "tier": 7,
+          "amount": 7,
+          "total": 28,
+          "vp": 400,
+          "credits": 800,
+          "xp": 20000
+        },
+        {
+          "tier": 8,
+          "amount": 8,
+          "total": 36,
+          "vp": 500,
+          "credits": 1000,
+          "xp": 25000
+        },
+        {
+          "tier": 9,
+          "amount": 9,
+          "total": 45,
+          "vp": 600,
+          "credits": 1200,
+          "xp": 30000
+        },
+        {
+          "tier": 10,
+          "amount": 10,
+          "total": 55,
+          "vp": 750,
+          "credits": 1500,
+          "xp": 37500
+        }
+      ],
+      "aberrant": [
+        "VP très élevés aux paliers hauts (225, 300…) comparés aux autres contrats (+5 VP par palier)."
+      ]
     },
     {
       "name": "Veltecite Minerals",
       "type": "Basic",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AVeltecite%20Minerals"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AVeltecite%20Minerals",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 300,
+          "total": 300,
+          "vp": 10
+        },
+        {
+          "tier": 2,
+          "amount": 400,
+          "total": 700,
+          "vp": 15
+        },
+        {
+          "tier": 3,
+          "amount": 500,
+          "total": 1200,
+          "vp": 20
+        },
+        {
+          "tier": 4,
+          "amount": 600,
+          "total": 1800,
+          "vp": 25
+        },
+        {
+          "tier": 5,
+          "amount": 700,
+          "total": 2500,
+          "vp": 30
+        },
+        {
+          "tier": 6,
+          "amount": 800,
+          "total": 3300,
+          "vp": 35
+        },
+        {
+          "tier": 7,
+          "amount": 900,
+          "total": 4200,
+          "vp": 40
+        },
+        {
+          "tier": 8,
+          "amount": 1000,
+          "total": 5200,
+          "vp": 45
+        },
+        {
+          "tier": 9,
+          "amount": 1000,
+          "total": 6200,
+          "vp": 50
+        },
+        {
+          "tier": 10,
+          "amount": 1100,
+          "total": 7300,
+          "vp": 55
+        }
+      ],
+      "rules": "Minerais : moyen 200 pts (30 s d'extraction, 3 500 PV de foreuse ?), riche 400 (45 s), massif 600 (65 s), épique 1 000 (3 min). Une vague de créatures par tranche de 100."
     },
     {
       "name": "Uplink",
       "type": "Main",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AUplink"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AUplink",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 50,
+          "total": 50,
+          "vp": 10,
+          "credits": 20,
+          "xp": 500
+        },
+        {
+          "tier": 2,
+          "amount": 70,
+          "total": 120,
+          "vp": 15,
+          "credits": 30,
+          "xp": 750
+        },
+        {
+          "tier": 3,
+          "amount": 90,
+          "total": 210,
+          "vp": 20,
+          "credits": 40,
+          "xp": 1000
+        },
+        {
+          "tier": 4,
+          "amount": 110,
+          "total": 320,
+          "vp": 25,
+          "credits": 50,
+          "xp": 1250
+        },
+        {
+          "tier": 5,
+          "amount": 130,
+          "total": 450,
+          "vp": 30,
+          "credits": 60,
+          "xp": 1500
+        },
+        {
+          "tier": 6,
+          "amount": 150,
+          "total": 600,
+          "vp": 35,
+          "credits": 70,
+          "xp": 1750
+        },
+        {
+          "tier": 7,
+          "amount": 170,
+          "total": 770,
+          "vp": 40,
+          "credits": 80,
+          "xp": 2000
+        },
+        {
+          "tier": 8,
+          "amount": 190,
+          "total": 960,
+          "vp": 45,
+          "credits": 90,
+          "xp": 2250
+        },
+        {
+          "tier": 9,
+          "amount": 210,
+          "total": 1170,
+          "vp": 50,
+          "credits": 100,
+          "xp": 2500
+        },
+        {
+          "tier": 10,
+          "amount": 230,
+          "total": 1400,
+          "vp": 55,
+          "credits": 110,
+          "xp": 2750
+        }
+      ],
+      "rules": "Le relais tenu rapporte 30 points toutes les 10 s ; capture en 10 s ; 3 relais successifs actifs 362 s chacun (à 18:06, 12:04, 06:02)."
     },
     {
       "name": "Surge Crystals",
       "type": "Super",
       "trigger": "Random",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3ASurge%20Crystals"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3ASurge%20Crystals",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 1000,
+          "total": 1000,
+          "vp": 20
+        }
+      ]
     },
     {
       "name": "Warden Alpha",
       "type": "Super",
       "max_vp": 125,
       "trigger": "Hunt",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AWarden%20Alpha"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AWarden%20Alpha",
+      "rules": "25 VP à chaque seuil de dégâts infligés à l'Alpha, +25 VP pour le coup fatal (125 VP au maximum)."
     },
     {
       "name": "Zeal Shard",
       "type": "Passive",
-      "wiki": "docs/wiki_2019/index.html#/Archive%3AZeal%20Shard"
+      "wiki": "docs/wiki_2019/index.html#/Archive%3AZeal%20Shard",
+      "tiers": [
+        {
+          "tier": 1,
+          "amount": 100,
+          "total": 100,
+          "vp": 5,
+          "credits": 10,
+          "xp": 250
+        },
+        {
+          "tier": 2,
+          "amount": 170,
+          "total": 270,
+          "vp": 10,
+          "credits": 20,
+          "xp": 500
+        },
+        {
+          "tier": 3,
+          "amount": 250,
+          "total": 520,
+          "vp": 15,
+          "credits": 30,
+          "xp": 750
+        },
+        {
+          "tier": 4,
+          "amount": 330,
+          "total": 850,
+          "vp": 20,
+          "credits": 20,
+          "xp": 1000
+        },
+        {
+          "tier": 5,
+          "amount": 420,
+          "total": 1270,
+          "vp": 25,
+          "credits": 50,
+          "xp": 1250
+        },
+        {
+          "tier": 6,
+          "amount": 500,
+          "total": 1770,
+          "vp": 30,
+          "credits": 60,
+          "xp": 1500
+        },
+        {
+          "tier": 7,
+          "amount": 580,
+          "total": 2350,
+          "vp": 35,
+          "credits": 70,
+          "xp": 1750
+        },
+        {
+          "tier": 8,
+          "amount": 660,
+          "total": 3010,
+          "vp": 40,
+          "credits": 80,
+          "xp": 2000
+        },
+        {
+          "tier": 9,
+          "amount": 740,
+          "total": 3750,
+          "vp": 45,
+          "credits": 90,
+          "xp": 2250
+        },
+        {
+          "tier": 10,
+          "amount": 810,
+          "total": 4560,
+          "vp": 50,
+          "credits": 100,
+          "xp": 2500
+        }
+      ],
+      "aberrant": [
+        "Palier 4 : 20 crédits alors que la règle des autres paliers (2 crédits par VP) donnerait 40."
+      ]
     }
   ],
   "economy_notes": [

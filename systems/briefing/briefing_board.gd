@@ -49,6 +49,9 @@ func _process(delta: float) -> void:
 	if manager == null or manager.phase != MatchManager.Phase.BRIEFING:
 		_status.text = "En attente du prochain briefing"
 		return
+	if world.niveaux.carte_en_chargement:  # le départ attend que toutes les cartes soient prêtes
+		_status.text = "CHARGEMENT DE LA CARTE…"
+		return
 	var needed := floori(manager.briefing_room.size() / 2.0) + 1
 	_status.text = "DÉPART DANS %d s   —   VOTES %d / %d   ·   [E] VOTER" % [ceili(manager.briefing_left),
 			manager.briefing_votes.size(), needed]

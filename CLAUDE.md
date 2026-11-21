@@ -61,7 +61,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 Archive du wiki The Cycle 2019 (site local `docs/wiki_2019/index.html`, régénéré depuis un `pages.json` téléchargé
 par l'API du fandom) : `node tools/wiki_2019/build_site.mjs <pages.json> docs/wiki_2019/index.html`.
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
-Tests réseau automatisés (13 tests, ~5 min ; port 7777 : un seul lancement à la fois) :
+Tests réseau automatisés (18 tests, ~7 min ; port 7777 : un seul lancement à la fois) :
 ```
 bash tools/run_tests.sh            # tous ; OK / ÉCHEC par test, journaux dans .test_logs/
 bash tools/run_tests.sh 03 09      # seulement les tests dont le nom contient 03 ou 09
@@ -80,8 +80,8 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
 | Kits | `systems/kits/` (`kit_combat_effects.gd` : effets de combat des mods) | `data/kits/` (cœurs de kit), `data/kit_mods/` (mods de niveau 1 à 3, `KitModData`) | DESIGN §12, `docs/factions.md` |
 | Capacités, gadgets | `systems/abilities/` | `data/abilities/` | DESIGN §11 |
-| Créatures | `systems/monsters/` | `data/monsters/`, `data/camps/` | `docs/creatures.md` |
-| Quêtes, contrats (tirage) | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
+| Créatures | `systems/monsters/` (boss Alpha : `alpha_boss.gd`) | `data/monsters/`, `data/camps/` | `docs/creatures.md` |
+| Quêtes, contrats (tirage), tableau de contrats (4 proposés, 2 actifs, touche J), Prime | `systems/quests/`, `systems/contracts/` (`contract_board.gd`, `contract_ui.gd` ; drones : `drone_site*.gd` ; station centrale : `central_station.gd`, `central_power.gd`) (relais tournant `uplink.gd`, bouches d'Ambrine `extractor.gd`, éclats portés `storm_shards.gd`, surtension `surge_crystals.gd`) | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
 | Fame, score | `systems/score/` | `data/rules/economy.tres` | DESIGN §6 |
 | Tempête | `systems/storm/` (éclairs, rafales : `storm_effets.gd`) | `data/storm/` | `docs/tempetes.md` |
 | Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
@@ -89,7 +89,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
 | Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` (générés par `tools/wiki_2019/make_weapon_mods.mjs`) | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
-| Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` (`map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
+| Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/` (construction asynchrone : `map_terrain_build.gd`, `map_thread.gd` ; orchestration `systems/niveaux/niveaux_carte.gd`), `systems/decor/` (`map_decor_plan.gd` : où poser quoi, en thread ; `map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
 | Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut, particules d'ambiance) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`, `ambiance_particules.gd`, ciel `ciel.gdshader` / `ciel.tres`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |
 | Menu Échap (touches, blocs du HUD) | `systems/settings/` (`settings_store.gd` : `user://reglages.cfg`, appliqué par `Config`) ; blocs marqués par `HudWidgets.tag_block` | — | — |
 | Menu admin (touche 0) | `systems/admin/` (dont `grip_tuner.gd` : réglage de la prise en jeu ; `admin_fly.gd` : vol rapide ; bouton « Carte complète » = `MapView.full_map`) | — | — |

@@ -111,7 +111,7 @@ $3
 $3
 
 ### 6. Fame et score
-- **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, Cœur stellaire (où qu'il soit), et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
+- **Écran Tab et minimap (codé 17/11/2026)** : tant qu'on maintient Tab (fond semi-transparent, HUD caché) : classement Fame à gauche, vos objectifs avec leur progression à droite, carte au centre. **Minimap** en haut à gauche du HUD (± 45 m autour de vous). Sur les deux, toujours : obstacles, évac, et vous ; seulement à moins de **40 m** (`Config.MAP_REVEAL_RADIUS`) : cristaux, contrats et monstres. Les textes flottants des quêtes suivent la même règle des 40 m.
 - **Limites de la carte** : murs invisibles sur les bords (300 x 300 m, ancienne carte plate 200 m gardée dans `scenes/world/world_test.tscn`) ; en dessous de y = -15, on meurt (« Tombé hors de la carte »), monstres compris.
 > **Codé (17/11/2026).** La Fame est le score général (anciens « points de classement », variable `rank_points`
 > dans le code). Tuer un joueur : **+50 Fame**. Mourir ne fait rien perdre. Les monstres ne donnent pas de Fame.

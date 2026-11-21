@@ -27,6 +27,8 @@ signal credits_changed(peer_id: int, credits: int)
 
 # Monstres (étape 4) — émis côté serveur. Serviront aux contrats de chasse / points de quête.
 signal monster_killed(monster_id: StringName, killer_id: int)
+## Dégâts reçus par un monstre (serveur) : `amount` = PV réellement retirés. Suivi de l'Alpha (AlphaBoss).
+signal monster_damaged(monster: Node, amount: float, attacker_id: int)
 signal camp_cleared(camp_name: StringName, killer_id: int)
 ## Demande au MonsterManager un monstre de vague qui attaquera `objective`.
 signal wave_spawn_requested(objective: Node3D, monster_data: MonsterData, position: Vector3, health_mult: float, damage_mult: float)
@@ -37,16 +39,22 @@ signal quest_failed(quest_name: StringName)
 signal quest_completed(quest_name: StringName, peer_id: int, points: int)
 ## Liste des quêtes tirées / objectifs actifs reçue (QuestManager) : le HUD se met à jour.
 signal objectives_synced()
+## Serveur : objectifs de la partie tirés (ids de data/objectives/) ; le ContractBoard en tire les contrats proposés.
+signal objectives_drawn(ids: PackedStringArray)
+## Client : les contrats proposés / actifs du joueur local ont changé (ContractBoard).
+signal contracts_changed()
 ## Fame (le score : variable rank_points dans Score, pour la synchro réseau).
 signal rank_points_changed(peer_id: int, total: int)
 ## Serveur, menu admin : poser un cristal (chemin du CrystalData) à une position.
 signal crystal_spawn_requested(crystal_data_path: String, position: Vector3)
 
-# Contrats (relais, extracteur, cœur stellaire, collecteurs, station, drones, prime)
+# Contrats (relais, extracteur, cœur stellaire, collecteurs, station, drones)
 ## Serveur : demande d'annonce à tous les joueurs (le QuestManager la diffuse).
 signal announce_requested(text: String, color: Color)
 ## Client : une annonce est arrivée (affichée par le HUD).
 signal announcement(text: String, color: Color)
+## Serveur : une station de recherche vient d'être réactivée (ouvre la station centrale, voir CentralPower).
+signal facility_reactivated()
 
 # Partie (étapes 5-7)
 signal fame_changed(peer_id: int, new_fame: int)
@@ -67,7 +75,7 @@ signal match_time_set_requested(seconds: float)
 ## Serveur : un joueur vient d'embarquer dans l'évac (EvacShip -> MatchManager).
 signal player_evacuated(peer_id: int)
 ## Serveur : nouvelle partie, chaque système de carte se remet à zéro (loot, monstres,
-## cristaux, contrats, prime, évac). Les joueurs sont remis à zéro par le MatchManager.
+## cristaux, contrats, évac). Les joueurs sont remis à zéro par le MatchManager.
 signal match_reset_requested()
 ## Client (local) : le HUD demande l'horloge ; le MatchManager répond par match_clock_synced.
 signal match_clock_requested()

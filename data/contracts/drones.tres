@@ -1,20 +1,31 @@
-[gd_resource type="Resource" script_class="ContractData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="ContractData" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
+[ext_resource type="Resource" path="res://data/objectives/drones.tres" id="9_track"]
 [ext_resource type="Script" path="res://resources/camp_data.gd" id="2_camp"]
 [ext_resource type="Resource" path="res://data/quests/waves/drones_1.tres" id="3_w1"]
 [ext_resource type="Resource" path="res://data/quests/waves/drones_2.tres" id="4_w2"]
+[ext_resource type="Resource" path="res://data/quests/waves/drones_meute.tres" id="5_pack"]
 
 [resource]
+; Origine (Drone Salvage) : points par drone selon son état (100 / 70 / 40), +3 Fame au décollage réussi.
+; Estimé : seuils d'état (80 % / 40 % de PV), PV des drones et du porteur, launch_time (60 s),
+; rayon de déclenchement, composition de la meute et des vagues de décollage.
 script = ExtResource("1_c")
 id = &"drones"
 display_name = "Drones en panne"
 color = Color(0.7, 0.85, 1, 1)
-hold_time = 3.0
-points = 15
 count = 3
 target_health = 400.0
-duration = 45.0
 radius = 5.0
 waves = Array[ExtResource("2_camp")]([ExtResource("3_w1"), ExtResource("4_w2")])
+track = ExtResource("9_track")
 faction = 2
+trigger_radius = 60.0
+pack = ExtResource("5_pack")
+launch_time = 60.0
+carrier_health = 1500.0
+launch_fame = 3
+condition_thresholds = PackedFloat32Array(0.8, 0.4)
+condition_points = PackedInt32Array(100, 70, 40)
+condition_names = PackedStringArray("intact", "bon", "endommagé")

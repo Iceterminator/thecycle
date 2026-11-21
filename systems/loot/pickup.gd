@@ -54,6 +54,10 @@ func get_prompt(player: Player) -> String:
 		ItemData.Kind.CREDITS:
 			return "E : Ramasser %d crédits" % amount
 		ItemData.Kind.RESOURCE:
+			if item.objective_track:
+				return "E : Ramasser %s (+%d pts d'objectif)" % [item.display_name, amount]
+			if item.carry_points_per_second > 0.0:
+				return "%s : déjà un éclat sur vous" % item.display_name if StormShards.carried_item(inv) else "E : Porter %s (+%d pts d'objectif/s, tombe si vous êtes touché)" % [item.display_name, int(item.carry_points_per_second)]
 			if item.max_carry > 0 and inv.get_resource(item.id) >= item.max_carry:
 				return "%s : vous en portez déjà le maximum" % item.display_name
 			return "E : Ramasser %d %s" % [amount, item.display_name]
@@ -121,9 +125,10 @@ func _build_visual() -> void:
 		sphere.height = 0.36
 		mesh.mesh = sphere
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = item.color
+	var color: Color = item.amount_colors.get(amount, item.color)
+	mat.albedo_color = color
 	mat.emission_enabled = true
-	mat.emission = item.color * 0.4
+	mat.emission = color * 0.4
 	mesh.material_override = mat
 	mesh.position.y = 0.3
 	add_child(mesh)

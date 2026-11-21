@@ -3,7 +3,7 @@ extends Node3D
 ## Vaisseau d'évacuation (étape 6), construit en code par World sur tous les peers
 ## (même chemin partout, pour les RPC). Formes simples : une soute surélevée fermée sur
 ## trois côtés, une seule porte et une seule rampe d'accès (le point chaud de la partie).
-## Sous le plancher, on peut passer accroupi (le Cœur stellaire est posé au centre).
+## Sous le plancher, on peut passer accroupi.
 ##
 ## Serveur : descend sur Events.evac_landed, repart sur Events.evac_departed, revient
 ## au ciel sur Events.match_reset_requested. Une fois posé, un joueur vivant qui reste

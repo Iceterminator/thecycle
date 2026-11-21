@@ -11,4 +11,4 @@ variants = Array[Resource]([ExtResource("2_v")])
 min_count = 1
 max_count = 2
 mandatory = false
-objective_id = &""
+objective_id = &"drones"

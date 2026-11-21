@@ -17,6 +17,7 @@ func run_host() -> void:
 	if not await wait_until(func() -> bool: return player(cid) == null, 5.0, "joueur du client retiré"):
 		return
 	check(cid in match_manager().waiting, "client en attente de la partie suivante")
+	send_step("verifie")  # le client attend cette vérification avant de quitter (sinon il est déjà déconnecté)
 	if not await wait_step("fin_client"):
 		return
 
@@ -33,5 +34,7 @@ func run_client() -> void:
 		if child is WaitingScreen:
 			waiting = child
 	if not await wait_until(func() -> bool: return waiting == null or waiting.visible, 5.0, "écran d'attente affiché"):
+		return
+	if not await wait_step("verifie"):
 		return
 	send_step("fin_client")

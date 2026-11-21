@@ -2,10 +2,9 @@ class_name Monster
 extends CharacterBody3D
 ## Monstre PvE créé par le serveur (MonsterManager -> MonsterSpawner), construit en code depuis un
 ## MonsterData. Toute l'IA tourne sur le SERVEUR ; les clients reçoivent position, PV et état (MonsterSync).
-## IA (DESIGN §7) : patrouille -> poursuite -> préparation / coup -> retour au camp.
+## IA (DESIGN §7) : patrouille -> poursuite -> préparation / coup -> retour au camp (ou au point d'apparition).
 ## Couche physique 3, groupe "damageable". Cible : un joueur, ou un `objective` (foreuse) pour les monstres de vague.
-## À distance (data.ranged) : tire des projectiles lents (salves, simulés par le serveur), recule sous data.min_range.
-## Niveau (1 à 3) : PV, dégâts, crédits multipliés (Config). Tempête : détection et course × storm_monster_mult.
+## À distance (data.ranged) : projectiles lents (salves), recule sous min_range. Niveau (1 à 3) : PV, dégâts, crédits × Config.
 ## Détail : monster_ai (états, aggro), monster_combat_ai, monster_motion, monster_projectiles,
 ## monster_dots, monster_visual, monster_death, monster_setup, monster_regen.
 
@@ -29,7 +28,6 @@ const LUNGE_SPEED_RATIO := 1.0  ## vitesse pendant la préparation (× run_speed
 const HIT_RANGE_RATIO := 1.5    ## le coup touche jusqu'à attack_range × ce ratio
 const MISS_RECOVERY := 0.3      ## pause après un coup raté (s)
 const BACK_OFF_SPEED_RATIO := 0.6  ## recul pendant la pause après un coup (× walk_speed)
-
 
 var data: MonsterData
 
@@ -112,7 +110,9 @@ func is_headshot(point: Vector3) -> bool:
 func server_receive_hit(amount: float, attacker_id: int) -> bool:
 	if health <= 0.0:
 		return false
+	var dealt := minf(amount, health)
 	health = maxf(health - amount, 0.0)
+	Events.monster_damaged.emit(self, dealt, attacker_id)
 	_regen.on_hit()
 	var attacker := players_root.get_node_or_null(str(attacker_id)) as Player if players_root else null
 	if attacker and attacker.can_be_hit():

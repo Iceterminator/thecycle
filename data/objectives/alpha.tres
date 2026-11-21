@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
+
+[ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/relic.png" id="2_icon"]
+
+[resource]
+; Origine : Warden Alpha (25 VP par seuil de dégâts, +25 VP au coup fatal, 125 VP au maximum ; pas de points d'objectif ni de paliers).
+; La Fame est donnée directement par AlphaBoss (add_contract_fame) ; ce fichier ne sert qu'à marquer « contrat Alpha actif » (réputation).
+; Estimé : faction (Korolev, id 1), icône.
+script = ExtResource("1_t")
+id = &"alpha"
+display_name = "Alpha"
+color = Color(1, 0.5, 0.2, 1)
+icon = ExtResource("2_icon")
+thresholds = PackedInt32Array(1)
+rewards = PackedInt32Array(0)
+faction = 1

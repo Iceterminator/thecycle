@@ -10,7 +10,7 @@ static func draw_markers(v: MapView) -> void:
 		var info: Dictionary = marker.map_info()
 		var kind: String = info.get("kind", "")
 		var pos: Vector3 = info.get("position", marker.global_position)
-		var always := kind == "evac" or kind == "relic"
+		var always: bool = kind == "evac" or info.get("always", false)
 		if not always and not (kind in MapView.NEARBY_KINDS and MapView.in_reveal_range(pos, v.player.global_position)):
 			continue
 		var p := v.to_map(pos)
@@ -32,8 +32,6 @@ static func draw_markers(v: MapView) -> void:
 			"crystal":
 				var diamond := PackedVector2Array([p + Vector2(0, -7), p + Vector2(6, 0), p + Vector2(0, 7), p + Vector2(-6, 0)])
 				v.draw_colored_polygon(diamond, color)
-			"relic":
-				v._text(p + Vector2(0, 7), "★", 22, color)
 			_:
 				v.draw_circle(p, 5.0, color)
 				v.draw_arc(p, 5.0, 0, TAU, 12, Color.BLACK, 1.0)

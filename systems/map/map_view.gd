@@ -3,8 +3,8 @@ extends Control
 ## Carte vue de dessus, dessinée en code (nord = -Z en haut).
 ## - Écran Tab : toute la carte (follow = false).
 ## - Minimap du HUD : centrée sur le joueur, ± view_half m (follow = true, sans noms).
-## Toujours affichés : obstacles (formes CSG de World/Map), évac, Cœur stellaire (où qu'il
-## soit), zones de tempête, et le joueur local. Seulement à moins de
+## Toujours affichés : obstacles (formes CSG de World/Map), évac,
+## zones de tempête, et le joueur local. Seulement à moins de
 ## Config.MAP_REVEAL_RADIUS : les autres quêtes (cristaux, contrats) et les monstres.
 
 const MapViewEntities := preload("res://systems/map/map_view_entities.gd")
@@ -16,7 +16,9 @@ const ROCK_COLOR := Color(0.42, 0.4, 0.38)
 const GRID_COLOR := Color(1, 1, 1, 0.07)
 const SELF_COLOR := Color(1.0, 0.9, 0.2)
 const MONSTER_COLOR := Color(0.95, 0.25, 0.2)
-## Repères montrés seulement de près (l'évac et le Cœur stellaire sont toujours montrés).
+const MapViewShards := preload("res://systems/map/map_view_shards.gd")
+const MapViewEvenements := preload("res://systems/map/map_view_evenements.gd")
+## Repères montrés seulement de près (l'évac et les repères « always » sont toujours montrés).
 const NEARBY_KINDS := ["crystal", "contract"]
 
 var player: Player
@@ -94,6 +96,8 @@ func _draw() -> void:
 		MapViewEntities.draw_monsters(self)
 		MapViewEntities.draw_revealed(self)
 		MapViewEntities.draw_scanner(self)
+		MapViewShards.draw(self)
+		MapViewEvenements.draw(self)
 		_draw_self()
 	draw_rect(Rect2(_origin, Vector2(side, side)), Color(1, 1, 1, 0.4), false, 2.0)
 	_text(_origin + Vector2(side / 2.0, 16), "N", 16 if show_labels else 12, Color(1, 1, 1, 0.8))

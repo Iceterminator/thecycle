@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://resources/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://data/objectives/surtension.tres" id="2_track"]
+
+[resource]
+; Origine : Surge Crystals. Estimé : 400 points par cristal (MatchRules.surge_points, passé à l'apparition).
+script = ExtResource("1_item")
+id = &"surge_crystal"
+display_name = "Cristal de surtension"
+kind = 5
+amount = 400
+color = Color(0.4, 0.95, 1, 1)
+objective_track = ExtResource("2_track")

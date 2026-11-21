@@ -1,12 +1,19 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://resources/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://data/objectives/biomasse.tres" id="2_track"]
 
 [resource]
 script = ExtResource("1_item")
 id = &"biomass"
 display_name = "Biomasse"
 kind = 5
-amount = 1
-color = Color(0.95, 0.5, 0.15, 1)
-max_carry = 20
+amount = 75
+color = Color(0.4, 0.9, 0.3, 1)
+objective_track = ExtResource("2_track")
+amount_colors = {
+75: Color(0.35, 0.9, 0.3, 1),
+150: Color(0.3, 0.55, 1, 1),
+300: Color(0.7, 0.35, 1, 1),
+450: Color(1, 0.8, 0.2, 1)
+}

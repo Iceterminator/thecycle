@@ -4,7 +4,7 @@ extends ContractSite
 ## recouverts de biomasse. Maintenir E (hold_time) sur un nœud le nettoie et l'active,
 ## mais fait apparaître une vague (waves[0]) qui attaque celui qui l'a activé :
 ## mieux vaut les activer un par un. Une fois tous actifs, maintenir E sur l'ordinateur
-## central -> data.points. Le site redevient utilisable après Config.match_rules.contract_reset_delay.
+## central -> data.points point d'objectif (paliers de data.track). Le site redevient utilisable après Config.match_rules.contract_reset_delay.
 ## Champs utilisés : count, radius, hold_time, points, waves, monster_*_mult, color.
 
 const PART_SCRIPT := preload("res://systems/contracts/contract_part.gd")
@@ -77,7 +77,7 @@ func _refresh() -> void:
 	if done:
 		_label.text = "%s\nRéactivée — de nouveau disponible bientôt" % data.display_name
 	else:
-		_label.text = "%s\n%d / %d nœuds actifs (+%d Fame)" % [data.display_name, n, data.count, data.points]
+		_label.text = "%s\n%d / %d nœuds actifs" % [data.display_name, n, data.count]
 
 
 func _all_active() -> bool:
@@ -91,7 +91,7 @@ func get_prompt(_player: Player) -> String:
 		return ""
 	if not _all_active():
 		return "Ordinateur central : activez d'abord les %d nœuds" % data.count
-	return "Maintenir E (%d s) : relancer la station (+%d Fame)" % [int(data.hold_time), data.points]
+	return "Maintenir E (%d s) : relancer la station (+%d point d'objectif)" % [int(data.hold_time), data.points]
 
 
 func get_hold_time(_player: Player) -> float:
@@ -102,8 +102,9 @@ func server_interact(player: Player) -> void:
 	if done or not _all_active():
 		return
 	done = true
-	player.score.add_contract_fame(data.points, data.faction)
-	announce("%s a réactivé la %s (+%d Fame)" % [player_name(player.get_peer_id()), data.display_name.to_lower(), data.points])
+	player.score.add_objective_points(data.track, data.points)
+	Events.facility_reactivated.emit()
+	announce("%s a réactivé la %s" % [player_name(player.get_peer_id()), data.display_name.to_lower()])
 	await get_tree().create_timer(Config.match_rules.contract_reset_delay).timeout
 	if is_inside_tree():
 		active_mask = 0
@@ -134,7 +135,7 @@ func part_can_be_hit(_i: int) -> bool:
 	return false
 
 
-func part_receive_hit(_i: int, _amount: float) -> bool:
+func part_receive_hit(_i: int, _amount: float, _attacker_id: int) -> bool:
 	return false
 
 

@@ -17,7 +17,7 @@ static func make_material() -> Material:
 
 
 ## Coordonnées d'un axe : grossier dehors, fin dans la carte.
-static func _axis() -> PackedFloat32Array:
+static func axe() -> PackedFloat32Array:
 	var half := Config.MAP_HALF_SIZE
 	var axis := PackedFloat32Array()
 	var v := -half - OUTSIDE_EXTENT
@@ -35,44 +35,75 @@ static func _axis() -> PackedFloat32Array:
 	return axis
 
 
-static func build_visual() -> ArrayMesh:
-	var axis := _axis()
-	var n := axis.size()
+## Bruit des plaques de terre (partagé par toutes les lignes du maillage).
+static func creer_plaques() -> FastNoiseLite:
 	var patches := FastNoiseLite.new()
 	patches.seed = MapTerrain.SEED + 2
 	patches.frequency = 0.02
+	return patches
+
+
+
+
+## Une ligne (z = axe[j]) du maillage : sommets, normales, couleurs, poids des biomes (CUSTOM0),
+## masques terre / vase (CUSTOM1) et indices des triangles vers la ligne suivante.
+## Calcul pur, sans nœud : appelable depuis un thread (une ligne par tâche).
+static func calculer_ligne(axis: PackedFloat32Array, patches: FastNoiseLite, j: int) -> Dictionary:
+	var n := axis.size()
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
-	var biomes := PackedFloat32Array()  ## CUSTOM0 : poids des 4 biomes
-	var masques := PackedFloat32Array() ## CUSTOM1 : terre, vase
-	for j in n:
-		for i in n:
-			var x := axis[i]
-			var z := axis[j]
-			var h := MapTerrain.height_at(x, z)
-			var normal := MapTerrain.normal_at(x, z)
-			vertices.append(Vector3(x, h, z))
-			normals.append(normal)
-			var patch := patches.get_noise_2d(x, z)
-			var w := MapBiomes.weights_at(x, z)
-			colors.append(_color(x, z, h, normal, patch))
-			biomes.append_array([w[0], w[1], w[2], w[3]])
-			var vase := smoothstep(MapBiomes.WATER_LEVEL + 0.4, MapBiomes.WATER_LEVEL - 0.2, h) * w[MapBiomes.MARAIS]
-			masques.append_array([smoothstep(0.1, 0.6, patch), vase, 0.0, 0.0])
+	var biomes := PackedFloat32Array()
+	var masques := PackedFloat32Array()
+	var z := axis[j]
+	for i in n:
+		var x := axis[i]
+		var h := MapTerrain.height_at(x, z)
+		var normal := MapTerrain.normal_at(x, z)
+		vertices.append(Vector3(x, h, z))
+		normals.append(normal)
+		var patch := patches.get_noise_2d(x, z)
+		var w := MapBiomes.weights_at(x, z)
+		colors.append(_color(x, z, h, normal, patch))
+		biomes.append_array([w[0], w[1], w[2], w[3]])
+		var vase := smoothstep(MapBiomes.WATER_LEVEL + 0.4, MapBiomes.WATER_LEVEL - 0.2, h) * w[MapBiomes.MARAIS]
+		masques.append_array([smoothstep(0.1, 0.6, patch), vase, 0.0, 0.0])
 	var indices := PackedInt32Array()
-	for j in n - 1:
+	if j < n - 1:
 		for i in n - 1:
 			var a := j * n + i
 			indices.append_array([a, a + 1, a + n, a + 1, a + n + 1, a + n])
+	return {"v": vertices, "n": normals, "c": colors, "b": biomes, "m": masques, "i": indices}
+
+
+## Réunit les lignes (dans l'ordre) en tableaux de surface. Calcul pur (thread).
+static func fusionner(lignes: Array) -> Array:
 	var arrays := []
 	arrays.resize(Mesh.ARRAY_MAX)
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var colors := PackedColorArray()
+	var biomes := PackedFloat32Array()
+	var masques := PackedFloat32Array()
+	var indices := PackedInt32Array()
+	for ligne: Dictionary in lignes:
+		vertices.append_array(ligne["v"])
+		normals.append_array(ligne["n"])
+		colors.append_array(ligne["c"])
+		biomes.append_array(ligne["b"])
+		masques.append_array(ligne["m"])
+		indices.append_array(ligne["i"])
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_INDEX] = indices
 	arrays[Mesh.ARRAY_CUSTOM0] = biomes
 	arrays[Mesh.ARRAY_CUSTOM1] = masques
+	return arrays
+
+
+## Maillage de rendu à partir des tableaux de fusionner() (fil principal).
+static func creer_mesh(arrays: Array) -> ArrayMesh:
 	var mesh := ArrayMesh.new()
 	var format := (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT) | (Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM1_SHIFT)
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, format)

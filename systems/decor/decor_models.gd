@@ -23,9 +23,36 @@ static func _override_for(model: String, mat: Material) -> Material:
 	return _remplacements[path]
 
 
+static var _demandes: Dictionary = {}  ## modèles demandés en chargement d'arrière-plan (precharger)
+
+
+static func chemin(model: String) -> String:
+	return model if model.begins_with("res://") else DIR + model + ".gltf"
+
+
+## Demande le chargement des modèles dans des threads : scene() les trouve prêts (pas d'arrêt de l'image).
+static func precharger(models: Array) -> void:
+	for model: String in models:
+		if not _scenes.has(model) and not _demandes.has(model):
+			ResourceLoader.load_threaded_request(chemin(model))
+			_demandes[model] = true
+
+
+## Coroutine : attend, image par image, la fin des chargements demandés par precharger().
+static func attendre_precharges(tree: SceneTree) -> void:
+	for model: String in _demandes.keys():
+		while ResourceLoader.load_threaded_get_status(chemin(model)) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			await tree.process_frame
+
+
 static func scene(model: String) -> PackedScene:
 	if not _scenes.has(model):
-		var packed := load(model if model.begins_with("res://") else DIR + model + ".gltf") as PackedScene
+		var packed: PackedScene
+		if _demandes.has(model):
+			packed = ResourceLoader.load_threaded_get(chemin(model)) as PackedScene
+			_demandes.erase(model)
+		else:
+			packed = load(chemin(model)) as PackedScene
 		_apply_overrides(model, packed)
 		_scenes[model] = packed
 	return _scenes[model]

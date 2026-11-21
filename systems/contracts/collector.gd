@@ -1,8 +1,7 @@
 class_name Collector
 extends ContractSite
-## Contrat « collecteur » : on y dépose une ressource portée (biomasse lâchée par les
-## monstres, Lumicèpes ramassés sur la carte). Maintenir E (Config.match_rules.collect_hold_time)
-## dépose tout -> data.points par unité.
+## Contrat « collecteur » : on y dépose une ressource portée (Lumicèpes, éclats d'orage). Maintenir E
+## dépose tout (Config.match_rules.collect_hold_time) -> data.points par unité.
 ## Champs utilisés : resource_item, points, color.
 
 

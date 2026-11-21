@@ -19,3 +19,17 @@ enum Kind { WEAPON, HEAL, SHIELD_RECHARGE, CREDITS, SHIELD_UPGRADE, RESOURCE, AB
 @export var price: int = 0                     ## prix en crédits (0 = pas en vente)
 @export var shield_tier: int = 0               ## Kind.SHIELD_UPGRADE : palier obtenu (voir Config.SHIELD_PER_TIER)
 @export var max_carry: int = 0                 ## Kind.RESOURCE : quantité max portée (0 = illimitée)
+
+@export_group("Objectif")
+## Kind.RESOURCE : si défini, ramasser l'objet donne directement `amount` points d'objectif (rien n'est porté).
+@export var objective_track: ObjectiveTrack
+## Couleur au sol selon la quantité (clé = quantité, ex. 75 -> vert) ; sinon `color`.
+@export var amount_colors: Dictionary = {}
+
+@export_group("Objet porté")
+## Kind.RESOURCE porté qui rapporte des points d'objectif tant qu'on le porte (éclat d'orage).
+@export var carry_track: ObjectiveTrack
+@export var carry_points_per_second: float = 0.0  ## points d'objectif par seconde de port
+@export var red_variant: ItemData                 ## variante rare tirée à l'apparition (éclat rouge)
+@export var red_chance: float = 0.0               ## probabilité d'obtenir la variante rouge (0 à 1)
+@export var red_evac_fame: int = 0                ## Fame gagnée si on embarque dans l'évac avec cet objet

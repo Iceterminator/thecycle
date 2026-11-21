@@ -6,6 +6,7 @@ extends RefCounted
 
 const DRAWS_DIR := "res://data/quest_draws/"
 const LUMICEP_OBJECTIVE := &"lumicepes"
+const CENTRAL_OBJECTIVE := "station_centrale"  ## objectif de la station centrale (ouverte par des stations de recherche)
 
 
 static func load_draws() -> Array[QuestDrawData]:
@@ -17,8 +18,9 @@ static func load_draws() -> Array[QuestDrawData]:
 	return draws
 
 
-## Renvoie {"quests": [{kind, data, pos, name, spawn_delay, with_storm}], "lumicep_spots": Array[Vector3],
-## "objectives": PackedStringArray, "summary": String, "list": Array[{name, count, later}]}.
+## Renvoie {"quests": [{kind, data, pos, name, spawn_delay}], "lumicep_spots": Array[Vector3],
+## "objectives": PackedStringArray, "summary": String, "list": Array[{name, count, later}],
+## "central_spot": Vector3 ou null (station centrale : réservée si des stations de recherche sont tirées)}.
 ## Les quêtes soumises à l'espacement sont placées d'abord (les plus contraintes), puis les
 ## cristaux, qui ignorent la règle. Un type tiré garde son objectif même si ses exemplaires
 ## n'apparaissent que plus tard (spawn_delay, tempête).
@@ -61,25 +63,54 @@ static func draw(draws: Array[QuestDrawData], quest_points: Array[Vector3],
 			quadrant_load[QuestPlacement.quadrant(pos)] += 1
 			if not d.ignores_spacing:
 				spaced.append(pos)
-			quests.append({"kind": d.kind, "data": _pick_variant(d).resource_path, "pos": pos,
-					"name": d.display_name, "spawn_delay": d.spawn_delay, "with_storm": d.spawns_with_storm})
-			placed += 1
+			for p in _cluster(d, pos):  # un filon (Ambrine) ou une seule quête
+				quests.append({"kind": d.kind, "data": _pick_variant(d).resource_path, "pos": p,
+						"name": d.display_name, "spawn_delay": d.spawn_delay})
+				placed += 1
 		if placed == 0:
 			continue
 		parts.append("%s ×%d" % [d.display_name, placed])
-		list.append({"name": d.display_name, "count": placed, "later": d.spawn_delay > 0.0 or d.spawns_with_storm,
+		list.append({"name": d.display_name, "count": placed, "later": d.spawn_delay > 0.0,
 				"icon": d.resource_path.get_file().get_basename(), "color": d.variants[0].get("color"),
 				"objective": String(d.objective_id)})
 		if d.objective_id != &"" and not objectives.has(String(d.objective_id)):
 			objectives.append(String(d.objective_id))
 		if d.objective_id == LUMICEP_OBJECTIVE:
 			lumicep_count += placed
+	var central_spot: Variant = null
+	var no_same_type: Array[Vector3] = []
+	if chosen.any(func(d: QuestDrawData) -> bool: return d.kind == &"facility"):
+		var index := QuestPlacement.pick_spot(free, spaced, rules.quest_min_spacing, no_same_type, quadrant_load, rules)
+		if index >= 0:
+			central_spot = free.pop_at(index)
+			objectives.append(CENTRAL_OBJECTIVE)
+	for id in rules.always_objectives:  # objectifs sans quête tirée (biomasse : comptée au ramassage)
+		if not objectives.has(id):
+			objectives.append(id)
 	var lumicep_free := lumicep_points.duplicate()
 	lumicep_free.shuffle()
 	var lumicep_spots: Array[Vector3] = []
 	lumicep_spots.assign(lumicep_free.slice(0, lumicep_count * lumicep_per_collector))
 	return {"quests": quests, "lumicep_spots": lumicep_spots, "objectives": objectives,
-			"summary": ", ".join(parts), "list": list}
+			"summary": ", ".join(parts), "list": list, "central_spot": central_spot}
+
+
+## Positions d'un filon autour de `center` : la 1re au centre, les autres dans cluster_radius,
+## à cluster_gap les unes des autres, posées sur le relief. Sans filon : [center].
+static func _cluster(d: QuestDrawData, center: Vector3) -> Array[Vector3]:
+	var spots: Array[Vector3] = [center]
+	var wanted := randi_range(d.cluster_min, maxi(d.cluster_min, d.cluster_max))
+	for attempt in wanted * 20:
+		if spots.size() >= wanted:
+			break
+		var angle := randf() * TAU
+		var dist := lerpf(d.cluster_gap, d.cluster_radius, sqrt(randf()))
+		var p := center + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		if spots.any(func(s: Vector3) -> bool: return Vector2(s.x - p.x, s.z - p.z).length() < d.cluster_gap):
+			continue
+		p.y = MapTerrain.height_at(p.x, p.z)
+		spots.append(p)
+	return spots
 
 
 ## Variante au hasard, pondérée par variant_weights (vide ou de taille différente = uniforme).

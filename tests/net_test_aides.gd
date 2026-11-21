@@ -10,12 +10,6 @@ const SPOT_CLIENT := Vector2(14.0, -2.0)
 var _steps: Dictionary = {}
 
 
-## Pas de prime pendant un test (elle tombe au hasard sur un joueur et change la Fame).
-func _speed_up() -> void:
-	super()
-	config.match_rules.bounty_interval = 100000.0
-
-
 # =========================================================================
 # Étapes : l'un annonce, l'autre attend (RPC sur le nœud /root/Test, même chemin partout)
 # =========================================================================

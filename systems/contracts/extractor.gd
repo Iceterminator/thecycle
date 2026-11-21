@@ -1,19 +1,29 @@
 class_name Extractor
 extends ContractSite
-## Contrat « Extraction d'Ambrine ». Maintenir E (data.hold_time) pour installer
-## l'extracteur, ou le reprendre à un autre joueur.
-## Tant qu'il le garde, son propriétaire reçoit DIRECTEMENT des points d'objectif
-## (pas besoin d'y retourner), de plus en plus vite :
-## points_per_second + points_growth × minutes tenues (remis à zéro quand il change de mains).
+## Contrat « Extraction d'Ambrine » : une bouche d'Ambrine (plusieurs par partie, visibles sur la carte).
+## Maintenir E (data.hold_time) sur une bouche libre y pose un extracteur. Un joueur peut en
+## posséder plusieurs ; chacun monte de niveau tout seul (level_rates / level_times).
+## Un rival maintient E (data.hack_time) sur un extracteur adverse pour le pirater : son propriétaire
+## est prévenu dès le début, et si l'extracteur est pris son niveau repart à zéro.
+## Le propriétaire reçoit DIRECTEMENT des points d'objectif (sans y retourner).
 ## Les monstres ne sont pas alertés ; les joueurs, si (annonce).
-## Champs utilisés : hold_time, points_per_second, points_growth, track, color.
+## Champs utilisés : hold_time, hack_time, points_per_second, level_rates, level_times, track, color.
+
+const HACK_WARN_COOLDOWN_MS := 3000  ## un même piratage ne prévient pas le propriétaire plus souvent
 
 var owner_id: int = 0          ## synchronisé
-var held_minutes: float = 0.0  ## synchronisé
+var held_seconds: float = 0.0  ## synchronisé
+var _tank: MeshInstance3D
+var _last_warn_ms: int = -HACK_WARN_COOLDOWN_MS
 
 
 func _sync_props() -> Array[String]:
-	return ["owner_id", "held_minutes"]
+	return ["owner_id", "held_seconds"]
+
+
+func _ready() -> void:
+	add_to_group("extractor_site")
+	super()
 
 
 func _build_visual() -> void:
@@ -30,9 +40,9 @@ func _build_visual() -> void:
 	tank.top_radius = 0.7
 	tank.bottom_radius = 0.8
 	tank.height = 1.8
-	var t := make_mesh(tank, Color(0.55, 0.58, 0.62))
-	t.position.y = 1.3
-	add_child(t)
+	_tank = make_mesh(tank, Color(0.55, 0.58, 0.62))  # le réservoir n'apparaît qu'une fois l'extracteur posé
+	_tank.position.y = 1.3
+	add_child(_tank)
 
 
 func _label_height() -> float:
@@ -40,12 +50,18 @@ func _label_height() -> float:
 
 
 func current_rate() -> float:
-	return data.points_per_second + data.points_growth * held_minutes
+	var rate := data.points_per_second
+	for i in mini(data.level_rates.size(), data.level_times.size()):
+		if held_seconds >= data.level_times[i]:
+			rate = data.level_rates[i]
+	return rate
 
 
 func _refresh() -> void:
+	if _tank:
+		_tank.visible = owner_id != 0
 	if owner_id == 0:
-		_label.text = "%s — libre" % data.display_name
+		_label.text = "Bouche d'Ambrine — libre"
 	else:
 		_label.text = "%s — %s\n+%.1f pts d'objectif/s" % [data.display_name, player_name(owner_id), current_rate()]
 
@@ -55,28 +71,49 @@ func get_prompt(player: Player) -> String:
 		return "Extracteur à vous : +%.1f pts d'objectif/s, de plus en plus vite" % current_rate()
 	if owner_id == 0:
 		return "Maintenir E (%d s) : installer un extracteur" % int(data.hold_time)
-	return "Maintenir E (%d s) : reprendre l'extracteur" % int(data.hold_time)
+	return "Maintenir E (%d s) : pirater l'extracteur de %s" % [int(data.hack_time), player_name(owner_id)]
 
 
 func get_hold_time(player: Player) -> float:
-	return 0.0 if owner_id == player.get_peer_id() else data.hold_time
+	if owner_id == player.get_peer_id():
+		return 0.0
+	return data.hold_time if owner_id == 0 else data.hack_time
+
+
+## Serveur : un rival commence à pirater (appelé par l'Interactor au début du maintien de E).
+func server_hold_started(player: Player) -> void:
+	var now := Time.get_ticks_msec()
+	if owner_id == 0 or owner_id == player.get_peer_id() or now - _last_warn_ms < HACK_WARN_COOLDOWN_MS:
+		return
+	var victim := find_player(owner_id)
+	if victim:
+		_last_warn_ms = now
+		victim.score.notify.rpc_id(owner_id, "Votre extracteur est piraté !", Color(1.0, 0.4, 0.3))
 
 
 func server_interact(player: Player) -> void:
 	var peer := player.get_peer_id()
 	if owner_id == peer:
 		return
-	var verb := "installé" if owner_id == 0 else "repris"
-	_set_owner(peer)
-	announce("%s a %s l'extracteur d'Ambrine !" % [player_name(peer), verb])
-
-
-func _set_owner(peer: int) -> void:
-	var old := find_player(owner_id)
-	if old:
-		old.score.set_objective_rate(data.track, 0.0)
+	var verb := "installé" if owner_id == 0 else "piraté"
+	var old_owner := owner_id
 	owner_id = peer
-	held_minutes = 0.0
+	held_seconds = 0.0
+	_refresh_rate(old_owner)
+	announce("%s a %s un extracteur d'Ambrine !" % [player_name(peer), verb])
+
+
+## Gain continu affiché d'un joueur : somme de ses extracteurs.
+func _refresh_rate(peer: int) -> void:
+	var player := find_player(peer)
+	if player == null:
+		return
+	var total := 0.0
+	for node in get_tree().get_nodes_in_group("extractor_site"):
+		var site := node as Extractor
+		if site and site.owner_id == peer:
+			total += site.current_rate()
+	player.score.set_objective_rate(data.track, total)
 
 
 func _physics_process(delta: float) -> void:
@@ -84,8 +121,18 @@ func _physics_process(delta: float) -> void:
 		return
 	var owner := find_player(owner_id)
 	if owner == null:
-		_set_owner(0)
+		owner_id = 0  # déconnecté
+		held_seconds = 0.0
 		return
-	held_minutes += delta / 60.0
+	held_seconds += delta
 	give_points_over_time(owner, current_rate(), delta)
-	owner.score.set_objective_rate(data.track, current_rate())
+	_refresh_rate(owner_id)
+
+
+## Écran Tab : les bouches (libres ou prises) sont toujours visibles.
+func map_info() -> Dictionary:
+	var info := super()
+	info["always"] = true
+	if owner_id == 0:
+		info["color"] = data.color.darkened(0.45)
+	return info

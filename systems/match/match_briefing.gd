@@ -9,17 +9,22 @@ const SYNC_INTERVAL := 1.0
 
 var _m: MatchManager
 var _sync_left: float = 0.0
+var _carte_debut_ms: int = 0         ## début du chargement de la carte (délai max : map_ready_timeout)
+var _attente_signalee: bool = false  ## le départ attend les cartes (une seule ligne de journal)
 
 
 func _init(manager: MatchManager) -> void:
 	_m = manager
 
 
-## Premier « prêt » : la carte est générée (Niveaux), remise à zéro (tirage des quêtes, monstres),
-## puis salle ouverte.
+## Premier « prêt » : la carte est générée en asynchrone (Niveaux), puis remise à zéro (tirage des
+## quêtes, monstres) quand celle du serveur est prête ; salle ouverte tout de suite.
 func start() -> void:
 	_m.world.niveaux.server_charger(Niveaux.Niveau.PARTIE)
-	_m._cycle.reset_world()
+	_carte_debut_ms = Time.get_ticks_msec()
+	_attente_signalee = false
+	if not Events.carte_chargee.is_connected(_on_carte_chargee):
+		Events.carte_chargee.connect(_on_carte_chargee, CONNECT_ONE_SHOT)
 	_m.phase = MatchManager.Phase.BRIEFING
 	_m.elapsed = 0.0
 	_m.briefing_left = Config.match_rules.briefing_time
@@ -70,7 +75,7 @@ func vote_passed() -> bool:
 
 
 func tick(delta: float) -> void:
-	_m.briefing_left -= delta
+	_m.briefing_left = maxf(_m.briefing_left - delta, 0.0)
 	_sync_left -= delta
 	if _sync_left <= 0.0:
 		sync()
@@ -78,8 +83,27 @@ func tick(delta: float) -> void:
 		return
 	if _m.briefing_room.is_empty():
 		_m._cycle.enter_lobby()  # plus personne dans la salle : retour au lobby
-	else:
+	elif cartes_pretes():
 		finish()
+
+
+## Départ possible : cartes prêtes, ou délai max écoulé (on part quand même, avec un message).
+func cartes_pretes() -> bool:
+	if _m.world.niveaux.server_cartes_pretes(_m.briefing_room):
+		return true
+	var attente := (Time.get_ticks_msec() - _carte_debut_ms) / 1000.0
+	if attente >= Config.match_rules.map_ready_timeout:
+		push_warning("[Partie] Cartes pas toutes prêtes après %d s : départ forcé" % roundi(attente))
+		return true
+	if not _attente_signalee:
+		_attente_signalee = true
+		print("[Partie] Départ en attente des cartes (serveur et joueurs de la salle)")
+	return false
+
+
+func _on_carte_chargee() -> void:
+	if _m.phase == MatchManager.Phase.BRIEFING:
+		_m._cycle.reset_world()
 
 
 func sync() -> void:
@@ -123,7 +147,7 @@ func on_ready(peer: int, value: bool) -> void:
 	_m._broadcast_clock()
 
 
-## Menu admin : lobby -> tout le monde dans la salle ; salle -> départ immédiat.
+## Menu admin : lobby -> tout le monde dans la salle ; salle -> départ immédiat (dès que les cartes sont prêtes).
 func force_start() -> void:
 	if _m.phase == MatchManager.Phase.LOBBY:
 		start()
@@ -132,4 +156,4 @@ func force_start() -> void:
 			enter((node as Player).get_peer_id())
 		_m._broadcast_clock()
 	elif _m.phase == MatchManager.Phase.BRIEFING:
-		finish()
+		_m.briefing_left = 0.0  # le prochain tick part dès que les cartes sont prêtes

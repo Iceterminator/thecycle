@@ -4,11 +4,14 @@
 [ext_resource type="Texture2D" path="res://assets/icons/quests/lumicep_collector.png" id="2_icon"]
 
 [resource]
+; Origine : Brightcaps. Estimé : rien.
 script = ExtResource("1_t")
 id = &"lumicepes"
 display_name = "Lumicèpes"
 color = Color(0.5, 1, 0.6, 1)
 icon = ExtResource("2_icon")
-thresholds = PackedInt32Array(75, 200, 375, 600)
-rewards = PackedInt32Array(10, 15, 20, 25)
+thresholds = PackedInt32Array(300, 700, 1200, 1800, 2500, 3300, 4200, 5200, 6300, 7500)
+rewards = PackedInt32Array(5, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+credit_rewards = PackedInt32Array(15, 30, 45, 60, 75, 90, 105, 120, 135, 150)
+xp_rewards = PackedInt32Array(250, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500)
 faction = 3

@@ -15,6 +15,7 @@ const CODE_KEY_ACTIONS := {
 	&"ability_1": KEY_Q,           # capacité 1 (étape 8c)
 	&"ability_2": KEY_F,           # capacité 2
 	&"pact": KEY_P,                # menu Pactes (étape 8e)
+	&"contracts": KEY_J,            # tableau de contrats
 }
 
 
@@ -38,6 +39,8 @@ var start_loadout: StartLoadout = preload("res://data/rules/start_loadout.tres")
 # --- Réseau ---
 const DEFAULT_PORT := 7777
 const MAX_PLAYERS := 20
+const NET_TIMEOUT_MIN_MS := 30000      # délai ENet avant de couper une connexion muette (min / max, ms) :
+const NET_TIMEOUT_MAX_MS := 60000      # la construction de la carte bloque le jeu plusieurs secondes
 
 # --- Partie (en secondes) ---
 const EVAC_PAD_CAMP := "res://data/camps/evac_pad.tres"  # monstres qui bloquent la plateforme ("" = aucun)
@@ -98,6 +101,7 @@ const MINIMAP_HALF_SIZE := 45.0          # la minimap montre ± cette distance a
 
 # --- Limites de la carte ---
 const MAP_HALF_SIZE := 150.0             # la carte fait 300 x 300 m, centrée sur l'origine
+const MAP_BUILD_BUDGET_MS := 8           # construction de la carte : temps max par image avant de rendre la main (ms)
 const KILL_Y := -15.0                    # en dessous de cette hauteur : mort (plus de chute infinie)
 const FALL_KILLER_ID := -3               # killer_id quand un joueur meurt en tombant hors de la carte
 const DROP_POD_LIFETIME := 30.0          # la capsule vide disparaît après ce délai (s)
@@ -122,7 +126,6 @@ const PACT_PARTNER_IS_ALLY := true
 
 # --- Profils, factions, lobby, escouades (étape 9) ---
 ## Points de réputation cumulés pour les niveaux 1 à 10 d'une faction (valeurs de départ).
-const BOUNTY_FACTION := 3                 # la prime est un contrat de l'ICA
 const SQUAD_MAX := 4
 const QUICK_PLAY_ADDRESSES := ["127.0.0.1"]  # « Partie rapide » : essayés après le dernier serveur
 

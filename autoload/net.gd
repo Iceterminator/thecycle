@@ -72,7 +72,17 @@ func is_server() -> bool:
 
 func _on_peer_connected(id: int) -> void:
 	print("[Net] Joueur connecté : %d" % id)
+	_longer_timeout(id)
 	Events.player_joined.emit(id)
+
+
+## La construction de la carte bloque le jeu plusieurs secondes (plus sous charge) : avec le
+## délai ENet par défaut, la connexion était coupée pendant le briefing. Serveur et client.
+func _longer_timeout(id: int) -> void:
+	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	var packet_peer := enet.get_peer(id) if enet else null
+	if packet_peer:
+		packet_peer.set_timeout(0, Config.NET_TIMEOUT_MIN_MS, Config.NET_TIMEOUT_MAX_MS)
 
 
 func _on_peer_disconnected(id: int) -> void:

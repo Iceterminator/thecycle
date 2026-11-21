@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://resources/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://data/objectives/eclats_orage.tres" id="2_track"]
+
+[resource]
+; Variante rare de l'éclat d'orage (Zeal Shard rouge) : mêmes points, +Fame à l'évac. Estimé : 40 Fame.
+script = ExtResource("1_item")
+id = &"storm_shard_red"
+display_name = "Éclat d'orage rouge"
+kind = 5
+amount = 1
+color = Color(1, 0.15, 0.15, 1)
+max_carry = 1
+carry_track = ExtResource("2_track")
+carry_points_per_second = 5.0
+red_evac_fame = 40

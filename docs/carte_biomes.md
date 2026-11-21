@@ -26,10 +26,24 @@ Captures : `docs/captures/biomes/` (`carte_relief.png` = carte Tab / minimap, pu
 - **Carte et minimap** (`MapRelief`) : `map_color` du biome, mares en bleu.
 - **Eau** (`systems/map/map_water.gd`) : surface à `MapBiomes.WATER_LEVEL` (−2,2 m) sur les cases
   de 4 m du marais dont le sol passe dessous. Pas de collision : on marche au fond (≈ 1 m au plus profond).
-- **Décor** (`MapDecor` + `map_decor_pick.gd`) : à chaque tirage, un biome est choisi selon les poids
+- **Décor** (`MapDecorPlan` + `map_decor_pick.gd`) : à chaque tirage, un biome est choisi selon les poids
   (les frontières mélangent les décors), puis la densité du biome décide si quelque chose pousse,
   puis un modèle au hasard dans sa liste. Rien ne pousse dans l'eau, sauf les plantes d'eau
   (`water_plants`, posées à la surface). Nombres totaux inchangés (`TREE_COUNT`…).
+
+## Construction asynchrone (aucune image longue)
+La carte se construit au début du briefing, sur chaque peer (`Niveaux` -> `NiveauxCarte`, `systems/niveaux/`),
+en coroutine : les calculs purs tournent dans le `WorkerThreadPool` (attendus image par image, `systems/map/map_thread.gd`),
+les nœuds sont créés par tranches de `Config.MAP_BUILD_BUDGET_MS` (8 ms) par image.
+- Relief (`map_terrain_build.gd`) : grille de hauteurs (une tâche par ligne), puis `MapTerrain.appliquer_relief`
+  (collision) ; rendu : lignes du maillage (`MapTerrainMesh.calculer_ligne`) et vertices de l'eau
+  (`MapWater.calculer`) en thread, nœuds posés ensuite. Pas de rendu en serveur dédié.
+- Décor (`map_decor.gd` + `map_decor_plan.gd`) : le plan (quoi, où, échelle, rotation ; mêmes tirages, même ordre
+  qu'avant, graine fixe `MapDecorPlan.SEED`, donc identique chez tous les peers) est calculé en thread ;
+  les modèles sont préchargés en arrière-plan (`DecorModels.precharger`), puis instanciés par tranches.
+- Le changement de niveau (retour au lobby) annule une construction en cours : `NiveauxCarte.annuler()`,
+  les threads en cours sont simplement jetés.
+- Journal : `[Carte] prête en X ms, image max Y ms`.
 
 ## Réglages (`resources/biome_data.gd`, `BiomeData`)
 Couleurs, relief, densités (`tree_density`…) et listes de modèles `chemin res:// → échelle`

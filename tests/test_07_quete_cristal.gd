@@ -1,7 +1,7 @@
 extends "res://tests/net_test_aides.gd"
 ## Quête « cristal » : l'hôte pose un cristal facile à une position fixe
 ## (Events.crystal_spawn_requested) ; le client lance la foreuse (E maintenu) ; l'hôte tue
-## la vague (dégâts serveur au nom du client) ; le client extrait (E maintenu).
+## les vagues (dégâts serveur au nom du client) ; le client extrait (E maintenu).
 ## Serveur : Events.quest_completed(cristal, client, points). Client : points d'objectif
 ## et Fame du premier palier (ObjectiveTrack) reçus.
 
@@ -27,12 +27,17 @@ func run_host() -> void:
 	# Le client lance la foreuse : la vague arrive après crystal_wave_delay.
 	if not await wait_until(func() -> bool: return crystal.state == Crystal.State.DEFENSE, 15.0, "foreuse lancée par le client"):
 		return
-	if not await wait_until(func() -> bool: return crystal.monsters_left > 0, Config.match_rules.crystal_wave_delay + 5.0, "vague de monstres"):
-		return
-	for m in monsters():
-		if m.objective == crystal:
-			kill_monster(m, cid)
-	if not await wait_until(func() -> bool: return crystal.state == Crystal.State.EXTRACT, 5.0, "vague finie, extraction possible"):
+	# Toutes les vagues : on tue les monstres du cristal (par le serveur) jusqu'à l'extraction.
+	var waves_seen := 0
+	var deadline := Time.get_ticks_msec() + 60000
+	while crystal.state != Crystal.State.EXTRACT and Time.get_ticks_msec() < deadline:
+		waves_seen = maxi(waves_seen, crystal.wave_index)
+		for m in monsters():
+			if m.objective == crystal:
+				kill_monster(m, cid)
+		await get_tree().create_timer(0.3).timeout
+	var wave_count := (load(CRYSTAL_DATA) as CrystalData).waves.size()
+	if not check(crystal.state == Crystal.State.EXTRACT and waves_seen == wave_count, "toutes les vagues (%d/%d) tuées, extraction possible" % [waves_seen, wave_count]):
 		return
 	send_step("extraction")
 	if not await wait_until(func() -> bool: return not _completed.is_empty(), 15.0, "Events.quest_completed"):

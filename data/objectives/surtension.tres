@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ObjectiveTrack" format=3]
+
+[ext_resource type="Script" path="res://resources/objective_track.gd" id="1_t"]
+[ext_resource type="Texture2D" path="res://assets/icons/quests/storm_collector.png" id="2_icon"]
+
+[resource]
+; Origine : Surge Crystals (palier unique : 1000 points = 20 VP, faction Osiris, déclenchement aléatoire).
+; Estimé : crédits = 2 x vp et XP = 50 x vp (l'original n'en donne pas), icône. Au-delà du palier : même écart, même récompense.
+script = ExtResource("1_t")
+id = &"surtension"
+display_name = "Surtension"
+color = Color(0.4, 0.95, 1, 1)
+icon = ExtResource("2_icon")
+thresholds = PackedInt32Array(1000)
+rewards = PackedInt32Array(20)
+credit_rewards = PackedInt32Array(40)
+xp_rewards = PackedInt32Array(1000)
+faction = 2

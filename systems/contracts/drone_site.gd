@@ -1,27 +1,34 @@
 class_name DroneSite
 extends ContractSite
-## Contrat « Sauvetage de drones ». data.count drones en panne autour d'une balise.
-## Maintenir E (hold_time) sur la balise lance la protection : pendant data.duration s,
-## des vagues de monstres attaquent les drones (data.target_health PV chacun).
-## Ensuite, maintenir E (Config.match_rules.collect_hold_time) sur chaque drone survivant l'envoie
-## -> data.points × (PV restants / PV max). Tous détruits = échec.
+## Contrat « Sauvetage de drones » (Drone Salvage d'origine). Un porteur au centre, data.count
+## drones en panne autour. Quand un joueur approche (data.trigger_radius), une meute (data.pack)
+## apparaît et attaque les drones. Maintenir E (Config.match_rules.collect_hold_time) sur un drone
+## le relance : il s'envole et rapporte des points selon son état (data.condition_*).
+## Celui qui relance le dernier drone déclenche le décollage (data.launch_time) : des vagues
+## attaquent le porteur (data.carrier_health PV), les autres joueurs peuvent aussi tirer dessus.
+## Il tient jusqu'au bout : +data.launch_fame Fame au déclencheur ; détruit : rien.
 ## Le site redevient utilisable après Config.match_rules.contract_reset_delay.
-## Champs utilisés : count, radius, hold_time, duration, target_health, points, waves,
-## monster_*_mult, color.
+## Champs utilisés : count, radius, target_health, trigger_radius, pack, waves, launch_*, carrier_health,
+## condition_*, monster_*_mult, color.
 
-enum State { IDLE, DEFENSE, SEND, DONE }
+enum State { WAITING, ACTIVE, LAUNCH, DONE }
 
 const PART_SCRIPT := preload("res://systems/contracts/contract_part.gd")
 const DroneSiteVisual := preload("res://systems/contracts/drone_site_visual.gd")
+const DroneSiteLaunch := preload("res://systems/contracts/drone_site_launch.gd")
+const DroneSiteWaves := preload("res://systems/contracts/drone_site_waves.gd")
 
-var state: int = State.IDLE           ## synchronisé
-var time_left: float = 0.0            ## synchronisé
-var drone_hp: PackedFloat32Array = PackedFloat32Array()  ## synchronisé
-var sent_mask: int = 0                ## synchronisé
+var state: int = State.WAITING        ## synchronisé
+var time_left: float = 0.0            ## synchronisé : temps de décollage restant
+var drone_hp: PackedFloat32Array = PackedFloat32Array()  ## synchronisé : PV des drones, puis du porteur
+var sent_mask: int = 0                ## synchronisé : drones relancés
+var flown_mask: int = 0               ## local : drones dont le vol est lancé (visuel)
 
 var _parts: Array[ContractPart] = []
 var _alive: Array[Monster] = []
-var _waves_spawned: int = 0
+var waves_spawned: int = 0  ## serveur : vagues du décollage déjà lancées
+var last_sender_id: int = 0   ## serveur : dernier joueur à avoir relancé un drone
+var launcher_id: int = 0      ## serveur : joueur qui a déclenché le décollage
 
 
 func _sync_props() -> Array[String]:
@@ -33,96 +40,91 @@ func _build_visual() -> void:
 
 
 func _refresh() -> void:
-	for i in _parts.size():
-		_parts[i].visible = sent_mask & (1 << i) == 0
-	match state:
-		State.IDLE:
-			_label.text = "%s\n%d drones à protéger (+%d Fame chacun)" % [data.display_name, data.count, data.points]
-		State.DEFENSE:
-			var hp_text := ""
-			for hp in drone_hp:
-				hp_text += "%d%% " % roundi(100.0 * hp / data.target_health)
-			_label.text = "%s — tenez %d s\nDrones : %s" % [data.display_name, ceili(time_left), hp_text]
-		State.SEND:
-			_label.text = "%s\nEnvoyez les drones survivants (E)" % data.display_name
-		State.DONE:
-			_label.text = "%s\nTerminé — de nouveau disponible bientôt" % data.display_name
+	DroneSiteVisual.update_flights(self, _parts)
+	_label.text = DroneSiteVisual.label_text(self)
 
 
-# --- Balise ---------------------------------------------------------------
+# --- Accès pour les helpers -----------------------------------------------
 
-func get_prompt(_player: Player) -> String:
-	if state != State.IDLE:
-		return ""
-	return "Maintenir E (%d s) : réparer les drones (vagues pendant %d s)" % [int(data.hold_time), int(data.duration)]
+func carrier_part() -> ContractPart:
+	return _parts[data.count]
 
 
-func get_hold_time(_player: Player) -> float:
-	return data.hold_time if state == State.IDLE else 0.0
+func alive_drone_parts() -> Array[ContractPart]:
+	var result: Array[ContractPart] = []
+	for i in data.count:
+		if _drone_available(i):
+			result.append(_parts[i])
+	return result
 
 
-func server_interact(player: Player) -> void:
-	if state != State.IDLE:
-		return
-	state = State.DEFENSE
-	time_left = data.duration
-	sent_mask = 0
-	_waves_spawned = 0
-	var hp := PackedFloat32Array()
-	hp.resize(data.count)
-	hp.fill(data.target_health)
-	drone_hp = hp
-	announce("%s répare des drones en panne" % player_name(player.get_peer_id()))
+func alive_monsters() -> Array[Monster]:
+	var result: Array[Monster] = []
+	for m in _alive:
+		if is_instance_valid(m):
+			result.append(m)
+	return result
 
+
+func forget_monsters() -> void:
+	_alive.clear()
+
+
+func register_wave_monster(monster: Monster) -> void:
+	_alive.append(monster)
+
+
+func on_wave_monster_died(monster: Monster) -> void:
+	_alive.erase(monster)
+
+
+# --- Déroulé (serveur) ----------------------------------------------------
 
 func _physics_process(delta: float) -> void:
-	if state != State.DEFENSE:
-		return
-	time_left = maxf(time_left - delta, 0.0)
-	# Les vagues arrivent à intervalles réguliers pendant la défense.
-	var due := int((1.0 - time_left / data.duration) * data.waves.size()) + 1
-	while _waves_spawned < mini(due, data.waves.size()):
-		_spawn_wave_on_drones(data.waves[_waves_spawned])
-		_waves_spawned += 1
-	if time_left <= 0.0:
-		for m in _alive:
-			if is_instance_valid(m):
-				m.queue_free()
-		_alive.clear()
-		state = State.SEND
+	if state == State.WAITING:
+		var player := DroneSiteWaves.player_near(self)
+		if player:
+			state = State.ACTIVE
+			announce("%s approche : des monstres attaquent des drones en panne !" % player_name(player.get_peer_id()))
+			DroneSiteWaves.spawn_pack(self)
+	elif state == State.LAUNCH:
+		DroneSiteLaunch.tick(self, delta)
 
 
-func _spawn_wave_on_drones(wave: CampData) -> void:
-	var alive_parts: Array[ContractPart] = []
-	for i in _parts.size():
-		if drone_hp[i] > 0.0:
-			alive_parts.append(_parts[i])
-	if alive_parts.is_empty():
-		return
-	for monster_data in wave.roll():
-		var target: ContractPart = alive_parts.pick_random()
-		var angle := randf() * TAU
-		var pos := global_position + Vector3(cos(angle), 0, sin(angle)) * randf_range(16.0, 20.0)
-		Events.wave_spawn_requested.emit(target, monster_data, pos, data.monster_health_mult, data.monster_damage_mult)
-
-
-func _finish() -> void:
+func finish() -> void:
 	state = State.DONE
 	await get_tree().create_timer(Config.match_rules.contract_reset_delay).timeout
-	if is_inside_tree():
-		state = State.IDLE
+	if not is_inside_tree():
+		return
+	drone_hp = DroneSiteVisual.fresh_hp(data)
+	sent_mask = 0
+	state = State.WAITING
 
 
-# --- Drones (ContractPart) -----------------------------------------------
+# --- Drones et porteur (ContractPart) ---------------------------------------
+
+func _drone_available(i: int) -> bool:
+	return drone_hp[i] > 0.0 and sent_mask & (1 << i) == 0
+
 
 func _can_send(i: int) -> bool:
-	return state == State.SEND and drone_hp[i] > 0.0 and sent_mask & (1 << i) == 0
+	return state == State.ACTIVE and i < data.count and _drone_available(i)
+
+
+## Rang d'état du drone : 0 = intact, puis de plus en plus abîmé (data.condition_*).
+func _condition(i: int) -> int:
+	var ratio := drone_hp[i] / data.target_health
+	var rank := 0
+	while rank < data.condition_thresholds.size() and ratio <= data.condition_thresholds[rank]:
+		rank += 1
+	return rank
 
 
 func part_prompt(i: int, _player: Player) -> String:
 	if not _can_send(i):
 		return ""
-	return "Maintenir E : envoyer le drone (+%d Fame)" % roundi(data.points * drone_hp[i] / data.target_health)
+	var rank := _condition(i)
+	return "Maintenir E : relancer le drone (%s, +%d pts d'objectif)" % [data.condition_names[rank], data.condition_points[rank]]
 
 
 func part_hold_time(i: int, _player: Player) -> float:
@@ -132,41 +134,28 @@ func part_hold_time(i: int, _player: Player) -> float:
 func part_interact(i: int, player: Player) -> void:
 	if not _can_send(i):
 		return
+	player.score.add_objective_points(data.track, data.condition_points[_condition(i)])
 	sent_mask |= 1 << i
-	player.score.add_contract_fame(roundi(data.points * drone_hp[i] / data.target_health), data.faction)
-	for k in data.count:
-		if drone_hp[k] > 0.0 and sent_mask & (1 << k) == 0:
-			return
-	announce("Les drones ont été récupérés")
-	_finish()
+	last_sender_id = player.get_peer_id()
+	DroneSiteLaunch.after_drone_change(self, last_sender_id)
 
 
 func part_can_be_hit(i: int) -> bool:
-	return state == State.DEFENSE and drone_hp[i] > 0.0
+	if i == data.count:
+		return state == State.LAUNCH and drone_hp[i] > 0.0
+	return state == State.ACTIVE and _drone_available(i)
 
 
-func part_receive_hit(i: int, amount: float) -> bool:
-	if not part_can_be_hit(i):
+func part_receive_hit(i: int, amount: float, attacker_id: int) -> bool:
+	if not part_can_be_hit(i) or (i == data.count and attacker_id == launcher_id):
 		return false
 	var hp := drone_hp
 	hp[i] = maxf(hp[i] - amount, 0.0)
 	drone_hp = hp
-	for k in data.count:
-		if drone_hp[k] > 0.0:
-			return hp[i] <= 0.0
-	# Tous les drones sont détruits : échec.
-	for m in _alive:
-		if is_instance_valid(m):
-			m.queue_free()
-	_alive.clear()
-	announce("Tous les drones ont été détruits")
-	_finish()
+	if hp[i] > 0.0:
+		return false
+	if i == data.count:
+		DroneSiteLaunch.carrier_destroyed(self)
+	else:
+		DroneSiteLaunch.after_drone_change(self, last_sender_id)
 	return true
-
-
-func register_wave_monster(monster: Monster) -> void:
-	_alive.append(monster)
-
-
-func on_wave_monster_died(monster: Monster) -> void:
-	_alive.erase(monster)

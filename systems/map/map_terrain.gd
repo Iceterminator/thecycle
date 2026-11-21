@@ -7,7 +7,7 @@ extends StaticBody3D
 ## - Zones plates autour de chaque Marker3D du monde et de l'évac (centre, hauteur 0).
 ## - _enter_tree : enregistre les zones plates puis pose les Marker3D au sol, AVANT que
 ##   MapDecor, MonsterManager, QuestManager… ne lisent leurs positions.
-## - Collision : HeightMapShape3D à 1 m, construite par construire() (Niveaux), pas au chargement. Rendu : MapTerrainMesh (absent en serveur dédié).
+## - Collision : HeightMapShape3D à 1 m, construite en asynchrone par MapTerrainBuild (Niveaux), pas au chargement. Rendu : MapTerrainMesh (absent en serveur dédié).
 ## - Biomes (MapBiomes) : le relief de base est adapté à chaque biome ; mares du marais (MapWater).
 
 const SEED := 20261119
@@ -115,18 +115,11 @@ func _enter_tree() -> void:
 		m.position.y += height_at(m.position.x, m.position.z)
 
 
-## Construit la collision et le rendu (Niveaux, au début d'une partie). Le relief (height_at) est
-## disponible dès _enter_tree, même sans carte construite.
-func construire() -> void:
+## Pose la grille de hauteurs et la collision (appelé par MapTerrainBuild, au début d'une partie).
+## Le relief (height_at) est disponible dès _enter_tree, même sans carte construite.
+func appliquer_relief(data: PackedFloat32Array, count: int, half: int) -> void:
 	collision_layer = 1
 	collision_mask = 0
-	var half := int(Config.MAP_HALF_SIZE) + COLLISION_MARGIN
-	var count := half * 2 + 1
-	var data := PackedFloat32Array()
-	data.resize(count * count)
-	for j in count:
-		for i in count:
-			data[j * count + i] = _exact_height(i - half, j - half)
 	_grille = data
 	_grille_n = count
 	_grille_half = half
@@ -137,12 +130,6 @@ func construire() -> void:
 	var collision := CollisionShape3D.new()
 	collision.shape = shape
 	add_child(collision)
-	if DisplayServer.get_name() != "headless":
-		var visual := MeshInstance3D.new()
-		visual.mesh = MapTerrainMesh.build_visual()
-		visual.material_override = MapTerrainMesh.make_material()
-		add_child(visual)
-		add_child(MapWater.build())
 
 
 ## Supprime la collision et le rendu (retour au lobby, salle de test).

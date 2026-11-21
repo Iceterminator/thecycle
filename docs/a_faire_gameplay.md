@@ -23,6 +23,7 @@ Liste à cocher au fur et à mesure (`- [x]`). Établie le 20/11/2026.
 - [ ] **Événements à 5 et 10 min** et largages de ravitaillement
 - [ ] **Tests en jeu réels** à 4 joueurs ou plus, puis équilibrage (armes, Fame, prix, timings)
 - [ ] **Étape 10 – En ligne** : serveur dédié (VPS), prédiction / lissage réseau, tests à 10-20 joueurs
+- [ ] **Convoi (Mag-Train du jeu d'origine)** : chargement 5 min, capture à une console, trajet vers le centre avec embuscades, points pendant le trajet, triples au déchargement près de l'évac ; remplacera le Cœur stellaire (supprimé). Paliers d'origine dans la datasheet (`contracts[]` « Mag-Train »)
 
 ## Important
 - [ ] 2 à 3 types de créatures en plus, un boss par biome

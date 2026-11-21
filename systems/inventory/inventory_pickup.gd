@@ -23,6 +23,11 @@ func take(item: ItemData, amount: int, ammo: int) -> bool:
 		ItemData.Kind.SHIELD_UPGRADE:
 			return false  # ancien système : le bouclier vient du kit (étape 8b)
 		ItemData.Kind.RESOURCE:
+			if item.objective_track:  # compté au ramassage : rien n'est porté
+				_inv.player.score.add_objective_points(item.objective_track, amount)
+				return true
+			if item.carry_points_per_second > 0.0 and StormShards.carried_item(_inv) != null:
+				return false  # un seul éclat porté à la fois
 			var have := _inv.get_resource(item.id)
 			var room := (item.max_carry - have) if item.max_carry > 0 else amount
 			if room <= 0:

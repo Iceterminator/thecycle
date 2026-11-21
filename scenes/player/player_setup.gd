@@ -68,6 +68,10 @@ static func build_local_ui(p: Player) -> void:
 	var profiles := p.get_parent().get_parent().get_node_or_null("ProfileManager")
 	if profiles:
 		profiles.request_register.rpc_id(1, Net.player_name)
+	var contract_ui: ContractUi = ContractUi.new()
+	contract_ui.name = "ContractUi"
+	p.add_child(contract_ui)
+	contract_ui.setup(p)
 	var pact_ui: PactUi = PACT_UI_SCRIPT.new()
 	pact_ui.name = "PactUi"
 	p.add_child(pact_ui)
@@ -83,7 +87,7 @@ static func build_local_ui(p: Player) -> void:
 
 
 ## Balise au-dessus des AUTRES joueurs, visible de loin et à travers le décor,
-## quand leur Score.beacon n'est pas vide (porteur du Cœur stellaire, prime…).
+## quand leur Score.beacon n'est pas vide.
 static func _build_beacon(p: Player) -> void:
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED

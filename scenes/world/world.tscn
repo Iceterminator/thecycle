@@ -9,7 +9,6 @@
 [ext_resource type="Resource" path="res://data/camps/camp_lvl1.tres" id="6_camp1"]
 [ext_resource type="Resource" path="res://data/camps/camp_lvl2.tres" id="7_camp2"]
 [ext_resource type="Script" path="res://systems/quests/quest_manager.gd" id="8_quests"]
-[ext_resource type="Script" path="res://systems/contracts/bounty_manager.gd" id="21_bounty"]
 [ext_resource type="Script" path="res://systems/map/map_terrain.gd" id="22_terrain"]
 
 [sub_resource type="Sky" id="Sky_1"]

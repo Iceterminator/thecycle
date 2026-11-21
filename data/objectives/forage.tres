@@ -4,11 +4,14 @@
 [ext_resource type="Texture2D" path="res://assets/icons/quests/crystal.png" id="2_icon"]
 
 [resource]
+; Origine : Veltecite Minerals. Estimé : crédits estimés (2 x vp) ; XP estimée (50 x vp).
 script = ExtResource("1_t")
 id = &"forage"
 display_name = "Forage"
 color = Color(0.7, 0.4, 1, 1)
 icon = ExtResource("2_icon")
-thresholds = PackedInt32Array(100, 300, 600, 1000)
-rewards = PackedInt32Array(10, 15, 20, 25)
+thresholds = PackedInt32Array(300, 700, 1200, 1800, 2500, 3300, 4200, 5200, 6200, 7300)
+rewards = PackedInt32Array(10, 15, 20, 25, 30, 35, 40, 45, 50, 55)
+credit_rewards = PackedInt32Array(20, 30, 40, 50, 60, 70, 80, 90, 100, 110)
+xp_rewards = PackedInt32Array(500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750)
 faction = 1

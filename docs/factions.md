@@ -4,7 +4,7 @@ Code : `systems/profiles/profile_manager.gd`, `systems/lobby/` · Données : `da
 
 ## Implémenté
 - 3 factions (nos noms + équivalent d'origine en référence).
-- Réputation = Fame des contrats de la faction, +50 % pour la faction de prédilection ; 10 niveaux.
+- Réputation = Fame des contrats de la faction **actifs** (tableau de contrats : 4 proposés, 2 actifs, voir `docs/quetes.md`), +50 % pour la faction de prédilection ; 10 niveaux. Prime : 5 Fame + réputation ICA par joueur éliminé avec la Prime active.
 - Déblocages par niveau : kits, capacités, armes de la boutique, mods de kit, mods d'arme.
 - Profil JSON par pseudo côté serveur (`user://profiles/`) : réputation, équipement, apparence (`data/appearances/`, choisie dans l'onglet Factions du lobby, "" = automatique), stats.
 - Lobby à onglets : Décollage, Équipement, Arsenal, Factions, Escouade.
@@ -23,7 +23,7 @@ Code : `systems/profiles/profile_manager.gd`, `systems/lobby/` · Données : `da
 - Entre les parties : mods d'armes (voir ci-dessous) et gadgets.
 - Sauvegarde côté serveur (JSON par joueur au début, base de données plus tard).
 - **Codé à l'étape 9 (18/11/2026)** : Forge Brask (Korolev, id 1 : Forage, Ambrine, Station),
-  Lumen (Osiris, id 2 : Relais, Drones, Cœur stellaire), Consortium Vega (ICA, id 3 : collecteurs, Prime).
+  Lumen (Osiris, id 2 : Relais, Drones), Consortium Vega (ICA, id 3 : Lumicèpes, Biomasse, Éclats, Prime).
   Les vrais noms s'affichent pour l'instant (même interrupteur que les armes), nos noms sont prêts dans
   `data/factions/`. Réputation = Fame de contrat de la faction (+50 % pour la faction de prédilection),
   10 niveaux (`Config.economy.rep_levels`). Déblocage par niveau seulement : kits, capacités, armes (boutique),

@@ -6,7 +6,7 @@ extends Node
 ## SEUL LE SERVEUR le modifie ; ScoreSync (autorité 1, voir player.gd::_enter_tree)
 ## l'envoie à tous les clients.
 ## `beacon` : texte affiché au-dessus du joueur pour TOUS les autres, à travers le décor
-## (porteur du Cœur stellaire, prime sur la tête…).
+## (balise générique, plus utilisée pour l'instant).
 
 signal changed
 
@@ -37,12 +37,13 @@ func get_peer_id() -> int:
 	return get_parent().name.to_int()
 
 
-## Serveur uniquement.
-func add_rank_points(amount: int) -> void:
+## Serveur uniquement. `with_xp` faux : pas d'XP de kit (paliers d'objectif : ils ont leur propre XP).
+func add_rank_points(amount: int, with_xp: bool = true) -> void:
 	if not multiplayer.is_server() or amount == 0:
 		return
 	rank_points += amount
-	_kit_xp(amount * Config.economy.kit_xp_per_fame)
+	if with_xp:
+		_kit_xp(amount * Config.economy.kit_xp_per_fame)
 	Events.rank_points_changed.emit(get_peer_id(), rank_points)
 
 
@@ -60,8 +61,14 @@ func add_objective_points(track: ObjectiveTrack, amount: int) -> void:
 	objective_points = d
 	for tier in range(track.tiers_reached(before), track.tiers_reached(after)):
 		var reward := track.reward(tier)
-		add_contract_fame(reward, track.faction)
-		notify.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d Fame)" % [track.display_name, tier + 1, reward], track.color)
+		var credits := track.credit_reward(tier)
+		var xp := roundi(track.xp_reward(tier) * Config.economy.kit_xp_contract_scale)
+		add_contract_fame(reward, track.faction, false, ContractBoard.is_active(get_peer_id(), track))
+		var inv := get_parent().get_node_or_null("Inventory") as Inventory
+		if inv and credits > 0:
+			inv.add_credits(credits)
+		_kit_xp(xp)
+		notify.rpc_id(get_peer_id(), "%s : palier %d atteint (+%d Fame, +%d crédits, +%d XP)" % [track.display_name, tier + 1, reward, credits, xp], track.color)
 
 
 ## Serveur : gain continu en cours pour un objectif (0 = aucun). Arrondi au dixième pour
@@ -114,8 +121,9 @@ func _kit_xp(amount: float) -> void:
 
 ## Serveur : Fame gagnée avec un contrat de `faction`. Avec un partenaire de pacte, elle est
 ## partagée moitié / moitié (la moitié arrondie au-dessus pour celui qui l'a gagnée).
-## La Fame reçue devient aussi de la réputation auprès de la faction du contrat (étape 9).
-func add_contract_fame(amount: int, faction: int = 0) -> void:
+## La Fame reçue devient aussi de la réputation auprès de la faction du contrat (étape 9), sauf `with_rep` faux
+## (objectif qui n'est pas un contrat actif du joueur : voir ContractBoard).
+func add_contract_fame(amount: int, faction: int = 0, with_xp: bool = true, with_rep: bool = true) -> void:
 	if not multiplayer.is_server() or amount <= 0 or MatchManager.is_lobby():
 		return
 	var profiles := ProfileManager._current
@@ -123,14 +131,14 @@ func add_contract_fame(amount: int, faction: int = 0) -> void:
 	var players := get_parent().get_parent()
 	var partner := players.get_node_or_null(str(partner_id)) as Player if partner_id > 0 and players else null
 	if partner == null:
-		add_rank_points(amount)
-		if profiles:
+		add_rank_points(amount, with_xp)
+		if profiles and with_rep:
 			profiles.server_add_rep(get_peer_id(), faction, amount)
 		return
 	var mine := ceili(amount / 2.0)
-	add_rank_points(mine)
-	partner.score.add_rank_points(amount - mine)
-	if profiles:
+	add_rank_points(mine, with_xp)
+	partner.score.add_rank_points(amount - mine, with_xp)
+	if profiles and with_rep:
 		profiles.server_add_rep(get_peer_id(), faction, mine)
 		profiles.server_add_rep(partner_id, faction, amount - mine)
 	if amount - mine > 0:

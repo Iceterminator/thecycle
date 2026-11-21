@@ -110,6 +110,10 @@ func request_hold_start(path: NodePath) -> void:
 		return
 	_srv_hold_path = path
 	_srv_hold_start_ms = Time.get_ticks_msec()
+	var target := get_node_or_null(path) as Node3D  # hook serveur (piratage) : prévenir la cible
+	if target and target.has_method("server_hold_started") and not MatchManager.is_lobby() and player.can_be_hit() \
+			and player.camera.global_position.distance_to(target.global_position) <= Config.INTERACT_RANGE + Config.INTERACT_SERVER_MARGIN:
+		target.server_hold_started(player)
 
 
 @rpc("any_peer", "call_local", "reliable")

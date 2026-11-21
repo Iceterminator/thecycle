@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="ContractData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://resources/contract_data.gd" id="1_c"]
+[ext_resource type="Resource" path="res://data/objectives/station_centrale.tres" id="2_track"]
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="3_monster"]
+[ext_resource type="Resource" path="res://data/monsters/gardien_1.tres" id="4_g1"]
+[ext_resource type="Resource" path="res://data/monsters/gardien_2.tres" id="5_g2"]
+
+[resource]
+; Origine (Central Power) : zone tenue au fil du temps, gardée par des robots (ici : des Gardiens).
+; Estimé : central_unlock_count (2), zone_radius (10 m), points_per_second (2), active_time (300 s),
+; guard_interval (30 s), guard_max (6).
+script = ExtResource("1_c")
+id = &"central"
+display_name = "Station centrale"
+color = Color(0.45, 0.8, 1, 1)
+track = ExtResource("2_track")
+faction = 1
+points_per_second = 2.0
+central_unlock_count = 2
+zone_radius = 10.0
+active_time = 300.0
+guard_interval = 30.0
+guard_max = 6
+guards = Array[ExtResource("3_monster")]([ExtResource("4_g1"), ExtResource("5_g2")])

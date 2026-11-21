@@ -7,10 +7,10 @@ const CRYSTAL_SCRIPT := preload("res://systems/quests/crystal.gd")
 const CONTRACT_SCRIPTS := {
 	&"uplink": preload("res://systems/contracts/uplink.gd"),
 	&"extractor": preload("res://systems/contracts/extractor.gd"),
-	&"relic": preload("res://systems/contracts/relic.gd"),
 	&"collector": preload("res://systems/contracts/collector.gd"),
 	&"facility": preload("res://systems/contracts/facility.gd"),
 	&"drones": preload("res://systems/contracts/drone_site.gd"),
+	&"central": preload("res://systems/contracts/central_station.gd"),
 }
 
 

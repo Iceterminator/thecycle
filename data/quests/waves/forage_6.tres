@@ -9,5 +9,5 @@
 script = ExtResource("1_camp")
 level = 0
 monsters = Array[ExtResource("2_monster")]([ExtResource("3_colosse"), ExtResource("4_rodeur")])
-min_counts = PackedInt32Array(2, 8)
+min_counts = PackedInt32Array(3, 8)
 max_counts = PackedInt32Array(3, 10)

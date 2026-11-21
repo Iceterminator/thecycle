@@ -28,13 +28,17 @@ extends Resource
 
 @export_group("Récompense")
 @export var credits: int = 10                  ## crédits versés au tueur
-@export var biomass_drop: int = 0              ## biomasse lâchée au sol (contrat Biomasse)
+@export var biomass_drop: int = 0              ## nombre d'échantillons de biomasse lâchés au sol à la mort
+@export var biomass_value: int = 0             ## points d'objectif d'un échantillon commun (ramassage)
+@export var biomass_rare_value: int = 0        ## points d'un échantillon rare
+@export_range(0.0, 1.0) var biomass_rare_chance: float = 0.0  ## probabilité qu'un échantillon soit rare
 @export var xp: int = 0                        ## XP du jeu d'origine ; XP de kit donnée = xp × Config.economy.kit_xp_monster_scale
 
 @export_group("Apparence")
 @export var radius: float = 0.35
 @export var height: float = 0.9
 @export var color: Color = Color(0.5, 0.3, 0.6)
+@export var boss: bool = false                 ## boss : visible de tous sur la carte, hors niveaux de monstres
 
 @export_group("Tir à distance")
 @export var ranged: bool = false               ## true : tire des projectiles (attack_range = portée de tir)

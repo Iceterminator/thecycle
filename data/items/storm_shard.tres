@@ -1,12 +1,19 @@
-[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ItemData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://resources/item_data.gd" id="1_item"]
+[ext_resource type="Resource" path="res://data/objectives/eclats_orage.tres" id="2_track"]
+[ext_resource type="Resource" path="res://data/items/storm_shard_red.tres" id="3_red"]
 
 [resource]
+; Origine : Zeal Shard. Estimé : 5 pts/s portés (l'original ne donne pas le débit), 15 % rouges, +40 Fame à l'évac.
 script = ExtResource("1_item")
 id = &"storm_shard"
 display_name = "Éclat d'orage"
 kind = 5
 amount = 1
 color = Color(0.75, 0.45, 1, 1)
-max_carry = 10
+max_carry = 1
+carry_track = ExtResource("2_track")
+carry_points_per_second = 5.0
+red_variant = ExtResource("3_red")
+red_chance = 0.15

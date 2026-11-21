@@ -4,11 +4,14 @@
 [ext_resource type="Texture2D" path="res://assets/icons/quests/extractor.png" id="2_icon"]
 
 [resource]
+; Origine : Letium Gas. Estimé : vp estimés 10/15/20+ ; crédits estimés (2 x vp) ; XP estimée (50 x vp).
 script = ExtResource("1_t")
 id = &"ambrine"
 display_name = "Ambrine"
 color = Color(0.3, 0.95, 0.85, 1)
 icon = ExtResource("2_icon")
-thresholds = PackedInt32Array(100, 250, 450, 700)
-rewards = PackedInt32Array(10, 15, 20, 25)
+thresholds = PackedInt32Array(500, 2000, 5000)
+rewards = PackedInt32Array(10, 15, 20)
+credit_rewards = PackedInt32Array(20, 30, 40)
+xp_rewards = PackedInt32Array(500, 750, 1000)
 faction = 1

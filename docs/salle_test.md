@@ -11,8 +11,8 @@ Le serveur décide, chaque peer construit lui-même (rien de lourd sur le résea
 
 - Retour au lobby (fin de partie, téléporteur de la salle de test) : tout est supprimé, la salle de briefing est recréée.
 - Une seule activité à la fois par serveur : la salle de test n'est possible qu'au lobby, et tout le monde y part.
-- Serveur : `Events.carte_chargee` (navmesh des monstres) et `Events.carte_liberee` (monstres, objets, quêtes retirés).
-- Le relief (`MapTerrain.height_at`) est connu même sans carte construite ; `MapTerrain.construire()` / `detruire()` font la collision et le rendu.
+- Serveur : `Events.carte_chargee` (émis quand la carte du serveur est entièrement prête ; navmesh des monstres) et `Events.carte_liberee` (monstres, objets, quêtes retirés).
+- Le relief (`MapTerrain.height_at`) est connu même sans carte construite ; la collision et le rendu sont construits en asynchrone (`MapTerrainBuild`, voir `docs/carte_biomes.md`), `MapTerrain.detruire()` les retire.
 
 ## Choix du mode
 Onglet Décollage du lobby (`systems/lobby/lobby_ui_launch.gd`) : PRÊT = partie normale (`request_lobby_ready`) ;

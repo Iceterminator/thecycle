@@ -109,6 +109,7 @@ func setup(player: Player) -> void:
 	player.weapon.charge_changed.connect(func(ratio: float) -> void: _charge_ratio = ratio)
 	player.score.changed.connect(func() -> void: HudScores.on_score_changed(self))
 	Events.objectives_synced.connect(func() -> void: HudScores.on_score_changed(self))
+	Events.contracts_changed.connect(func() -> void: HudScores.on_score_changed(self))
 	HudScores.on_score_changed(self)
 	Events.announcement.connect(_on_announcement)
 	HudBottom.on_health_changed(self)
