@@ -95,20 +95,24 @@ static func draw(draws: Array[QuestDrawData], quest_points: Array[Vector3],
 			"summary": ", ".join(parts), "list": list, "central_spot": central_spot}
 
 
-## Positions d'un filon autour de `center` : la 1re au centre, les autres dans cluster_radius,
-## à cluster_gap les unes des autres, posées sur le relief. Sans filon : [center].
+## Positions d'un filon autour de `center` : la 1re au centre, les autres dans cluster_radius
+## (zone sans arbres ni rochers), à cluster_gap les unes des autres, hors de l'eau et des pentes
+## raides, posées 5 cm au-dessus du relief (jamais sous la collision). Sans filon : [center].
 static func _cluster(d: QuestDrawData, center: Vector3) -> Array[Vector3]:
 	var spots: Array[Vector3] = [center]
 	var wanted := randi_range(d.cluster_min, maxi(d.cluster_min, d.cluster_max))
-	for attempt in wanted * 20:
+	for attempt in wanted * 30:
 		if spots.size() >= wanted:
 			break
 		var angle := randf() * TAU
 		var dist := lerpf(d.cluster_gap, d.cluster_radius, sqrt(randf()))
 		var p := center + Vector3(cos(angle) * dist, 0.0, sin(angle) * dist)
+		var ground := MapTerrain.height_at(p.x, p.z)
+		if MapBiomes.is_water(p.x, p.z, ground) or MapTerrain.slope_at(p.x, p.z) > d.cluster_max_slope:
+			continue
 		if spots.any(func(s: Vector3) -> bool: return Vector2(s.x - p.x, s.z - p.z).length() < d.cluster_gap):
 			continue
-		p.y = MapTerrain.height_at(p.x, p.z)
+		p.y = ground + 0.05
 		spots.append(p)
 	return spots
 

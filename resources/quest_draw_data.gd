@@ -20,5 +20,8 @@ extends Resource
 ## quêtes groupées autour de l'emplacement (Ambrine). 1 = une seule quête par emplacement.
 @export var cluster_min: int = 1
 @export var cluster_max: int = 1
-@export var cluster_radius: float = 12.0  ## m autour du centre du filon
+## m autour du centre du filon. Le décor est dégagé sur 13 m autour des emplacements de quête
+## (MapDecorPlan.CLEAR_RADIUS) mais un gros rocher peut déborder de 2-3 m : rester vers 9 m.
+@export var cluster_radius: float = 9.0
 @export var cluster_gap: float = 1.0  ## m minimum entre deux quêtes d'un même filon
+@export var cluster_max_slope: float = 0.5  ## pente maxi d'une quête du filon (tan de l'angle : 0,5 ≈ 27°)
