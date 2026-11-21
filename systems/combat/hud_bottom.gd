@@ -57,7 +57,7 @@ static func update_bottom(hud: CombatHud) -> void:
 			name_label.text = a.get_display_name() if a else id
 			var left: float = abilities.cooldown_left[slot]
 			if left > 0.0 and a:
-				var total := maxf(a.get_cooldown(abilities.upgrades[slot], hud._player.kit.get_effect("ability_cooldown_mult")), 0.1)
+				var total := maxf(a.get_cooldown(abilities.upgrades[slot], hud._player.kit.get_effect("ability_cooldown_mult"), hud._player.kit.get_effect("ability_cooldown_add")), 0.1)
 				cooldown.visible = true
 				cooldown.anchor_top = 1.0 - clampf(left / total, 0.0, 1.0)
 				info.text = "%d s" % ceili(left)

@@ -10,8 +10,8 @@ reference_name = "Concealment Cloak"
 faction = 2
 faction_level = 9
 category = 4
-cooldown_s = 45.0
-duration_s = 10.0
+cooldown_s = 35.0
+duration_s = 15.0
 buff = {
 "cloak": 0.9,
 "cloak_moving": 0.4

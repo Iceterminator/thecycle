@@ -28,7 +28,7 @@ func update(delta: float) -> void:
 	_w.is_aiming = can_act and Input.is_action_pressed("aim")
 	var target_fov: float = data.get_ads_fov(Config.ADS_FOV, Config.DEFAULT_FOV) if _w.is_aiming else Config.DEFAULT_FOV
 	# ads_time_s : temps pour faire l'essentiel du passage en visée.
-	_w.camera.fov = lerpf(_w.camera.fov, target_fov, clampf(4.0 / maxf(data.ads_time_s, 0.05) * delta, 0.0, 1.0))
+	_w.camera.fov = lerpf(_w.camera.fov, target_fov, clampf(4.0 / maxf(data.ads_time_s * _w._equip.handling("ads"), 0.05) * delta, 0.0, 1.0))
 
 	if _w.is_reloading:
 		_w._reload_left -= delta
@@ -108,14 +108,14 @@ func start_reload() -> void:
 		return  # gadget à usage limité : pas de rechargement
 	_w.is_reloading = true
 	_w._burst_left = 0
-	_w._reload_left = _w.data.reload_s
+	_w._reload_left = _w.data.reload_s * _w._equip.handling("reload")
 	_w.request_reload.rpc_id(1)
 	_w._emit_ammo()
 
 
 func _apply_recoil() -> void:
 	var player := _w.player
-	var kick := deg_to_rad(_w.data.recoil_deg * _w.data.recoil_multiplier) * (0.5 if _w.is_aiming else 1.0)
+	var kick := deg_to_rad(_w.data.recoil_deg * _w.data.recoil_multiplier * WeaponSpread.recoil_multiplier(_w.data, player) * _w._equip.handling("recoil")) * (0.5 if _w.is_aiming else 1.0)
 	if player.buffs:
 		kick *= player.buffs.get_mult("recoil_mult")  # Pied ferme : balancement réduit
 	_w.head.rotation.x = clampf(_w.head.rotation.x + kick, deg_to_rad(-89), deg_to_rad(89))

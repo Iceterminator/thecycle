@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"phasic_lancer_rail_1"
+display_name = "Lunette x1,5"
+description = "lunette x1,5, +50 % visée, -13 % point faible"
+weapon_id = &"phasic_lancer"
+slot = 0
+mult = {"ads_time_s": 1.501, "weakspot_multiplier": 0.867}
+add = {}
+overrides = {"scope_zoom": 1.5}
+flags = PackedStringArray()
+reference_name = "1.5x Scope"
+notes = ""

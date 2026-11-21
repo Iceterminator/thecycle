@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kbr_longshot_body_4"
+display_name = "Chambre gros calibre"
+description = "+20 % dégâts, -26 % recul, -26 % cadence"
+weapon_id = &"kbr_longshot"
+slot = 2
+mult = {"damage": 1.2, "recoil_deg": 0.74, "fire_interval_s": 1.35}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "High Caliber Chamber"
+notes = ""

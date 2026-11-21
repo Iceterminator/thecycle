@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"bulldog_body_4"
+display_name = "Détente double"
+description = "-20 % dégâts, +35 % rechargement, +2 tirs par rafale"
+weapon_id = &"bulldog"
+slot = 2
+mult = {"damage": 0.8, "reload_s": 1.35}
+add = {"burst_count": 2.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Double-Tap Trigger"
+notes = "Interval per burst 0.05/+1.05 ignoré"

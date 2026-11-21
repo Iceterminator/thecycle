@@ -4,10 +4,14 @@
 
 [resource]
 script = ExtResource("1_8yvco")
+move_speed_mps = 3.9
+shield = 500.0
+health = 500.0
+faction = 3
 id = &"augment"
 display_name = "Kit nu"
 reference_name = "Augment"
-faction_level = -1
+faction_level = 1
 level_perks = PackedStringArray()
 estimated_fields = PackedStringArray()
 playstyle = "4e kit sans aucune capacité de mouvement, jugé presque inutilisable. Optionnel pour le remake."

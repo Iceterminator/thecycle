@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"lacerator_magazine_4"
+display_name = "Enduit de vif-argent"
+description = "-25 % dégâts aux créatures, +20 % dégâts aux joueurs, -17 % chargeur"
+weapon_id = &"lacerator"
+slot = 3
+mult = {"damage_vs_creatures": 0.75, "damage_vs_players": 1.2, "magazine": 0.833}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Quicksilver Coating"
+notes = ""

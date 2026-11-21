@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"karma_1_magazine_2"
+display_name = "Éclateur"
+description = "+300 % rayon d'explosion, -20 % vitesse du projectile, +350 dégâts de zone, explose à l'impact"
+weapon_id = &"karma_1"
+slot = 3
+mult = {"aoe_radius_m": 4.0, "projectile_speed_mps": 0.8}
+add = {"aoe_damage": 350.0}
+overrides = {}
+flags = PackedStringArray("explode_on_impact")
+reference_name = "The Splinter"
+notes = "damage 0/-600 ignoré"

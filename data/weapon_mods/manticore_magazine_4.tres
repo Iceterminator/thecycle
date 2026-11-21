@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"manticore_magazine_4"
+display_name = "Fléchettes explosives"
+description = "+100 % vitesse du projectile, -57 % chargeur, +13 % dégâts, -20 % recul, -20 % cadence, explose à l'impact"
+weapon_id = &"manticore"
+slot = 3
+mult = {"projectile_speed_mps": 2.0, "magazine": 0.429, "damage": 1.125, "recoil_deg": 0.8, "fire_interval_s": 1.25}
+add = {}
+overrides = {}
+flags = PackedStringArray("explode_on_impact")
+reference_name = "Missile Flechettes"
+notes = "Radius 250/+250 ignoré"

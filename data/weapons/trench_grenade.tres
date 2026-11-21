@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("1_my1ap")
 id = &"trench_grenade"
-display_name = "Trench Grenade"
+display_name = "Grenade à fragmentation"
 reference_name = "Trench Grenade"
 type = 9
 fire_mode = 1

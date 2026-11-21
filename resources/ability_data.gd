@@ -73,5 +73,5 @@ func get_display_name() -> String:
 
 
 ## Recharge réelle selon les améliorations et le bonus de kit (« recharge des capacités »).
-func get_cooldown(upgrades: int, kit_mult: float) -> float:
-	return maxf((cooldown_s - upgrade_cooldown_s * upgrades) * (1.0 + kit_mult), 1.0)
+func get_cooldown(upgrades: int, kit_mult: float, kit_add: float = 0.0) -> float:
+	return maxf((cooldown_s - upgrade_cooldown_s * upgrades) * (1.0 + kit_mult) + kit_add, 1.0)

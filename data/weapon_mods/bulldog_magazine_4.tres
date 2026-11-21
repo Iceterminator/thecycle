@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"bulldog_magazine_4"
+display_name = "Balles pleines"
+description = "+50 % recul, +20 % portée, -87 % dégâts, balles perforantes"
+weapon_id = &"bulldog"
+slot = 3
+mult = {"recoil_deg": 1.5, "range": 1.2, "damage": 0.125}
+add = {}
+overrides = {}
+flags = PackedStringArray("piercing")
+reference_name = "Slug Rounds"
+notes = "Base Spread 8/+7.5 ignoré"

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"ar55_phase_autorifle_body_3"
+display_name = "Canon court"
+description = "+2 % vitesse de marche, +15 % recul, +20 % dispersion, -15 % portée"
+weapon_id = &"ar55_phase_autorifle"
+slot = 2
+mult = {"move_speed": 1.025, "recoil_deg": 1.15, "hip_spread_deg": 1.2, "range": 0.85}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Short Barrel"
+notes = ""

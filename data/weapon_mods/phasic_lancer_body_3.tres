@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"phasic_lancer_body_3"
+display_name = "Recycleur d'énergie"
+description = "+19 % recul, +18 % cadence, -12 % dégâts, +20 % dispersion"
+weapon_id = &"phasic_lancer"
+slot = 2
+mult = {"recoil_deg": 1.185, "fire_interval_s": 0.844, "damage": 0.875, "hip_spread_deg": 1.2}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Energy Cycler"
+notes = ""

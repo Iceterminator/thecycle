@@ -11,7 +11,7 @@ faction = 2
 faction_level = 1
 health = 400.0
 shield = 400.0
-move_speed_mps = 4.4
+move_speed_mps = 3.9
 mobility_type = 2
 movement = {
 "dodge": {
@@ -58,33 +58,39 @@ level_perk_effects = Array[Dictionary]([{
 "creature_damage": 0.2
 }])
 mods = Array[Dictionary]([{
-"effect": "Dégâts subis réduits pendant l'esquive (damage_reduction_during_dodge = 0.5)",
+"effect": "Dégâts subis -50 % pendant l'esquive.",
 "effects": {
 "dodge_damage_reduction": 0.5
 },
-"id": "reduced_dodge_damage",
+"id": "armor_dodge",
+"name": "Esquive blindée",
 "unlock_level": 3
 }, {
-"effect": "+1 charge d'énergie",
+"effect": "+1 charge d'énergie, vitesse de glissade -3 %.",
 "effects": {
-"energy_charges_add": 1.0
+"energy_charges_add": 1.0,
+"slide_speed_mult": -0.03
 },
-"id": "extra_charge",
+"id": "extra_charges",
+"name": "Charges supplémentaires",
 "unlock_level": 5
 }, {
-"effect": "Glissade plus longue (slide_duration_s +50 %)",
+"effect": "Glissade 30 % plus longue, -1 charge d'énergie.",
 "effects": {
-"slide_duration_mult": 0.5
+"energy_charges_add": -1.0,
+"slide_duration_mult": 0.3
 },
-"id": "longer_slide",
+"id": "longslide",
+"name": "Longue glissade",
 "unlock_level": 7
 }, {
-"effect": "+2 charges, mais perd 1 charge quand le joueur subit des dégâts",
+"effect": "+2 charges d'énergie, mais une charge est perdue à chaque dégât subi.",
 "effects": {
 "energy_charges_add": 2.0,
 "lose_charge_on_damage": 1.0
 },
-"id": "more_charges_fragile",
+"id": "fragile_charges",
+"name": "Charges fragiles",
 "unlock_level": 9
 }])
 estimated_fields = PackedStringArray("movement.energy_charges.regen_s_per_charge", "movement.double_jump.jump_velocity_mps", "movement.dodge.distance_m", "movement.dodge.duration_s", "movement.slide.slide_speed_mps", "movement.slide.slide_duration_s", "movement.slide.slide_jump_boost_mps", "level_perks[5]", "mods[*].effect (valeurs chiffrées)")

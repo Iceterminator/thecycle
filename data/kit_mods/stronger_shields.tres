@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"stronger_shields"
+display_name = "Boucliers renforcés"
+description = "+100 de bouclier maximum, vitesse -5 %."
+tier = 2
+effects = {
+"max_shield_add": 100.0,
+"move_speed_mult": -0.05
+}

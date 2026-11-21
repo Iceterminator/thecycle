@@ -56,6 +56,13 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export var max_range_m: float = -1.0            ## -1 = DEFAULT_MAX_RANGE
 @export var damage_vs_shield_multiplier: float = 1.0  ## part des dégâts qui touche le bouclier
 @export var damage_vs_health_multiplier: float = 1.0  ## part des dégâts qui touche les PV
+## Venant des mods d'arme (WeaponModApply). move_speed_multiplier : vitesse de marche (PlayerMotion).
+## piercing et explode_on_impact : stockés seulement, sans comportement pour l'instant.
+@export var damage_vs_creatures_multiplier: float = 1.0
+@export var damage_vs_players_multiplier: float = 1.0
+@export var move_speed_multiplier: float = 1.0
+@export var piercing: bool = false
+@export var explode_on_impact: bool = false
 
 @export_group("Projectile")
 @export var projectile_speed_mps: float = -1.0
@@ -77,11 +84,19 @@ const DEFAULT_MAX_RANGE := 300.0     ## portée si max_range_m est inconnu (m)
 @export var hip_spread_deg: float = 1.5          ## dispersion sans viser
 @export var ads_spread_deg: float = 0.4          ## dispersion en visée
 @export var recoil_deg: float = 0.8              ## recul par tir
+## Facteurs de maniement du jeu d'origine (voir WeaponSpread et PlayerMotion) :
+@export var ads_move_speed_multiplier: float = 1.0   ## vitesse de marche en visée (en plus de move_speed_multiplier)
+@export var crouch_recoil_multiplier: float = 1.0    ## recul accroupi
+@export var crouch_spread_multiplier: float = 1.0    ## dispersion accroupi
+@export var moving_spread_multiplier: float = 1.0    ## dispersion en mouvement
+@export var in_air_spread_multiplier: float = 1.0    ## dispersion en l'air
 
 @export_group("Boosts (paliers achetés en boutique)")
 ## Un dictionnaire par palier, dans l'ordre ; chaque palier s'ajoute aux précédents.
-## Clés : damage, range, fire_rate (part en plus : 0.1 = +10 %).
+## Clés : damage, range, fire_rate, spin_up (part en plus : 0.1 = +10 %).
 @export var boosts: Array[Dictionary] = [{"damage": 0.1}, {"range": 0.1}, {"fire_rate": 0.1}]
+## Prix de chaque palier ; vide = Config.economy.weapon_boost_prices.
+@export var boost_prices: Array[int] = []
 
 @export_group("Gadget (étape 8d)")
 ## Gadget : arme spéciale qui occupe un emplacement d'arme (voir Weapon).
@@ -210,7 +225,8 @@ func get_shots_per_cycle() -> int:
 
 
 func is_explosive() -> bool:
-	return projectile_type == ProjectileType.EXPLOSIVE_PROJECTILE and aoe_radius_m > 0.0
+	# Un mod peut ajouter une explosion à une arme hitscan : seuls aoe_damage et aoe_radius_m comptent.
+	return aoe_damage > 0.0 and aoe_radius_m > 0.0
 
 
 func is_projectile() -> bool:

@@ -6,8 +6,15 @@
 
 [resource]
 script = ExtResource("1_q73qc")
+move_speed_multiplier = 0.7
+ads_move_speed_multiplier = 0.6
+crouch_recoil_multiplier = 0.6
+crouch_spread_multiplier = 0.75
+moving_spread_multiplier = 1.15
+in_air_spread_multiplier = 1.4
+hip_spread_deg = 2.5
 id = &"ica_guarantee"
-display_name = "ICA Guarantee"
+display_name = "Rempart"
 reference_name = "ICA Guarantee"
 faction = 3
 faction_level = 2
@@ -25,7 +32,6 @@ ads_time_s = 0.6
 equip_time_s = 1.2
 stability = 1.17
 hipfire_spread_multiplier = 2.0
-hip_spread_deg = 2.5
 ads_spread_deg = 0.5
 recoil_deg = 0.7
 spawn_cost_credits = 800
@@ -51,5 +57,7 @@ best_range_m = Vector2(10, 70)
 strengths = PackedStringArray("80 de chargeur", "DPS élevé", "Bonne portée")
 weaknesses = PackedStringArray("Rechargement long (3.9 s)", "Lent à viser et à sortir (0.6 s / 1.2 s)")
 counter = "Attaquer pendant son rechargement."
-estimated_fields = PackedStringArray("hipfire_spread_multiplier")
+boosts = Array[Dictionary]([{"range": 0.15}, {"damage": 0.05}])
+boost_prices = Array[int]([200, 200])
+estimated_fields = PackedStringArray("hipfire_spread_multiplier", "boosts", "boost_prices")
 behavior = "Mitrailleuse légère à batteries. Tir très rapide, gros chargeur, rechargement long. Bien plus précise en visée (ADS) qu'à la hanche."

@@ -13,7 +13,8 @@ func _init(weapon: Weapon) -> void:
 func trigger_delay() -> float:
 	if _w.data.gadget == WeaponData.GadgetKind.RECALL and not own_beacon():
 		return maxf(_w.data.place_time_s, 0.1)
-	return _w.data.get_trigger_delay()
+	# Boost « spin_up » : charge et montée en régime plus courtes (client et serveur : même calcul).
+	return _w.data.get_trigger_delay() / _w._boost("spin_up")
 
 
 ## Balise de rappel de ce joueur (créée par le serveur, visible chez tous), ou null.

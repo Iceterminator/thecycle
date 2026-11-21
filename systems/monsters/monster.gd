@@ -1,17 +1,13 @@
 class_name Monster
 extends CharacterBody3D
-## Monstre PvE. Créé par le serveur (MonsterManager -> MonsterSpawner, spawn_function),
-## construit en code à partir d'un MonsterData. Toute l'IA tourne sur le SERVEUR ; les clients
-## reçoivent position, rotation, PV et état via le MonsterSync (autorité serveur) pour l'affichage.
+## Monstre PvE créé par le serveur (MonsterManager -> MonsterSpawner), construit en code depuis un
+## MonsterData. Toute l'IA tourne sur le SERVEUR ; les clients reçoivent position, PV et état (MonsterSync).
 ## IA (DESIGN §7) : patrouille -> poursuite -> préparation / coup -> retour au camp.
-## Couche physique 3 (« monstres »). Groupe "damageable" : touchable par les armes.
-## Cible : un joueur, ou un `objective` (ex. foreuse d'un cristal) pour les monstres de vague
-## (can_be_hit(), server_receive_hit(), get_hit_radius() optionnel) ; il riposte si on lui tire dessus.
-## À distance (data.ranged, ex. Cracheur) : s'arrête à portée avec ligne de vue, recule sous
-## data.min_range, crache un projectile lent (simulé par le serveur) qu'on peut esquiver.
+## Couche physique 3, groupe "damageable". Cible : un joueur, ou un `objective` (foreuse) pour les monstres de vague.
+## À distance (data.ranged) : tire des projectiles lents (salves, simulés par le serveur), recule sous data.min_range.
 ## Niveau (1 à 3) : PV, dégâts, crédits multipliés (Config). Tempête : détection et course × storm_monster_mult.
 ## Détail : monster_ai (états, aggro), monster_combat_ai, monster_motion, monster_projectiles,
-## monster_dots, monster_visual, monster_death, monster_setup.
+## monster_dots, monster_visual, monster_death, monster_setup, monster_regen.
 
 const MonsterAi := preload("res://systems/monsters/monster_ai.gd")
 const MonsterCombatAi := preload("res://systems/monsters/monster_combat_ai.gd")
@@ -21,6 +17,7 @@ const MonsterDots := preload("res://systems/monsters/monster_dots.gd")
 const MonsterVisual := preload("res://systems/monsters/monster_visual.gd")
 const MonsterDeath := preload("res://systems/monsters/monster_death.gd")
 const MonsterSetup := preload("res://systems/monsters/monster_setup.gd")
+const MonsterRegen := preload("res://systems/monsters/monster_regen.gd")
 
 enum State { PATROL, CHASE, WINDUP, RECOVER, RETURN }
 
@@ -64,13 +61,13 @@ var _state_left: float = 0.0
 var _pause_left: float = 0.0  ## pause après un coup réussi (recule un peu, ne colle pas)
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
-# --- Aides (voir l'en-tête) ---
 var _ai: MonsterAi = MonsterAi.new(self)
 var _combat_ai: MonsterCombatAi = MonsterCombatAi.new(self)
 var _motion: MonsterMotion = MonsterMotion.new(self)
 var _projectiles: MonsterProjectiles = MonsterProjectiles.new(self)
 var _dots: MonsterDots = MonsterDots.new(self)
 var _visual: MonsterVisual = MonsterVisual.new(self)
+var _regen: MonsterRegen = MonsterRegen.new(self)
 
 ## Niveau du monstre (1 à 3), connu de tous (affiché au-dessus de lui).
 var level: int = 1
@@ -116,6 +113,7 @@ func server_receive_hit(amount: float, attacker_id: int) -> bool:
 	if health <= 0.0:
 		return false
 	health = maxf(health - amount, 0.0)
+	_regen.on_hit()
 	var attacker := players_root.get_node_or_null(str(attacker_id)) as Player if players_root else null
 	if attacker and attacker.can_be_hit():
 		aggro(attacker, true)
@@ -146,6 +144,7 @@ func _physics_process(delta: float) -> void:
 	if not _projectiles.is_empty():
 		_projectiles.step(delta)
 	_dots.tick(delta)
+	_regen.tick(delta)
 
 
 func _die(killer_id: int) -> void:

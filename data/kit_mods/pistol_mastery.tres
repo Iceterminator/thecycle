@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"pistol_mastery"
+display_name = "Maîtrise du pistolet"
+description = "Pistolets : rechargement -10 %, visée -20 %, recul -20 %, sortie -25 %."
+tier = 3
+effects = {
+"pistol_ads_mult": -0.2,
+"pistol_equip_mult": -0.25,
+"pistol_recoil_mult": -0.2,
+"pistol_reload_mult": -0.1
+}

@@ -6,8 +6,15 @@
 
 [resource]
 script = ExtResource("1_2adkb")
+move_speed_multiplier = 0.95
+ads_move_speed_multiplier = 0.55
+crouch_recoil_multiplier = 0.7
+crouch_spread_multiplier = 0.5
+moving_spread_multiplier = 1.35
+in_air_spread_multiplier = 1.75
+hip_spread_deg = 1.5
 id = &"lacerator"
-display_name = "Lacerator"
+display_name = "Lame"
 reference_name = "Lacerator"
 faction = 3
 faction_level = 8
@@ -49,5 +56,7 @@ best_range_m = Vector2(20, 75)
 strengths = PackedStringArray("Dégâts élevés par tir", "Vise vite (0.22 s)")
 weaknesses = PackedStringArray("Chargeur de 12")
 counter = "Le forcer à recharger."
+boosts = Array[Dictionary]([{"range": 0.15}, {"damage": 0.05}])
+boost_prices = Array[int]([100, 100])
 estimated_fields = PackedStringArray()
 behavior = "Fusil semi-automatique : dégâts par tir au-dessus de la moyenne, petit chargeur (12)."

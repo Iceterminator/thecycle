@@ -3,7 +3,8 @@ extends RefCounted
 ## Améliorations d'arme par type (boutique, colonne 3). Le palier acheté pour un id d'arme est
 ## gardé pour la partie (Inventory.weapon_upgrades, remis à zéro avec l'équipement). Il s'applique
 ## à l'exemplaire équipé et aux exemplaires achetés ensuite (livrés boostés, voir delivery_amount).
-## Une arme ramassée garde ses propres paliers. Prix : Config.economy.weapon_boost_prices.
+## Une arme ramassée garde ses propres paliers. Paliers et prix propres à chaque
+## arme (WeaponData.boosts / boost_prices) ; à défaut, Config.economy.weapon_boost_prices.
 
 
 static func level_of(inv: Inventory, weapon_id: String) -> int:
@@ -11,7 +12,19 @@ static func level_of(inv: Inventory, weapon_id: String) -> int:
 
 
 static func max_level(weapon: WeaponData) -> int:
-	return mini(weapon.boosts.size(), Config.economy.weapon_boost_prices.size())
+	var prices := _prices_of(weapon)
+	return mini(weapon.boosts.size(), prices.size())
+
+
+## Prix des paliers de l'arme (les siens, sinon ceux de l'économie).
+static func _prices_of(weapon: WeaponData) -> Array[int]:
+	return weapon.boost_prices if not weapon.boost_prices.is_empty() else Config.economy.weapon_boost_prices
+
+
+## Prix du palier `level` (0 = premier) d'une arme.
+static func price_of(weapon: WeaponData, level: int) -> int:
+	var prices := _prices_of(weapon)
+	return prices[level] if level >= 0 and level < prices.size() else 0
 
 
 ## Quantité de l'objet livré en capsule : 1 + palier (le palier voyage dans la quantité au sol).
@@ -41,7 +54,7 @@ static func offer(player: Player, weapon_id: String) -> Dictionary:
 	if level >= int(result["max"]):
 		result["refusal"] = "Palier maximum"
 		return result
-	result["price"] = Config.economy.weapon_boost_prices[level]
+	result["price"] = price_of(item.weapon, level)
 	result["text"] = "Palier %d : %s" % [level + 1, Shop.boost_text(item.weapon, level)]
 	return result
 

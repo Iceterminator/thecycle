@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"km9_scrapper_body_2"
+display_name = "Mode rafale"
+description = "-60 % recul, -68 % cadence, +10 % dégâts, +4 tirs par rafale"
+weapon_id = &"km9_scrapper"
+slot = 2
+mult = {"recoil_deg": 0.4, "fire_interval_s": 3.125, "damage": 1.1}
+add = {"burst_count": 4.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Burst Mode"
+notes = "Interval per Burst 0.06/+1.06 ignoré"

@@ -4,15 +4,18 @@
 
 [resource]
 script = ExtResource("1_1buna")
+damage_per_s = 222.0
+damage = 540.0
+duration_s = 2.4
 id = &"orbital_barrage"
 display_name = "Averse orbitale"
 reference_name = "Orbital Barrage"
 faction = 3
 faction_level = 6
 category = 5
-cooldown_s = 60.0
-delay_s = 2.0
-radius_m = 12.0
+cooldown_s = 30.0
+delay_s = 0.2
+radius_m = 7.0
 damage_per_missile = 40.0
 missiles = 16
 activation = "Viser une zone : plusieurs roquettes tombent sur une grande surface."

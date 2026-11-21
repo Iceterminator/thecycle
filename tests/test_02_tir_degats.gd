@@ -11,6 +11,16 @@ func run_host() -> void:
 	var cid := client_id()
 	var me := player(1)
 	var target := player(cid)
+	# --- Mod d'arme : un mod de chargeur change le chargeur côté serveur (profil public de l'hôte) ---
+	var advocate: WeaponData = Items.get_item(&"advocate").weapon
+	var public_me: Dictionary = ProfileManager._current.public[1]
+	var saved_mods: Variant = public_me.get("weapon_mods", {})
+	public_me["weapon_mods"] = {"advocate": {"3": "advocate_magazine_1"}}
+	var expected := roundi(advocate.magazine * 1.321)
+	var got := me.magazine_for(advocate)
+	public_me["weapon_mods"] = saved_mods
+	if not check(got == expected and got != advocate.magazine and me.magazine_for(advocate) == advocate.magazine, "mod de chargeur : %d -> %d (attendu %d)" % [advocate.magazine, got, expected]):
+		return
 	# --- Lobby ---
 	place(1, BriefingRoom.spawn_point(0))  # lobby : pas de carte, on est dans la salle de briefing
 	await wait(0.5)

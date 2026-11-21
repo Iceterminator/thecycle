@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"asp_flechette_gun_magazine_3"
+display_name = "Aiguilles perforantes"
+description = "+25 % recul, balles perforantes"
+weapon_id = &"asp_flechette_gun"
+slot = 3
+mult = {"recoil_deg": 1.249}
+add = {}
+overrides = {}
+flags = PackedStringArray("piercing")
+reference_name = "Piercing Needles"
+notes = ""

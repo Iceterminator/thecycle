@@ -3,6 +3,7 @@ extends RefCounted
 ## recul, ramper (à terre), forme de capsule accroupie, vol de spectateur.
 
 var _p: Player
+var _last_pos := Vector3.ZERO
 
 
 func _init(player: Player) -> void:
@@ -19,6 +20,7 @@ func step(delta: float) -> void:
 	# À terre : on rampe, rien d'autre (pas de saut ni de capacité).
 	if _p.health.is_downed:
 		_p.is_crouching = true
+		_p.is_sprinting = false
 		apply_crouch_shape(delta)
 		var crawl := (_p.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized() * Config.combat.downed_speed
 		_p.velocity.x = crawl.x
@@ -28,6 +30,7 @@ func step(delta: float) -> void:
 	# Saut, glissade et capacités du kit (jetpack, esquive, super saut…).
 	_p.movement.pre_physics(delta, input_dir)
 	_p.is_crouching = Input.is_action_pressed("crouch") or _p.movement.is_sliding()
+	_p.is_sprinting = on_floor and not _p.is_crouching and Input.is_action_pressed("sprint") and input_dir.y < 0.0
 	apply_crouch_shape(delta)
 	if _p.movement.overrides_horizontal():
 		var forced := _p.movement.forced_horizontal()
@@ -40,6 +43,7 @@ func step(delta: float) -> void:
 		_p.velocity += _p._knockback
 	_p._knockback = _p._knockback.move_toward(Vector3.ZERO, 30.0 * delta)
 	_p.move_and_slide()
+	_p.ground_speed = Vector2(_p.velocity.x, _p.velocity.z).length()
 	_p.movement.post_physics()
 
 
@@ -61,14 +65,36 @@ func _move_horizontal(delta: float, input_dir: Vector2, on_floor: bool) -> void:
 		_p.velocity.z = lerpf(_p.velocity.z, target.z, weight)
 
 
-## Vitesse au sol : celle du kit ; sprint (en avançant) x Config.combat.sprint_multiplier.
+## Joueur distant (vu par le serveur) : vitesse horizontale estimée sur sa position synchronisée,
+## lissée car la position n'arrive pas à chaque image. Sert à la dispersion en mouvement.
+func estimate_ground_speed(delta: float) -> void:
+	var pos := _p.global_position
+	if delta > 0.0:
+		var raw := Vector2(pos.x - _last_pos.x, pos.z - _last_pos.z).length() / delta
+		_p.ground_speed = lerpf(_p.ground_speed, raw, clampf(delta * 8.0, 0.0, 1.0))
+	_last_pos = pos
+
+
+## Vitesse au sol : celle du kit x arme en main (et en visée) ; sprint (en avançant) x Config.combat.sprint_multiplier.
 func _current_speed(input_dir: Vector2) -> float:
 	var buff := _p.buffs.get_mult("speed_mult") if _p.buffs else 1.0
+	buff *= _weapon_speed_mult()
 	if _p.is_crouching:
 		return Config.combat.crouch_speed * buff
 	if Input.is_action_pressed("sprint") and input_dir.y < 0:
 		return _p.kit.move_speed() * Config.combat.sprint_multiplier * buff
 	return _p.kit.move_speed() * buff
+
+
+## Maniement : vitesse de l'arme en main, x vitesse en visée quand on vise.
+func _weapon_speed_mult() -> float:
+	var wdata: WeaponData = _p.weapon.data if _p.weapon else null
+	if wdata == null:
+		return 1.0
+	var mult := wdata.move_speed_multiplier
+	if _p.weapon.is_aiming:
+		mult *= wdata.ads_move_speed_multiplier
+	return mult
 
 
 func apply_crouch_shape(delta: float) -> void:

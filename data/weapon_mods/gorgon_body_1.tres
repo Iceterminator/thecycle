@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"gorgon_body_1"
+display_name = "Condensateur chargé"
+description = "-25 % montée en régime, +13 % recul"
+weapon_id = &"gorgon"
+slot = 2
+mult = {"spin_up": 0.75, "recoil_deg": 1.13}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Charged Capacitor"
+notes = ""

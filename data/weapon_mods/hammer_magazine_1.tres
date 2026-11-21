@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"hammer_magazine_1"
+display_name = "Balles explosives"
+description = "-50 % dégâts, +15 % recul, -23 % cadence, +40 dégâts de zone, +2 m rayon d'explosion, explose à l'impact"
+weapon_id = &"hammer"
+slot = 3
+mult = {"damage": 0.5, "recoil_deg": 1.154, "fire_interval_s": 1.299}
+add = {"aoe_damage": 40.0, "aoe_radius_m": 2.0}
+overrides = {}
+flags = PackedStringArray("explode_on_impact")
+reference_name = "Explosive Rounds"
+notes = "Radius 250/+250 ignoré ; Release 14 : zone fixe, dégâts directs 50 %"

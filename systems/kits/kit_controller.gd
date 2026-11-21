@@ -17,6 +17,7 @@ signal leveled_up(level: int)
 
 const KitControllerEffects := preload("res://systems/kits/kit_controller_effects.gd")
 const KitControllerServer := preload("res://systems/kits/kit_controller_server.gd")
+const KitCombatEffects := preload("res://systems/kits/kit_combat_effects.gd")
 const KITS_DIR := "res://data/kits/"
 
 ## Synchronisés (serveur -> tous).
@@ -35,23 +36,27 @@ var xp: int = 0:
 	set(value):
 		xp = value
 		changed.emit()
-## Mod de kit équipé (id dans KitData.mods, "" = aucun) ; choisi dans le lobby (étape 9).
-var mod_id: String = "":
+## Mods équipés, texte « cœur,niveau1,niveau2,niveau3 » (KitModData.slots_to_text ; "" = aucun) ;
+## choisis dans le lobby. Le cœur est dans KitData.mods, les niveaux dans data/kit_mods/.
+var mod_ids: String = "":
 	set(value):
-		mod_id = value
+		mod_ids = value
 		changed.emit()
 
 var player: Player
 var _kit: KitData
 var _fx: KitControllerEffects
 var _srv: KitControllerServer
+## Effets de combat des mods (dégâts subis / infligés, maniement des armes).
+var combat: KitCombatEffects
 
 
 func _init() -> void:
+	combat = KitCombatEffects.new(self)
 	_fx = KitControllerEffects.new(self)
 	_srv = KitControllerServer.new(self)
 	var config := SceneReplicationConfig.new()
-	for key in ["kit_id", "level", "xp", "mod_id"]:
+	for key in ["kit_id", "level", "xp", "mod_ids"]:
 		var path := NodePath(".:" + key)
 		config.add_property(path)
 		config.property_set_spawn(path, true)
@@ -157,19 +162,15 @@ func _server_on_match_reset() -> void:
 	level = 1
 	xp = 0
 	_srv.apply_stats(true)
+	combat.clear_stacks()
 
 
-## Mod équipé : { id, effect, effects, unlock_level }, ou {}.
-func get_mod() -> Dictionary:
-	return _fx.get_mod()
-
-
-## Le mod `id` de ce kit est-il débloqué pour ce joueur (réputation de la faction du kit) ?
+## Le cœur `id` de ce kit est-il débloqué pour ce joueur (réputation de la faction du kit) ?
 static func mod_unlocked(peer: int, kit: KitData, id: String) -> bool:
 	return KitControllerEffects.mod_unlocked(peer, kit, id)
 
 
-## Serveur : équipe un mod du kit actuel ("" = aucun), s'il est débloqué. PV / bouclier
-## recalculés (ex. +200 bouclier).
-func server_set_mod(id: String) -> void:
-	_srv.set_mod(id)
+## Serveur : équipe les mods du kit actuel ({ "core", "1", "2", "3" } -> id, "" = aucun) ; le
+## cœur doit être débloqué. PV / bouclier recalculés (ex. +100 bouclier).
+func server_set_mods(slots: Dictionary) -> void:
+	_srv.set_mods(slots)

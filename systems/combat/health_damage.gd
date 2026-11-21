@@ -20,10 +20,12 @@ static func apply(h: Health, amount: float, attacker_id: int, shield_mult: float
 	# Alliés (escouade, pacte) : ils ne peuvent pas se blesser.
 	if Allies.allied(h.get_peer_id(), attacker_id):
 		return false
-	# Défense du kit contre les créatures (bonus de niveau).
+	# Défense du kit contre les créatures (bonus de niveau), mods (air, sprint, sous le seuil de PV).
 	var kit := h._kit()
 	if kit and attacker_id == Config.MONSTER_KILLER_ID:
 		amount *= maxf(1.0 - kit.get_effect("creature_defense"), 0.0)
+	if kit and attacker_id != Config.FALL_KILLER_ID:
+		amount *= kit.combat.damage_taken_mult()
 	# Effets temporaires : Coque (invulnérable), stimulants / camouflages (dégâts subis).
 	var buffs := h._buffs()
 	if buffs:

@@ -10,8 +10,8 @@ reference_name = "Evasion Cloak"
 faction = 1
 faction_level = 4
 category = 4
-cooldown_s = 40.0
-duration_s = 6.0
+cooldown_s = 35.0
+duration_s = 15.0
 buff = {
 "cloak": 0.8,
 "damage_taken_mult": 1.25,

@@ -34,7 +34,7 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 - `systems/<mécanique>/` : un dossier par système (table ci-dessous)
 - `resources/` : scripts des types de données (`WeaponData`, `KitData`, `MonsterData`, règles…)
 - `data/` : équilibrage en `.tres` — `rules/` (prix, Fame, timings, déplacement, départ),
-  `weapons/`, `kits/`, `abilities/`, `items/`, `monsters/`, `camps/`, `quests/`, `contracts/`,
+  `weapons/`, `kits/`, `abilities/`, `kit_mods/`, `items/`, `monsters/`, `camps/`, `quests/`, `contracts/`,
   `factions/`, `weapon_mods/`, `objectives/`, `quest_draws/`, `storm/`, `biomes/` ; `reference/` = chiffres du jeu d'origine
 - `assets/` : modèles (Quaternius, CC0), polices, icônes ; `tools/` : scripts d'outillage
 - `docs/` : design, fiches par mécanique, captures
@@ -58,6 +58,8 @@ Demander à l'utilisatrice sur quelle étape on travaille si ce n'est pas préci
 # Export Windows (export_presets.cfg ; modèles d'export 4.7.2 installés) -> export/TheCycle/ (+ LISEZMOI.txt à garder)
 <godot> --headless --path . --export-release "Windows Desktop" export/TheCycle/TheCycle.exe
 ```
+Archive du wiki The Cycle 2019 (site local `docs/wiki_2019/index.html`, régénéré depuis un `pages.json` téléchargé
+par l'API du fandom) : `node tools/wiki_2019/build_site.mjs <pages.json> docs/wiki_2019/index.html`.
 Test à 2 instances dans l'éditeur : Debug → Customize Run Instances → 2.
 Tests réseau automatisés (13 tests, ~5 min ; port 7777 : un seul lancement à la fois) :
 ```
@@ -72,11 +74,11 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Mécanique | Code | Données | Doc |
 | --- | --- | --- | --- |
 | Joueur, déplacement | `scenes/player/`, `systems/kits/kit_movement.gd` | `data/rules/combat.tres` | DESIGN §1 |
-| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`, effets `weapon_effects_fx.gd` / `weapon_effects_explosion.gd`) | `data/weapons/`, `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
+| Combat, armes | `systems/combat/` (`weapon.gd`, `health.gd`, `weapon_model.gd`, effets `weapon_effects_fx.gd` / `weapon_effects_explosion.gd`, maniement : `weapon_spread.gd`) | `data/weapons/` (maniement : `node tools/wiki_2019/make_handling.mjs`), `assets/models/weapons/held/` (repères Poignee / Bouche, réglés avec `tools/grip_preview/grip_preview.tscn`) | DESIGN §2-3 |
 | HUD | `systems/combat/hud.gd`, `systems/ui/` | — | — |
 | Personnages animés, apparences | `systems/avatar/` (`avatar_retarget.gd` : animations adaptées aux proportions de chaque modèle), choix dans `systems/lobby/lobby_ui_appearance.gd` | `assets/models/characters/` (même squelette que les Superhero), `data/appearances/` | — |
 | Inventaire, boutique | `systems/inventory/`, `systems/shop/`, `systems/loot/` | `data/items/`, `data/rules/economy.tres` | `docs/inventaire.md` |
-| Kits | `systems/kits/` | `data/kits/` | DESIGN §12 |
+| Kits | `systems/kits/` (`kit_combat_effects.gd` : effets de combat des mods) | `data/kits/` (cœurs de kit), `data/kit_mods/` (mods de niveau 1 à 3, `KitModData`) | DESIGN §12, `docs/factions.md` |
 | Capacités, gadgets | `systems/abilities/` | `data/abilities/` | DESIGN §11 |
 | Créatures | `systems/monsters/` | `data/monsters/`, `data/camps/` | `docs/creatures.md` |
 | Quêtes, contrats (tirage) | `systems/quests/`, `systems/contracts/` | `data/quests/`, `data/contracts/`, `data/objectives/`, `data/quest_draws/` | `docs/quetes.md` |
@@ -85,7 +87,7 @@ des deux côtés via `tests/runner.gd` (un script `-s` est compilé avant les au
 | Extraction (évac), largage de début | `systems/evac/`, `systems/match/` (`drop_*` : points, capsule) | `data/rules/match.tres` | `docs/extraction.md` |
 | Niveaux (ce qui est construit : briefing seul au lobby, carte en partie, salle de test), salle de test (armurerie, monstres figés, galerie) | `systems/niveaux/niveaux.gd`, `systems/salle_test/`, boutons PRÊT / SALLE DE TEST de l'onglet Décollage `systems/lobby/lobby_ui_launch.gd` | — | `docs/salle_test.md` |
 | Salle de briefing (entre lobby et largage, vote de départ) | `systems/briefing/` (salle, hologramme, tableau), `systems/match/match_briefing.gd` (phase `BRIEFING`, serveur) | `data/rules/match.tres` (`briefing_time`) | `docs/briefing.md` |
-| Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` | `docs/factions.md` |
+| Factions, profils | `systems/profiles/`, `systems/lobby/` | `data/factions/`, `data/weapon_mods/` (générés par `tools/wiki_2019/make_weapon_mods.mjs`) | `docs/factions.md` |
 | Pactes, escouades | `systems/pacts/`, `systems/squads/` | — | DESIGN §10 |
 | Carte (300 m, relief `map_terrain.gd` / `MapTerrain.height_at`), 4 biomes (`map_biomes.gd`, eau `map_water.gd`), décor | `scenes/world/` (`world_test.tscn` = ancienne carte plate), `systems/map/`, `systems/decor/` (`map_decor_pick.gd` : modèle selon le biome) | `data/biomes/`, `assets/models/nature/` (+ `plaine/`, `desert/`, `neige/`, `marais/`) ; packs bruts dans `packs_telecharges/` (non versionné) | `docs/carte_biomes.md` |
 | Rendu (environnement, post-traitement, qualité Bas / Moyen / Haut, particules d'ambiance) | `systems/rendu/` (`qualite_graphique.gd`, `post_traitement.gd`, `ambiance_particules.gd`, ciel `ciel.gdshader` / `ciel.tres`), environnement dans `scenes/world/world.tscn`, onglet `systems/settings/pause_menu_graphics.gd` | — | `docs/a_faire_graphismes.md` |

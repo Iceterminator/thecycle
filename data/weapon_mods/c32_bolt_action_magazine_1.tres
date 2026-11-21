@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"c32_bolt_action_magazine_1"
+display_name = "Chargeur étendu"
+description = "+33 % chargeur, +20 % rechargement"
+weapon_id = &"c32_bolt_action"
+slot = 3
+mult = {"magazine": 1.333, "reload_s": 1.2}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Extended Magazine"
+notes = ""

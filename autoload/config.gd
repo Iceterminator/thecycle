@@ -90,7 +90,7 @@ const ADMIN_MAX_CREDITS := 100000        # montant max par demande
 const ADMIN_MAX_TIME_SKIP := 1200.0      # avance max du temps par demande (s)
 ## Temporaire : affiche le nom des armes dans le jeu d'origine (WeaponData.reference_name)
 ## au lieu de nos noms, pour se repérer pendant les tests. Mettre à false pour nos noms.
-const SHOW_REFERENCE_WEAPON_NAMES := true
+const SHOW_REFERENCE_WEAPON_NAMES := false
 
 # --- Écran Tab (carte) ---
 const MAP_REVEAL_RADIUS := 40.0          # quêtes et monstres montrés (carte, minimap, textes flottants) à cette distance (m)

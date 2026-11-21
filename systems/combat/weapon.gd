@@ -27,8 +27,12 @@ const WeaponEffects := preload("res://systems/combat/weapon_effects.gd")
 const WeaponEquip := preload("res://systems/combat/weapon_equip.gd")
 const WeaponServerState := preload("res://systems/combat/weapon_server_state.gd")
 
-## Arme en main : suit l'emplacement actif de l'Inventory (synchronisé par le serveur).
-var data: WeaponData
+## Arme en main (avec les mods du joueur) : suit l'emplacement actif de l'Inventory
+## (synchronisé par le serveur). La base est mémorisée ; la copie modifiée vient d'un cache.
+var data: WeaponData:
+	get: return player.modded_weapon(_base_data) if _base_data else null
+	set(value): _base_data = value
+var _base_data: WeaponData
 
 @onready var player: Player = get_parent()
 @onready var head: Node3D = $"../Head"

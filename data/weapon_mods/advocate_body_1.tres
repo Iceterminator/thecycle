@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"advocate_body_1"
+display_name = "Cycle rapide"
+description = "+3 % recul, +3 % cadence"
+weapon_id = &"advocate"
+slot = 2
+mult = {"recoil_deg": 1.031, "fire_interval_s": 0.97}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Rapid Cycler"
+notes = ""

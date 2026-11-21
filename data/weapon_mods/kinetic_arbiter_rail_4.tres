@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kinetic_arbiter_rail_4"
+display_name = "Lunette x16"
+description = "lunette x16, +50 % visée, +25 % sortie de l'arme"
+weapon_id = &"kinetic_arbiter"
+slot = 0
+mult = {"ads_time_s": 1.5, "equip_time_s": 1.251}
+add = {}
+overrides = {"scope_zoom": 16.0}
+flags = PackedStringArray()
+reference_name = "16x Scope"
+notes = ""

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"manticore_magazine_1"
+display_name = "Fléchettes lourdes"
+description = "-23 % recul, -23 % cadence, +50 % dégâts, -25 % vitesse du projectile"
+weapon_id = &"manticore"
+slot = 3
+mult = {"recoil_deg": 0.769, "fire_interval_s": 1.3, "damage": 1.5, "projectile_speed_mps": 0.749}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Flechettes"
+notes = ""

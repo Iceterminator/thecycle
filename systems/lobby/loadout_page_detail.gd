@@ -4,6 +4,7 @@ extends RefCounted
 const W := preload("res://systems/lobby/lobby_ui_widgets.gd")
 const Slots := preload("res://systems/lobby/loadout_page_slots.gd")
 const Info := preload("res://systems/lobby/loadout_page_info.gd")
+const KitMods := preload("res://systems/lobby/lobby_ui_kit_mods.gd")
 const DIM := UiStyle.DIM
 
 
@@ -30,17 +31,8 @@ static func build(page: LoadoutPage) -> void:
 			box.add_child(W.label("MOD D'ARME", 16, DIM))
 			box.add_child(lobby._weapon_mod_option(id))
 		LobbyUi.Cat.KIT:
-			var kit: KitData = e["kit"]
-			if not kit.mods.is_empty():
-				box.add_child(W.label("MOD DE LA COMBINAISON", 16, DIM))
-				var current := String(lobby._kit_mods.get(id, ""))
-				for m: Dictionary in kit.mods:
-					var mod_id := String(m["id"])
-					var ok := KitController.mod_unlocked(lobby._me(), kit, mod_id)
-					var label := String(m.get("effect", mod_id)) + ("" if ok else "   [%s]" % FactionData.lock_text(int(kit.faction), int(m.get("unlock_level", 0))))
-					box.add_child(W.action(("✔ " if current == mod_id else "") + label, ok, func() -> void:
-						lobby._kit_mods[id] = "" if current == mod_id else mod_id
-						lobby._changed()))
+			box.add_child(W.label("MODS DE LA COMBINAISON", 16, DIM))
+			box.add_child(KitMods.options(lobby, id))
 	box.add_child(HSeparator.new())
 	box.add_child(W.label("STATISTIQUES", 16, DIM))
 	box.add_child(Info.stats(lobby, e))

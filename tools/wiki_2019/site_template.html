@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archive The Cycle 2019</title>
+<style>
+:root {
+	--bg: #f4f1ea; --panel: #fbfaf6; --ink: #22201c; --muted: #6d675c; --line: #ddd6c8;
+	--accent: #b4561f; --accent-soft: #f3e1d3; --link: #1d5f8a; --missing: #a1998a; --th: #ece6da;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme="light"]) {
+		--bg: #15171a; --panel: #1c1f23; --ink: #e6e2da; --muted: #9a958b; --line: #2e3238;
+		--accent: #e58a4e; --accent-soft: #3a2a1f; --link: #7cb8e0; --missing: #6d6860; --th: #24282d;
+	}
+}
+:root[data-theme="dark"] {
+	--bg: #15171a; --panel: #1c1f23; --ink: #e6e2da; --muted: #9a958b; --line: #2e3238;
+	--accent: #e58a4e; --accent-soft: #3a2a1f; --link: #7cb8e0; --missing: #6d6860; --th: #24282d;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, "Segoe UI", sans-serif; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+header { position: sticky; top: 0; z-index: 5; display: flex; gap: 12px; align-items: center; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+header .brand { font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+header .brand span { color: var(--accent); }
+#search { flex: 1; max-width: 420px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
+#menu { display: none; background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 6px; padding: 5px 9px; font: inherit; }
+.layout { display: grid; grid-template-columns: 270px minmax(0, 1fr); }
+nav { position: sticky; top: 53px; height: calc(100vh - 53px); overflow-y: auto; padding: 12px 10px 40px; border-right: 1px solid var(--line); background: var(--panel); font-size: 14px; }
+nav details { margin-bottom: 4px; }
+nav summary { cursor: pointer; font-weight: 600; padding: 4px 6px; border-radius: 4px; }
+nav summary small { color: var(--muted); font-weight: 400; }
+nav a { display: block; padding: 2px 6px 2px 18px; color: var(--ink); border-radius: 4px; }
+nav a.active { background: var(--accent-soft); color: var(--accent); }
+main { padding: 24px 32px 80px; max-width: 1100px; }
+h1 { margin: 0 0 4px; font-size: 28px; }
+.crumbs { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+.crumbs a { color: var(--muted); text-decoration: underline; }
+h2 { border-bottom: 1px solid var(--line); padding-bottom: 4px; margin-top: 28px; font-size: 21px; }
+h3 { font-size: 17px; margin-top: 22px; }
+h4 { font-size: 15px; margin: 16px 0 6px; }
+.content::after { content: ""; display: block; clear: both; }
+.infobox { float: right; width: 300px; margin: 0 0 16px 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; font-size: 13px; }
+.ib-kind { background: var(--accent); color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 4px 10px; }
+.ib-title { font-weight: 700; font-size: 16px; padding: 8px 10px 4px; }
+.infobox img { display: block; max-width: 100%; margin: 4px auto 8px; }
+.infobox table { width: 100%; border-collapse: collapse; }
+.infobox th, .infobox td { text-align: left; padding: 3px 10px; border-top: 1px solid var(--line); vertical-align: top; }
+.infobox th { color: var(--muted); font-weight: 500; width: 45%; }
+.tw { overflow-x: auto; margin: 10px 0; }
+table.wt { border-collapse: collapse; font-size: 13.5px; }
+table.wt th, table.wt td { border: 1px solid var(--line); padding: 4px 8px; vertical-align: top; }
+table.wt th { background: var(--th); text-align: left; }
+table.wt td > .tw { margin: 0; }
+table.small { font-size: 12px; }
+img.icon { max-height: 64px; vertical-align: middle; }
+img.wide { display: block; max-width: 100%; max-height: 420px; margin: 10px auto; }
+.gallery { display: flex; flex-wrap: wrap; gap: 10px; }
+.gallery figure { margin: 0; width: 160px; font-size: 12px; }
+.gallery img { width: 100%; border-radius: 4px; }
+.missing { color: var(--missing); border-bottom: 1px dotted var(--missing); }
+.mat { white-space: nowrap; }
+.tpl { color: var(--muted); font-size: 13px; }
+.history { border-left: 3px solid var(--accent-soft); padding-left: 12px; }
+.history dt { font-weight: 700; margin-top: 10px; }
+blockquote { margin: 12px 0; padding: 8px 14px; border-left: 3px solid var(--accent); background: var(--panel); font-style: italic; }
+blockquote cite { display: block; font-style: normal; color: var(--muted); margin-top: 4px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 12px 0; background: var(--panel); }
+.card-row b { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-top: 8px; }
+.fp { display: inline-flex; flex-direction: column; align-items: center; margin: 6px; }
+.fp img { max-width: 160px; }
+.note { color: var(--muted); font-style: italic; }
+details.detail summary { cursor: pointer; color: var(--muted); }
+.tab { border: 1px solid var(--line); border-radius: 6px; padding: 4px 12px; margin: 10px 0; }
+.source { margin-top: 40px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12.5px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 16px; }
+.tiles a { display: block; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+.tiles a b { display: block; }
+.tiles a small { color: var(--muted); }
+.results a { display: block; padding: 4px 0; }
+.cats { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px; }
+.cats span { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--th); color: var(--muted); }
+@media (max-width: 800px) {
+	#menu { display: block; }
+	.layout { grid-template-columns: 1fr; }
+	nav { display: none; position: fixed; inset: 53px 0 0 0; z-index: 4; height: auto; }
+	body.nav-open nav { display: block; }
+	main { padding: 16px; }
+	.infobox { float: none; width: 100%; margin: 0 0 16px; }
+	header .brand small { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+	<button id="menu" aria-label="Menu">☰</button>
+	<a class="brand" href="#/">The Cycle <span>2019</span> <small>· archive du wiki</small></a>
+	<input id="search" type="search" placeholder="Chercher une page (ex. Manticore, Release 13…)">
+</header>
+<div class="layout">
+	<nav id="nav"></nav>
+	<main id="main"></main>
+</div>
+<script>
+const DATA = /*__DATA__*/null;
+const nav = document.getElementById("nav");
+const main = document.getElementById("main");
+const search = document.getElementById("search");
+const short = (t) => t.replace(/^Archive:/, "");
+const href = (t) => "#/" + encodeURIComponent(t);
+const sectionOf = {};
+DATA.nav.forEach((s) => s.pages.forEach((p) => (sectionOf[p] = s.name)));
+
+nav.innerHTML = DATA.nav.map((s, i) => `<details data-s="${i}"><summary>${s.name} <small>${s.pages.length}</small></summary>${s.pages.map((p) => `<a href="${href(p)}" data-p="${encodeURIComponent(p)}">${short(p)}</a>`).join("")}</details>`).join("");
+
+function home() {
+	document.title = "Archive The Cycle 2019";
+	main.innerHTML = `<h1>The Cycle (2019) — archive du wiki</h1>
+	<p>Les pages du wiki communautaire de <b>The Cycle</b> (Yager, 2019), conservées sous le préfixe « Archive: » sur le fandom de The Cycle: Frontier. ${Object.keys(DATA.pages).length} pages, reconverties pour être lues hors ligne (les images restent chargées depuis le fandom).</p>
+	<p>Point d'entrée conseillé : <a href="${href("Archive:The Cycle")}">The Cycle</a>, <a href="${href("Archive:Weapons")}">Weapons</a>, <a href="${href("Archive:Gear")}">Gear</a>.</p>
+	<div class="tiles">${DATA.nav.map((s, i) => `<a href="#/!s${i}"><b>${s.name}</b><small>${s.pages.length} pages</small></a>`).join("")}</div>
+	<p class="source">Contenu communautaire de thecyclefrontier.fandom.com, sous licence CC BY-NC-SA. Copie de consultation personnelle.</p>`;
+}
+
+function section(i) {
+	const s = DATA.nav[i];
+	main.innerHTML = `<h1>${s.name}</h1><div class="crumbs"><a href="#/">Accueil</a></div><div class="results">${s.pages.map((p) => `<a href="${href(p)}">${short(p)}</a>`).join("")}</div>`;
+}
+
+function page(title, anchor) {
+	const p = DATA.pages[title];
+	if (!p) { main.innerHTML = `<h1>Page introuvable</h1><p>${title}</p>`; return; }
+	document.title = short(title) + " — Archive The Cycle 2019";
+	const sec = sectionOf[title];
+	const si = DATA.nav.findIndex((s) => s.name === sec);
+	main.innerHTML = `<h1>${short(title)}</h1><div class="crumbs"><a href="#/">Accueil</a>${sec ? ` › <a href="#/!s${si}">${sec}</a>` : ""}</div>
+	<div class="content">${p.html}</div>
+	${p.cats.length ? `<div class="cats">${p.cats.map((c) => `<span>${c}</span>`).join("")}</div>` : ""}
+	<p class="source">Source : <a href="https://thecyclefrontier.fandom.com/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}" target="_blank">${title}</a> (fandom, CC BY-NC-SA).</p>`;
+	nav.querySelectorAll("a.active").forEach((a) => a.classList.remove("active"));
+	const link = nav.querySelector(`a[data-p="${CSS.escape(encodeURIComponent(title))}"]`);
+	if (link) { link.classList.add("active"); link.closest("details").open = true; link.scrollIntoView({ block: "nearest" }); }
+	if (anchor) { const el = document.getElementById(encodeURIComponent(anchor)) || document.getElementById(anchor); if (el) { el.scrollIntoView(); return; } }
+	window.scrollTo(0, 0);
+}
+
+function results(q) {
+	const n = q.toLowerCase();
+	const hits = Object.keys(DATA.pages).filter((t) => short(t).toLowerCase().includes(n));
+	const inText = Object.keys(DATA.pages).filter((t) => !hits.includes(t) && DATA.pages[t].html.toLowerCase().includes(n)).slice(0, 60);
+	main.innerHTML = `<h1>Recherche « ${q.replace(/</g, "&lt;")} »</h1>
+	<h3>Titres (${hits.length})</h3><div class="results">${hits.map((p) => `<a href="${href(p)}">${short(p)}</a>`).join("") || "<p class='note'>Aucun</p>"}</div>
+	<h3>Dans le texte (${inText.length}${inText.length === 60 ? "+" : ""})</h3><div class="results">${inText.map((p) => `<a href="${href(p)}">${short(p)}</a>`).join("") || "<p class='note'>Aucun</p>"}</div>`;
+}
+
+function route() {
+	document.body.classList.remove("nav-open");
+	const h = decodeURIComponent(location.hash.slice(2));
+	if (!h) return home();
+	if (h.startsWith("!s")) return section(+h.slice(2));
+	const [t, a] = location.hash.slice(2).split("~");
+	page(decodeURIComponent(t), a && decodeURIComponent(a));
+}
+let timer;
+search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => (search.value.trim().length >= 2 ? results(search.value.trim()) : route()), 200); });
+document.getElementById("menu").addEventListener("click", () => document.body.classList.toggle("nav-open"));
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>

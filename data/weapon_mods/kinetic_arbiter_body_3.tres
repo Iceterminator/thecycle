@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kinetic_arbiter_body_3"
+display_name = "Rail petit calibre"
+description = "+40 % vitesse du projectile, -20 % dégâts"
+weapon_id = &"kinetic_arbiter"
+slot = 2
+mult = {"projectile_speed_mps": 1.4, "damage": 0.8}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Low Caliber Mag Rail"
+notes = ""

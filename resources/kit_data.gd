@@ -28,7 +28,8 @@ enum MobilityType { NONE, JETPACK, DASH, SUPER_JUMP, JETBOOSTERS }
 ## dive_damage_add, energy_charges_add, air_jumps_add, super_jump_mult, punch_damage_mult,
 ## charge_speed_mult, ability_cooldown_mult (capacités, étape 8c).
 @export var level_perk_effects: Array[Dictionary] = []
-## Mods hors partie : [{ "id": ..., "effect": ... }].
+## Cœurs de kit (un seul équipable, propre au kit) : [{ "id", "name", "effect" (description), "effects": {effet: valeur}, "unlock_level" }].
+## Les mods de niveau 1 à 3 (communs à tous les kits) sont des KitModData (data/kit_mods/).
 @export var mods: Array[Dictionary] = []
 ## Image pour les menus (facultative) ; sans image, KitIcon la dessine.
 @export var hud_icon: Texture2D

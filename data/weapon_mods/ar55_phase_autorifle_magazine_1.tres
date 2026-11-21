@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"ar55_phase_autorifle_magazine_1"
+display_name = "Chargeur étendu"
+description = "+21 % chargeur, +35 % rechargement"
+weapon_id = &"ar55_phase_autorifle"
+slot = 3
+mult = {"magazine": 1.214, "reload_s": 1.35}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Extended Magazine"
+notes = ""

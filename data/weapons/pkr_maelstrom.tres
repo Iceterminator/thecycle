@@ -6,8 +6,16 @@
 
 [resource]
 script = ExtResource("1_3unx8")
+move_speed_multiplier = 0.9
+ads_move_speed_multiplier = 0.6
+crouch_recoil_multiplier = 0.8
+crouch_spread_multiplier = 1.0
+moving_spread_multiplier = 1.0
+in_air_spread_multiplier = 1.75
+hip_spread_deg = 1.5
+falloff_min_multiplier = 0.8
 id = &"pkr_maelstrom"
-display_name = "PKR Maelstrom"
+display_name = "Tornade"
 reference_name = "PKR Maelstrom"
 faction = 1
 faction_level = 8
@@ -20,14 +28,13 @@ rpm = 143.0
 fire_interval_s = 0.42
 dps = 381.0
 weakspot_multiplier = 1.2
-falloff_start_m = 8.0
-falloff_end_m = 25.0
+falloff_start_m = 10.0
+falloff_end_m = 20.0
 magazine = 10
 reload_s = 2.2
 ads_time_s = 0.3
-equip_time_s = 0.5
+equip_time_s = 0.35
 stability = 0.044
-hip_spread_deg = 1.0
 ads_spread_deg = 0.5
 recoil_deg = 2.5
 spawn_cost_credits = 500
@@ -53,6 +60,8 @@ best_range_m = Vector2(0, 8)
 strengths = PackedStringArray("Énormes dégâts de près", "Tir automatique", "10 cartouches")
 weaknesses = PackedStringArray("Inutile à distance", "Très instable")
 counter = "Rester à distance, utiliser des barrières."
-estimated_fields = PackedStringArray("pellets", "pellet_damage", "spread_deg", "weakspot_multiplier", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s")
+boosts = Array[Dictionary]([{"range": 0.15}, {"damage": 0.05}])
+boost_prices = Array[int]([150, 150])
+estimated_fields = PackedStringArray("pellets", "pellet_damage", "spread_deg", "weakspot_multiplier", "falloff_start_m", "falloff_end_m", "ads_time_s", "equip_time_s", "boosts", "boost_prices")
 behavior = "Prototype de fusil à pompe AUTOMATIQUE : cadence élevée pour un fusil à pompe. 'damage' = total si tous les plombs touchent. Dévastateur de près, mauvais choix à distance."
 notes = "La source donnait 1143 coups/min, incompatible avec 381 DPS. rpm recalculé depuis le DPS (381 × 60 / 160 = 143)."

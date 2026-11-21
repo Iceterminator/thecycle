@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"karma_1_magazine_3"
+display_name = "Plaques petit calibre"
+description = "+25 % vitesse du projectile, -25 % montée en régime, -50 % dégâts de zone"
+weapon_id = &"karma_1"
+slot = 3
+mult = {"projectile_speed_mps": 1.25, "spin_up": 0.75, "aoe_damage": 0.5}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Low Caliber Slabs"
+notes = ""

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"pkr_maelstrom_body_3"
+display_name = "Cristal fractal"
+description = "+13 % dégâts, +50 % dispersion, +8 % recul, -14 % cadence"
+weapon_id = &"pkr_maelstrom"
+slot = 2
+mult = {"damage": 1.125, "hip_spread_deg": 1.5, "recoil_deg": 1.078, "fire_interval_s": 1.16}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Fractal Crystal"
+notes = ""

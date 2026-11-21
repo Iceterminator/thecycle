@@ -9,8 +9,8 @@ display_name = "Pied ferme"
 reference_name = "Stand Your Ground"
 faction = 1
 faction_level = 6
-cooldown_s = 45.0
-duration_s = 10.0
+cooldown_s = 40.0
+duration_s = 20.0
 buff = {
 "max_health_add": 150.0,
 "no_health_regen": 1.0,

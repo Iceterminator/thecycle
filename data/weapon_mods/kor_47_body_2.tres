@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kor_47_body_2"
+display_name = "Canon long"
+description = "+10 % vitesse du projectile"
+weapon_id = &"kor_47"
+slot = 2
+mult = {"projectile_speed_mps": 1.1}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Long barrel"
+notes = ""

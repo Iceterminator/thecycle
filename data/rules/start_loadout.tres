@@ -8,4 +8,4 @@ base_weapon = &"k28_autopistol"
 default_kit = &"basic_prospector_kit"
 default_abilities = Array[String](["shock_grenade", "stim_boost"])
 default_shop_weapons = Array[String](["s76_pdw", "c32_bolt_action", "ar55_phase_autorifle", "ff4_detonator"])
-default_shop_gadgets = Array[String](["trench_grenade", "shock_grenade", "stim_boost", ""])
+default_shop_gadgets = Array[String](["trench_grenade", "stim_boost", "", ""])

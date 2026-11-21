@@ -1,6 +1,6 @@
 extends RefCounted
 ## Serveur : raycast de tir, impact direct (distance, point faible), dégâts bouclier / PV,
-## dégâts sur la durée des mods, explosions.
+## explosions.
 
 ## Explosions : dégâts au bord de la zone (part des dégâts au centre).
 const EXPLOSION_EDGE_RATIO := 0.25
@@ -53,36 +53,25 @@ func hit(target: Node, point: Vector3, distance: float, wdata: WeaponData, dmg_m
 	return Weapon.HitKind.TARGET
 
 
-## Dégâts sur une cible. Un joueur prend les multiplicateurs bouclier / PV de l'arme ;
-## un monstre, le bonus « dégâts contre les créatures » du kit du tireur.
+## Dégâts sur une cible. Un joueur prend les multiplicateurs bouclier / PV de l'arme et son
+## bonus « contre les joueurs » ; un monstre, le bonus « contre les créatures » de l'arme
+## (mods) et du kit du tireur.
 func _damage(target: Node, amount: float, wdata: WeaponData) -> bool:
 	var player := _w.player
-	if target is Monster and player.kit:
-		amount *= 1.0 + player.kit.get_effect("creature_damage")
-	var mod := player.weapon_mod(wdata)
-	_apply_dots(target, amount, mod)
+	if target is Monster:
+		amount *= wdata.damage_vs_creatures_multiplier
+		if player.kit:
+			amount *= 1.0 + player.kit.get_effect("creature_damage")
 	var victim := target as Player
-	var shield_mult := wdata.damage_vs_shield_multiplier * (mod.shield_damage_mult if mod else 1.0)
+	if victim:
+		amount *= wdata.damage_vs_players_multiplier
+	if player.kit:
+		amount *= player.kit.combat.damage_dealt_mult(victim != null)  # mods : cumuls d'éliminations, en l'air
+	var shield_mult := wdata.damage_vs_shield_multiplier
 	if victim and (shield_mult != 1.0 or wdata.damage_vs_health_multiplier != 1.0):
 		return victim.health.apply_damage(amount, player.get_peer_id(),
 				shield_mult, wdata.damage_vs_health_multiplier)
 	return target.server_receive_hit(amount, player.get_peer_id())
-
-
-## Mods d'arme feu / poison : dégâts en plus sur la durée (part des dégâts du tir).
-func _apply_dots(target: Node, amount: float, mod: WeaponModData) -> void:
-	if mod == null:
-		return
-	for dot: Array in [["burn", mod.burn_ratio, mod.burn_time, false, "Brûlure"], ["poison", mod.poison_ratio, mod.poison_time, true, "Poison"]]:
-		var ratio: float = dot[1]
-		var time: float = dot[2]
-		if ratio <= 0.0 or time <= 0.0:
-			continue
-		var per_s := amount * ratio / time
-		if target is Player:
-			(target as Player).buffs.server_add_dot(dot[0], dot[4], per_s, time, dot[3], _w.player.get_peer_id())
-		elif target is Monster:
-			(target as Monster).apply_dot(per_s, time, _w.player.get_peer_id())
 
 
 ## Explosion : aoe_damage au centre, EXPLOSION_EDGE_RATIO au bord, sur tout ce qui est

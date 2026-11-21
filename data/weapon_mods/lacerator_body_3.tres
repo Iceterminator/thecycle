@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"lacerator_body_3"
+display_name = "Tranchoir lourd"
+description = "+43 % dégâts, -50 % recul, -50 % cadence"
+weapon_id = &"lacerator"
+slot = 2
+mult = {"damage": 1.431, "recoil_deg": 0.5, "fire_interval_s": 2.0}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Slicer"
+notes = ""

@@ -46,6 +46,7 @@ const WEAPON_NAMES := {
 	"advocate": "Sentinelle",
 	"haze": "Nuée",
 	"bulldog": "Tromblon",
+	"b9_trenchgun": "Mitraille",
 }
 
 const KIT_NAMES := {
@@ -86,19 +87,32 @@ const PERK_EFFECTS := {
 	"Régénération de santé +20 % et poussée +20 %": {"health_regen_mult": 0.2, "thrust_mult": 0.2},
 }
 
-## Mods de kit (étape 9) : effets chiffrés d'après le texte de la référence (KitData.mods).
-const KIT_MOD_EFFECTS := {
-	"slow_and_steady": {"fuel_consumption_mult": -0.3, "thrust_mult": -0.25},
-	"catapult": {"thrust_mult": 0.5, "fuel_consumption_mult": 0.6},
-	"reduced_dodge_damage": {"dodge_damage_reduction": 0.5},
-	"extra_charge": {"energy_charges_add": 1.0},
-	"longer_slide": {"slide_duration_mult": 0.5},
-	"more_charges_fragile": {"energy_charges_add": 2.0, "lose_charge_on_damage": 1.0},
-	"more_shields": {"max_shield_add": 200.0, "move_speed_add": -0.66},
-	"super_duper_jump": {"super_jump_mult": 0.3},
-	"stronger_charge_punch": {"punch_damage_mult": 0.25},
-	"faster_charge_punch": {"punch_cooldown_add": -2.0},
+## Cœurs de kit (KitData.mods, un seul équipable) : [id, nom affiché, description, effets].
+## Les mods de niveau 1 à 3, communs à tous les kits, sont dans data/kit_mods/ (KitModData).
+const KIT_CORES := {
+	"dragonfly_flightsuit": [
+		["catapult", "Catapulte", "Poussée +50 %, consommation de carburant +60 %.", {"thrust_mult": 0.5, "fuel_consumption_mult": 0.6}],
+		["slow_and_steady", "Croisière", "Poussée -25 %, consommation de carburant -30 %.", {"thrust_mult": -0.25, "fuel_consumption_mult": -0.3}],
+		["dive_angle", "Angle de piqué", "La plongée se déclenche avec un angle plus faible (-40 %).", {"dive_min_angle_mult": -0.4}],
+		["aim_to_hover", "Vol stationnaire", "En l'air et en visée : descente très lente, pour 15 % de la consommation normale de carburant.", {"aim_hover": 1.0, "hover_fall_mps": 1.5, "hover_fuel_ratio": 0.15}],
+	],
+	"aani_quicksuit": [
+		["armor_dodge", "Esquive blindée", "Dégâts subis -50 % pendant l'esquive.", {"dodge_damage_reduction": 0.5}],
+		["extra_charges", "Charges supplémentaires", "+1 charge d'énergie, vitesse de glissade -3 %.", {"energy_charges_add": 1.0, "slide_speed_mult": -0.03}],
+		["longslide", "Longue glissade", "Glissade 30 % plus longue, -1 charge d'énergie.", {"slide_duration_mult": 0.3, "energy_charges_add": -1.0}],
+		["fragile_charges", "Charges fragiles", "+2 charges d'énergie, mais une charge est perdue à chaque dégât subi.", {"energy_charges_add": 2.0, "lose_charge_on_damage": 1.0}],
+	],
+	"boxer_warsuit": [
+		["fast_punch", "Poing rapide", "Charge du poing +40 % plus rapide, vitesse +5 %, super saut -10 %.", {"charge_speed_mult": 0.4, "move_speed_mult": 0.05, "super_jump_mult": -0.1}],
+		["shield", "Bouclier", "+200 de bouclier, vitesse de déplacement -0,585 m/s.", {"max_shield_add": 200.0, "move_speed_add": -0.585}],
+		["super_duper_jump", "Bond titanesque", "Super saut +30 %, dégâts du poing -25 %.", {"super_jump_mult": 0.3, "punch_damage_mult": -0.25}],
+		["charge_damage", "Charge dévastatrice", "Dégâts du poing +25 %, rayon du poing +25 %, super saut -15 %.", {"punch_damage_mult": 0.25, "punch_radius_mult": 0.25, "super_jump_mult": -0.15}],
+	],
 }
+
+const HandlingImport := preload("res://tools/import_legacy_handling.gd")
+
+var _weapons: Array = []  ## weapons[] de la source (moyennes par type du maniement)
 
 ## Champs numériques copiés tels quels (null -> -1).
 const WEAPON_NUMBERS := [
@@ -131,6 +145,7 @@ func _init() -> void:
 		push_error("[Import] JSON illisible : %s" % JSON_PATH)
 		quit(1)
 		return
+	_weapons = root["weapons"]
 	var falloff_min: float = root["combat_rules"]["falloff_min_multiplier"]
 	DirAccess.make_dir_recursive_absolute(KITS_DIR)
 	var count := 0
@@ -171,14 +186,16 @@ func _save_weapon(w: Dictionary, falloff_min: float) -> bool:
 		if res.get(field) is int:
 			value = int(value)
 		res.set(field, value)
-	# Pistolets : baisse de dégâts jusqu'à 0,2 (patch du jeu d'origine).
+	# Baisse de dégâts propre à l'arme si la référence la donne ; sinon 0,2 pour les pistolets, défaut ailleurs.
 	var weapon_type: int = res.get("type")
-	res.set("falloff_min_multiplier", 0.2 if weapon_type == 6 else falloff_min)
+	var own_falloff: Variant = w.get("falloff_min_multiplier")
+	res.set("falloff_min_multiplier", float(own_falloff) if own_falloff != null else (0.2 if weapon_type == 6 else falloff_min))
 	var handling: Array = HANDLING_BY_TYPE[weapon_type]
 	res.set("hip_spread_deg", handling[0])
 	res.set("ads_spread_deg", handling[1])
 	res.set("recoil_deg", handling[2])
 	res.set("estimated_fields", PackedStringArray(w.get("estimated_fields", [])))
+	HandlingImport.apply(res, w, _weapons, handling[0])
 	res.set("behavior", w.get("behavior", ""))
 	_apply_detailed(res, w.get("detailed", {}))
 	_apply_feel(res, w)
@@ -257,12 +274,10 @@ func _save_kit(k: Dictionary) -> bool:
 	var mods: Array[Dictionary] = []
 	var kit_level := int(k.get("faction_level", 0) if k.get("faction_level") != null else 0)
 	var index := 0
-	for m: Dictionary in k.get("mods", []):
-		var mod := m.duplicate()
-		mod["effects"] = KIT_MOD_EFFECTS.get(m["id"], {})
-		# Niveau de faction requis : pas dans la référence (valeur de départ : +2 par mod).
-		mod["unlock_level"] = mini(kit_level + 2 * (index + 1), 10)
-		mods.append(mod)
+	for c: Array in KIT_CORES.get(id, []):
+		# Niveau de faction requis : pas dans la référence (valeur de départ : +2 par cœur).
+		mods.append({"id": c[0], "name": c[1], "effect": c[2], "effects": c[3],
+				"unlock_level": mini(kit_level + 2 * (index + 1), 10)})
 		index += 1
 	res.set("mods", mods)
 	res.set("estimated_fields", PackedStringArray(k.get("estimated_fields", [])))

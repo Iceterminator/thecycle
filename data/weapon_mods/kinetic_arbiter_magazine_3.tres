@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kinetic_arbiter_magazine_3"
+display_name = "Tiges toxiques"
+description = "-20 % dégâts aux joueurs, +50 % dégâts aux créatures"
+weapon_id = &"kinetic_arbiter"
+slot = 3
+mult = {"damage_vs_players": 0.8, "damage_vs_creatures": 1.5}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Xenotoxic Rods"
+notes = ""

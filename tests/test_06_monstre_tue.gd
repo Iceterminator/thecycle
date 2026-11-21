@@ -14,7 +14,10 @@ func run_host() -> void:
 	if not await wait_until(func() -> bool: return players_count() == 2, 30.0, "client connecté"):
 		return
 	var cid := client_id()
-	events.monster_killed.connect(func(id: StringName, killer: int) -> void: _killed.append([id, killer]))
+	# killer 0 = un monstre d'un camp tombé sous la carte (Monster._physics_process) : sans rapport avec le test.
+	events.monster_killed.connect(func(id: StringName, killer: int) -> void:
+		if killer != 0:
+			_killed.append([id, killer]))
 	if not await start_match():
 		return
 	place(1, ground(Vector2(-14.0, -6.0)))  # l'hôte à l'écart

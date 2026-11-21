@@ -16,9 +16,13 @@ Code : `systems/inventory/inventory.gd`, `systems/shop/`, `systems/loot/` · Don
 - Boutique configurée dans le lobby (4 armes + 4 gadgets / capacités), en 3 colonnes : gadgets, armes, palier
   d'amélioration suivant de chaque arme. Achat d'arme = capsule de largage.
 - Améliorations d'arme par type (`systems/shop/weapon_upgrades.gd`, `Inventory.weapon_upgrades`) : palier
-  acheté (+10 % dégâts, portée, cadence ; `weapon_boost_prices`) gardé jusqu'à la mort / nouvelle partie
-  (comme les paliers d'emplacement), appliqué à l'exemplaire équipé et aux exemplaires achetés ensuite
-  (livrés boostés). Une arme ramassée garde ses propres paliers.
+  acheté gardé jusqu'à la mort / nouvelle partie (comme les paliers d'emplacement), appliqué à l'exemplaire
+  équipé et aux exemplaires achetés ensuite (livrés boostés). Une arme ramassée garde ses propres paliers.
+  2 paliers par arme (`WeaponData.boosts`) avec des prix propres (`boost_prices`, sinon `weapon_boost_prices` ;
+  `WeaponUpgrades.price_of`). Clés : damage, range, fire_rate, spin_up (réduit montée en régime et charge :
+  temps / boost, même calcul client et serveur dans `WeaponGadgets.trigger_delay`). Valeurs d'origine pour 8 armes
+  (ar55, kor_47, karma_1, asp, manticore, gorgon, lacerator, advocate) ; 21 autres estimées
+  (`estimated_fields` : boosts, boost_prices ; prix selon `spawn_cost_credits`). Gadgets : pas de paliers.
 - Crédits : monstres (directement au tueur) ; à la mort la part perdue (`death_credits_loss`) va au tueur
   joueur, sinon tombe au sol.
 - Objets au sol (`LootManager`), ramassage avec E.

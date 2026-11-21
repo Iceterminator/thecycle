@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"asp_flechette_gun_stock_1"
+display_name = "Poignée lourde"
+description = "-20 % dispersion, -15 % recul, +20 % visée"
+weapon_id = &"asp_flechette_gun"
+slot = 1
+mult = {"hip_spread_deg": 0.8, "recoil_deg": 0.849, "ads_time_s": 1.2}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Handle"
+notes = ""

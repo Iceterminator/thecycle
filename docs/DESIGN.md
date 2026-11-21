@@ -81,6 +81,16 @@ Une partie dure 20 minutes et se gagne au score de Fame, à condition d'être à
 > au bord, tireur compris, pas à travers les murs), bonus contre bouclier / PV. Fiche `detailed` de la référence
 > importée dans chaque arme (rôle, ressenti, visuels, son, portée idéale…) et ressenti visuel déduit : couleur des
 > traçants par faction, épaisseur et durée selon le type, flash, impacts, fumée des roquettes. Pas encore de sons.
+>
+> **Maniement par arme (jeu d'origine).** `WeaponData` : `move_speed_multiplier` (vitesse de marche avec l'arme),
+> `ads_move_speed_multiplier` (en visée), `crouch_recoil_multiplier`, `crouch_spread_multiplier`,
+> `moving_spread_multiplier`, `in_air_spread_multiplier`, + `hip_spread_deg` propre à l'arme. Vitesse et recul : client
+> (`PlayerMotion._weapon_speed_mult`, `Weapon` recul). Dispersion : tirée par le **serveur** (`WeaponSpread`) avec l'état
+> synchronisé du joueur : `is_crouching`, `is_airborne` et `Player.ground_speed` (vitesse réelle du joueur local ;
+> estimée sur la position synchronisée pour les autres, « en mouvement » > 0,5 m/s) ; en visée, `ads_spread_deg` avec les
+> mêmes facteurs. Valeurs écrites par `node tools/wiki_2019/make_handling.mjs` (même logique dans l'importeur,
+> `tools/import_legacy_handling.gd`) ; champ manquant = moyenne du type, listé dans `estimated_fields`. Valeurs
+> « aberrantes » de la source (Gorgon : dispersion 0,01 et facteurs 0) gardées telles quelles.
 
 ### 3. Santé et boucliers
 > **Kits (étape 8b, 17/11/2026) — remplace les paliers ci-dessous.** PV, bouclier et vitesse viennent du kit

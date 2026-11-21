@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"pkr_maelstrom_magazine_3"
+display_name = "Tambour de batteries lourd"
+description = "+50 % chargeur, +25 % rechargement"
+weapon_id = &"pkr_maelstrom"
+slot = 3
+mult = {"magazine": 1.5, "reload_s": 1.25}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Battery Drum"
+notes = ""

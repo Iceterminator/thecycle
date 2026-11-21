@@ -38,6 +38,6 @@ func process(delta: float, on_floor: bool, input_dir: Vector2) -> void:
 	var sprinting := Input.is_action_pressed("sprint") and input_dir.y < 0.0
 	if on_floor and sprinting and Input.is_action_just_pressed("crouch") and cd <= 0.0:
 		dir = (player.global_basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-		speed = kit.move_param("slide", "slide_speed_mps", Config.combat.slide_speed)
+		speed = kit.move_param("slide", "slide_speed_mps", Config.combat.slide_speed) * (1.0 + kit.get_effect("slide_speed_mult"))
 		left = duration()
 		cd = Config.combat.slide_cooldown

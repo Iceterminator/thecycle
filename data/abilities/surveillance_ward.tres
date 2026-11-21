@@ -4,14 +4,15 @@
 
 [resource]
 script = ExtResource("1_3hedc")
+health = 300.0
 id = &"surveillance_ward"
 display_name = "Balise d'écoute"
 reference_name = "Surveillance Ward"
 faction = 2
 faction_level = 8
 category = 9
-cooldown_s = 20.0
-radius_m = 30.0
+cooldown_s = 40.0
+radius_m = 80.0
 scan_interval_s = 5.0
 max_active = 3
 activation = "Poser l'appareil au sol."

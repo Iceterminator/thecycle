@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"advocate_magazine_3"
+display_name = "Balles explosives"
+description = "-50 % dégâts, -33 % recul, -33 % cadence, +20 dégâts de zone, +2 m rayon d'explosion, explose à l'impact"
+weapon_id = &"advocate"
+slot = 3
+mult = {"damage": 0.5, "recoil_deg": 0.667, "fire_interval_s": 1.5}
+add = {"aoe_damage": 20.0, "aoe_radius_m": 2.0}
+overrides = {}
+flags = PackedStringArray("explode_on_impact")
+reference_name = "Explosive Rounds"
+notes = "Radius 200/+200 ignoré ; aoe_damage 20/+19 ignoré ; Release 14 : zone fixe, dégâts directs 50 %"

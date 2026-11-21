@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("1_1n8f2")
 id = &"recall_teleporter"
-display_name = "Recall Teleporter"
+display_name = "Balise de rappel"
 reference_name = "Recall Teleporter"
 faction = 3
 faction_level = 3

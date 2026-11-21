@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kinetic_arbiter_magazine_1"
+display_name = "Tiges perforantes"
+description = "-20 % chargeur, balles perforantes"
+weapon_id = &"kinetic_arbiter"
+slot = 3
+mult = {"magazine": 0.8}
+add = {}
+overrides = {}
+flags = PackedStringArray("piercing")
+reference_name = "Penetrating Rods"
+notes = ""

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"k28_autopistol_body_2"
+display_name = "Ressort de qualité"
+description = "-25 % recul"
+weapon_id = &"k28_autopistol"
+slot = 2
+mult = {"recoil_deg": 0.75}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "High-Grade Spring"
+notes = ""

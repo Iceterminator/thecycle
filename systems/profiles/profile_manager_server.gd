@@ -73,7 +73,7 @@ static func apply_loadout(m: ProfileManager, peer: int) -> void:
 		if p.kit.kit_id != kit_id:
 			p.kit.server_set_kit(kit_id)
 	var kit_mods: Dictionary = loadout.get("kit_mods", {})
-	p.kit.server_set_mod(String(kit_mods.get(p.kit.kit_id, "")))
+	p.kit.server_set_mods(LoadoutRules.kit_slots(kit_mods.get(p.kit.kit_id, {})))
 	# Dans le lobby, la nouvelle arme de départ est tout de suite en main.
 	if MatchManager.is_lobby() and StringName(p.inventory.slot_ids[0]) != ProfileManager.start_weapon(peer):
 		p.inventory.reset_loadout()

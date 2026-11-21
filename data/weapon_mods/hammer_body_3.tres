@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"hammer_body_3"
+display_name = "Double action"
+description = "+57 % recul, -5 % cadence, +25 % dispersion, +2 tirs par rafale"
+weapon_id = &"hammer"
+slot = 2
+mult = {"recoil_deg": 1.567, "fire_interval_s": 1.053, "hip_spread_deg": 1.25}
+add = {"burst_count": 2.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Double Action"
+notes = "Interval per burst 0.09/+1.09 ignoré"

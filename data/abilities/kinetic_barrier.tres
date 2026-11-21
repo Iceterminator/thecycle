@@ -4,13 +4,14 @@
 
 [resource]
 script = ExtResource("1_0mrn8")
+health = 1500.0
 id = &"kinetic_barrier"
 display_name = "Mur cinétique"
 reference_name = "Kinetic Barrier"
 faction = 1
 faction_level = 3
 category = 3
-duration_s = 10.0
+duration_s = 20.0
 width_m = 4.0
 height_m = 2.5
 activation = "Viser et appuyer : déploie un mur d'énergie devant soi."

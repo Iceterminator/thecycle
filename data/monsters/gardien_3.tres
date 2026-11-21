@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3]
+
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Alien_Cyclop.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_monster")
+id = &"gardien_3"
+display_name = "Gardien écarlate"
+max_health = 1200.0
+walk_speed = 2.0
+run_speed = 4.5
+detection_radius = 24.0
+lose_radius = 34.0
+leash_radius = 38.0
+attack_range = 25.0
+attack_damage = 25.0
+attack_windup = 0.5
+attack_cooldown = 2.0
+post_hit_pause = 0.0
+credits = 30
+xp = 600
+radius = 0.5
+height = 1.8
+color = Color(0.85, 0.15, 0.12, 1)
+ranged = true
+projectile_speed = 30.0
+min_range = 6.0
+ranged_burst_count = 7
+ranged_burst_interval_s = 0.1
+model = ExtResource("2_model")
+model_height_mult = 1.3

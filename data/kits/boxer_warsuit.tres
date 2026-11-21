@@ -50,33 +50,42 @@ level_perk_effects = Array[Dictionary]([{
 "health_regen_delay_mult": -0.25
 }])
 mods = Array[Dictionary]([{
-"effect": "+200 bouclier, vitesse de déplacement -0.66 m/s",
+"effect": "Charge du poing +40 % plus rapide, vitesse +5 %, super saut -10 %.",
 "effects": {
-"max_shield_add": 200.0,
-"move_speed_add": -0.66
+"charge_speed_mult": 0.4,
+"move_speed_mult": 0.05,
+"super_jump_mult": -0.1
 },
-"id": "more_shields",
+"id": "fast_punch",
+"name": "Poing rapide",
 "unlock_level": 3
 }, {
-"effect": "Super saut plus puissant (jump_velocity_max +30 %)",
+"effect": "+200 de bouclier, vitesse de déplacement -0,585 m/s.",
 "effects": {
+"max_shield_add": 200.0,
+"move_speed_add": -0.585
+},
+"id": "shield",
+"name": "Bouclier",
+"unlock_level": 5
+}, {
+"effect": "Super saut +30 %, dégâts du poing -25 %.",
+"effects": {
+"punch_damage_mult": -0.25,
 "super_jump_mult": 0.3
 },
 "id": "super_duper_jump",
-"unlock_level": 5
-}, {
-"effect": "Coup de poing plus puissant (+25 % dégâts)",
-"effects": {
-"punch_damage_mult": 0.25
-},
-"id": "stronger_charge_punch",
+"name": "Bond titanesque",
 "unlock_level": 7
 }, {
-"effect": "Recharge du coup de poing plus rapide (cooldown -2 s)",
+"effect": "Dégâts du poing +25 %, rayon du poing +25 %, super saut -15 %.",
 "effects": {
-"punch_cooldown_add": -2.0
+"punch_damage_mult": 0.25,
+"punch_radius_mult": 0.25,
+"super_jump_mult": -0.15
 },
-"id": "faster_charge_punch",
+"id": "charge_damage",
+"name": "Charge dévastatrice",
 "unlock_level": 9
 }])
 estimated_fields = PackedStringArray("movement.super_jump.charge_time_max_s", "movement.super_jump.jump_velocity_min_mps", "movement.super_jump.jump_velocity_max_mps", "movement.super_jump.cooldown_s", "movement.charge_punch.activation", "movement.charge_punch.dash_distance_m", "movement.charge_punch.knockback_mps", "movement.charge_punch.cooldown_s", "movement.fast_health_regen", "faction_level", "level_perks (répartition exacte par niveau)", "mods[1].effect (valeur)", "mods[2].effect (valeur)")

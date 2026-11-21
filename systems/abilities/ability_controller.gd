@@ -167,7 +167,7 @@ func request_use(slot: int, origin: Vector3, direction: Vector3) -> void:
 	if not _server_activate(ability, origin, direction):
 		return
 	var left := cooldown_left.duplicate()
-	left[slot] = ability.get_cooldown(upgrades[slot], player.kit.get_effect("ability_cooldown_mult"))
+	left[slot] = ability.get_cooldown(upgrades[slot], player.kit.get_effect("ability_cooldown_mult"), player.kit.get_effect("ability_cooldown_add"))
 	cooldown_left = left
 	print("[Capacité] Joueur %d : %s" % [player.get_peer_id(), ability.get_display_name()])
 

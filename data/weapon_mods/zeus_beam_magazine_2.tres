@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"zeus_beam_magazine_2"
+display_name = "Noyau focalisé"
+description = "+35 % portée, +50 % montée en régime"
+weapon_id = &"zeus_beam"
+slot = 3
+mult = {"range": 1.35, "spin_up": 1.502}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Focus Core"
+notes = ""

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"zeus_beam_magazine_1"
+display_name = "Hyper-noyau"
+description = "+31 % recul, +4 % cadence"
+weapon_id = &"zeus_beam"
+slot = 3
+mult = {"recoil_deg": 1.306, "fire_interval_s": 0.957}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Hyper Core"
+notes = ""

@@ -19,7 +19,7 @@ const COLOR := Color(0.75, 0.85, 1.0)
 
 static var _current: ProfileManager
 
-## Synchronisé : peer -> { name, rep: {faction: points}, preferred, weapon_mods: {arme: mod} }.
+## Synchronisé : peer -> { name, rep: {faction: points}, preferred, weapon_mods: {arme: {emplacement: mod}} }.
 var public: Dictionary = {}
 
 var _profiles: Dictionary = {}   # peer -> profil complet (sauvegardé)
@@ -164,7 +164,7 @@ static func clean_shop(peer: int, shop: Dictionary) -> Dictionary:
 	return LoadoutRules.clean_shop(peer, shop)
 
 ## Lobby : le joueur envoie son équipement.
-## { kit, kit_mod, weapon_mods: {arme: mod}, start_weapon, shop: {weapons, gadgets} }
+## { kit, kit_mod, weapon_mods: {arme: {emplacement: mod}}, start_weapon, shop: {weapons, gadgets} }
 ## + faction de prédilection. Le lobby l'envoie à chaque changement : la réussite est silencieuse.
 @rpc("any_peer", "call_local", "reliable")
 func request_set_loadout(loadout: Dictionary, preferred: int) -> void:

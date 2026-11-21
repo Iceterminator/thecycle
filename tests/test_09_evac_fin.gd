@@ -32,6 +32,10 @@ func run_host() -> void:
 		kill_monster(m, cid)
 	if not check(_cleared_by == cid and not match_manager().pad_blocked, "Events.evac_pad_cleared(client) : reçu %d" % _cleared_by):
 		return
+	# Monstres des camps voisins (forts depuis l'alignement sur l'original) : ils pourraient tuer
+	# le client pendant l'attente de la navette. Éliminés sans tueur (pas de Fame pour l'hôte).
+	for m in monsters_near(Config.EVAC_POSITION, 80.0):
+		kill_monster(m, 0)
 	send_step("degagee")
 	# Atterrissage puis embarquement du client.
 	if not await wait_until(func() -> bool: return match_manager().phase == MatchManager.Phase.EVAC, 10.0, "phase EVAC"):

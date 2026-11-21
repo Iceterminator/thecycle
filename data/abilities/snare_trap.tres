@@ -4,13 +4,15 @@
 
 [resource]
 script = ExtResource("1_hcq28")
+health = 100.0
+radius_m = 4.0
 id = &"snare_trap"
 display_name = "Entrave"
 reference_name = "Snare Trap"
 faction = 3
 faction_level = 3
 category = 10
-cooldown_s = 25.0
+cooldown_s = 30.0
 duration_s = 4.0
 slow_percent = 40.0
 activation = "Lancer sur un adversaire : l'appareil s'accroche à lui."

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3]
+
+[ext_resource type="Script" path="res://resources/monster_data.gd" id="1_monster"]
+[ext_resource type="PackedScene" path="res://assets/models/monsters/Alien_Scolitex.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_monster")
+id = &"guetteur"
+display_name = "Guetteur"
+max_health = 300.0
+walk_speed = 1.8
+run_speed = 4.0
+detection_radius = 55.0
+lose_radius = 70.0
+leash_radius = 45.0
+attack_range = 60.0
+attack_damage = 125.0
+attack_windup = 1.5
+attack_cooldown = 4.0
+post_hit_pause = 0.0
+credits = 15
+xp = 300
+radius = 0.45
+height = 1.7
+color = Color(0.55, 0.25, 0.8, 1)
+ranged = true
+projectile_speed = 70.0
+min_range = 15.0
+model = ExtResource("2_model")

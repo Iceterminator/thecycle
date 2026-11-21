@@ -21,6 +21,7 @@ weapon_fallback_price = 150
 kit_level_xp = Array[int]([100, 250, 450, 700, 1000])
 kit_xp_player_kill = 100
 kit_xp_monster_kill = 10
+kit_xp_monster_scale = 0.05
 kit_xp_per_objective_point = 1.0
 kit_xp_per_fame = 1.0
 rep_levels = Array[int]([100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500])

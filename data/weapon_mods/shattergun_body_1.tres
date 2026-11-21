@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"shattergun_body_1"
+display_name = "Canon court"
+description = "-10 % dégâts, +44 % dispersion"
+weapon_id = &"shattergun"
+slot = 2
+mult = {"damage": 0.9, "hip_spread_deg": 1.44}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Short Barrel"
+notes = ""

@@ -53,7 +53,7 @@ func handle_fire(origin: Vector3, direction: Vector3, aiming: bool) -> void:
 	if player.buffs:
 		player.buffs.server_remove_with("cloak_breaks_on_fire")  # tirer révèle (Camouflage total)
 	# Le flag « visée » vient du client : au pire un tricheur obtient la précision ADS.
-	var aim_spread := data.ads_spread_deg if aiming else data.hip_spread_deg * data.hipfire_spread_multiplier
+	var aim_spread := WeaponSpread.shot_spread_deg(data, player, aiming)
 	var aim_dir := _apply_spread(direction.normalized(), aim_spread)
 	for i in maxi(data.pellets, 1):
 		# Fusil à pompe : chaque plomb part dans le cône spread_deg autour de la visée.

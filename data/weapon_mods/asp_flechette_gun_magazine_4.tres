@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"asp_flechette_gun_magazine_4"
+display_name = "Fléchettes propulsées"
+description = "+50 % vitesse du projectile, -20 % recul, -20 % cadence"
+weapon_id = &"asp_flechette_gun"
+slot = 3
+mult = {"projectile_speed_mps": 1.5, "recoil_deg": 0.799, "fire_interval_s": 1.25}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Propellant Flechettes"
+notes = ""

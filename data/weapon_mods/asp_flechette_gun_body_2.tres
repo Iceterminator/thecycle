@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"asp_flechette_gun_body_2"
+display_name = "Éjecteur en gerbe"
+description = "-60 % chargeur, -13 % recul, -33 % cadence, +180 % dégâts"
+weapon_id = &"asp_flechette_gun"
+slot = 2
+mult = {"magazine": 0.4, "recoil_deg": 0.867, "fire_interval_s": 1.5, "damage": 2.8}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Bundle Ejector"
+notes = ""

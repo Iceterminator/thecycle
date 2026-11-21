@@ -2,7 +2,11 @@ extends RefCounted
 ## Projectiles d'un monstre à distance : simulation serveur et orbes visibles chez tous.
 ## Les @rpc (_show_projectile, _end_projectile) restent dans monster.gd et appellent ce script.
 
+const BURST_SPREAD_DEG := 1.5  ## dispersion max d'un projectile de salve (°)
+
 var _m: Monster
+var _burst_left: int = 0        ## projectiles restant à tirer dans la salve
+var _burst_wait: float = 0.0
 var _projectiles: Array[Dictionary] = []  ## { id, pos, dir, travelled, max_dist }
 var _next_projectile_id: int = 0
 var _visual_projectiles: Dictionary[int, Node3D] = {}
@@ -13,16 +17,42 @@ func _init(monster: Monster) -> void:
 
 
 func is_empty() -> bool:
-	return _projectiles.is_empty()
+	return _projectiles.is_empty() and _burst_left <= 0
 
 
-## Crache un projectile vers le torse de la cible (pas d'anticipation : on peut l'esquiver).
+## Lance une attaque à distance : data.ranged_burst_count projectiles espacés dans le temps.
 func fire() -> void:
+	_burst_left = _m.data.ranged_burst_count
+	_burst_wait = 0.0
+
+
+## Tire les projectiles restants de la salve, au rythme de data.ranged_burst_interval_s.
+func _step_burst(delta: float) -> void:
+	if _burst_left <= 0:
+		return
+	_burst_wait -= delta
+	if _burst_wait > 0.0:
+		return
+	if not is_instance_valid(_m._target):
+		_burst_left = 0
+		return
+	_fire_one(_m.data.ranged_burst_count > 1)
+	_burst_left -= 1
+	_burst_wait = _m.data.ranged_burst_interval_s
+
+
+## Un projectile vers le torse de la cible (pas d'anticipation : on peut l'esquiver).
+## `spread` : petite dispersion aléatoire (± BURST_SPREAD_DEG) pour les salves.
+func _fire_one(spread: bool) -> void:
 	var data := _m.data
 	var forward := -_m.global_basis.z
 	var from := _m.global_position + Vector3.UP * data.height * 0.75 + forward * data.radius
 	var aim := _m._target.global_position + Vector3.UP * 1.0
 	var dir := (aim - from).normalized()
+	if spread:
+		var angle := deg_to_rad(BURST_SPREAD_DEG)
+		dir = dir.rotated(Vector3.UP, randf_range(-angle, angle))
+		dir = dir.rotated(dir.cross(Vector3.UP).normalized(), randf_range(-angle, angle))
 	_next_projectile_id += 1
 	var max_dist := data.attack_range * 1.6
 	_projectiles.append({"id": _next_projectile_id, "pos": from, "dir": dir, "travelled": 0.0, "max_dist": max_dist})
@@ -32,6 +62,7 @@ func fire() -> void:
 ## Un raycast par image sur le segment parcouru : décor (couche 1) et joueurs (couche 2).
 ## Touche aussi une foreuse (décor avec server_receive_hit).
 func step(delta: float) -> void:
+	_step_burst(delta)
 	var space := _m.get_world_3d().direct_space_state
 	for i in range(_projectiles.size() - 1, -1, -1):
 		var p := _projectiles[i]

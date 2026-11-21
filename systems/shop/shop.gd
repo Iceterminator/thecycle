@@ -153,7 +153,7 @@ func _purchase_result(ok: bool, message: String) -> void:
 static func boost_text(weapon: WeaponData, level: int) -> String:
 	if weapon == null or level >= weapon.boosts.size():
 		return "maximum"
-	var names := {"damage": "dégâts", "range": "portée", "fire_rate": "cadence"}
+	var names := {"damage": "dégâts", "range": "portée", "fire_rate": "cadence", "spin_up": "montée en régime"}
 	var parts: PackedStringArray = []
 	var tier: Dictionary = weapon.boosts[level]
 	for key: String in tier:

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_rules")
 sprint_multiplier = 1.9
-air_control = 0.25
+air_control = 1.0
 slide_speed = 9.0
 slide_duration = 0.7
 slide_jump_boost = 2.5

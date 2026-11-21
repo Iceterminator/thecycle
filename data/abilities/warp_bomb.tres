@@ -4,13 +4,15 @@
 
 [resource]
 script = ExtResource("1_w0lyi")
+distance_m = 38.5
+duration_s = 0.2
 id = &"warp_bomb"
 display_name = "Bombe de distorsion"
 reference_name = "Warp Bomb"
 faction = 1
 faction_level = 9
 category = 10
-cooldown_s = 60.0
+cooldown_s = 35.0
 delay_s = 1.5
 radius_m = 5.0
 damage = 300.0

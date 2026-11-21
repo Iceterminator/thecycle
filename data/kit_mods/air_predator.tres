@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"air_predator"
+display_name = "Prédateur aérien"
+description = "En l'air : +15 % de dégâts infligés, +30 % de dégâts subis."
+tier = 3
+effects = {
+"air_damage_dealt_mult": 0.15,
+"air_damage_taken_mult": 0.3
+}

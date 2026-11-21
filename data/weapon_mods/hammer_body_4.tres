@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"hammer_body_4"
+display_name = "Chambre ionisée"
+description = "+25 % dispersion, -50 % chargeur"
+weapon_id = &"hammer"
+slot = 2
+mult = {"hip_spread_deg": 1.25, "magazine": 0.5}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Ionized Chamber"
+notes = ""

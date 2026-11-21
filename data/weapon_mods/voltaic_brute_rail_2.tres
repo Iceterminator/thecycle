@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"voltaic_brute_rail_2"
+display_name = "Lunette x1,5"
+description = "lunette x1,5, +50 % visée"
+weapon_id = &"voltaic_brute"
+slot = 0
+mult = {"ads_time_s": 1.5}
+add = {}
+overrides = {"scope_zoom": 1.5}
+flags = PackedStringArray()
+reference_name = "1.5x scope"
+notes = ""

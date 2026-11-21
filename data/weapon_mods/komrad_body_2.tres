@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"komrad_body_2"
+display_name = "Chambre profilée"
+description = "-25 % recul, +30 % intervalle de rafale"
+weapon_id = &"komrad"
+slot = 2
+mult = {"recoil_deg": 0.75, "burst_interval_s": 1.3}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Streamlined Chamber"
+notes = ""

@@ -4,12 +4,13 @@
 
 [resource]
 script = ExtResource("1_hc33f")
+cooldown_s = 40.0
 id = &"adrenaline_shot"
 display_name = "Montée d'adrénaline"
 reference_name = "Adrenaline Shot"
 faction = 2
 faction_level = 3
-duration_s = 8.0
+duration_s = 10.0
 buff = {
 "damage_taken_mult": 1.2,
 "no_health_regen": 1.0,

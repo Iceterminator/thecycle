@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"basilisk_body_2"
+display_name = "Carcasse lourde"
+description = "-25 % recul, +9 % sortie de l'arme"
+weapon_id = &"basilisk"
+slot = 2
+mult = {"recoil_deg": 0.75, "equip_time_s": 1.091}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Frame"
+notes = ""

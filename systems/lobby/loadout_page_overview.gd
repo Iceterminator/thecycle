@@ -3,6 +3,7 @@ extends RefCounted
 
 const W := preload("res://systems/lobby/lobby_ui_widgets.gd")
 const Slots := preload("res://systems/lobby/loadout_page_slots.gd")
+const KitMods := preload("res://systems/lobby/lobby_ui_kit_mods.gd")
 const ACCENT := UiStyle.ACCENT
 const GOLD := UiStyle.GOLD
 const DIM := UiStyle.DIM
@@ -55,10 +56,16 @@ static func _tile(page: LoadoutPage, slot: String) -> Control:
 	var e := lobby._entry(id)
 	var sub := ""
 	if e.get("cat") in [LobbyUi.Cat.PRIMARY, LobbyUi.Cat.SECONDARY]:
-		var mod := WeaponModData.get_mod(String(lobby._weapon_mods.get(id, "")))
-		sub = "Mod : " + mod.display_name if mod else ""
+		var names: Array[String] = []
+		var chosen: Dictionary = lobby._weapon_mods.get(id, {})
+		for slot_key: String in chosen:
+			var mod := WeaponModData.get_mod(String(chosen[slot_key]))
+			if mod:
+				names.append(mod.display_name)
+		sub = "Mods : " + ", ".join(names) if not names.is_empty() else ""
 	elif e.get("cat") == LobbyUi.Cat.KIT:
-		sub = "Mod : %s" % kit_mod_text(lobby, id) if String(lobby._kit_mods.get(id, "")) != "" else ""
+		var mods_text := KitMods.summary(lobby, id)
+		sub = "Mods : " + mods_text if mods_text != "" else ""
 	var price := "" if slot in ["start", "kit"] else "%d ¢" % Shop.entry_price(id)
 	card.set_content(String(e.get("name", id)), sub, "", FactionData.color_of(int(e.get("faction", 0))))
 	card.set_visual(id)
@@ -89,13 +96,3 @@ static func _tile(page: LoadoutPage, slot: String) -> Control:
 	swap.offset_right = -8
 	swap.offset_bottom = -8
 	return card
-
-
-static func kit_mod_text(lobby: LobbyUi, kit_id: String) -> String:
-	var kit := lobby._kit_data(kit_id)
-	var mod_id := String(lobby._kit_mods.get(kit_id, ""))
-	if kit:
-		for m: Dictionary in kit.mods:
-			if String(m["id"]) == mod_id:
-				return String(m.get("effect", mod_id))
-	return mod_id

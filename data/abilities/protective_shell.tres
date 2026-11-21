@@ -10,8 +10,8 @@ reference_name = "Protective Shell"
 faction = 2
 faction_level = 7
 category = 8
-cooldown_s = 45.0
-duration_s = 3.0
+cooldown_s = 40.0
+duration_s = 4.0
 buff = {
 "invulnerable": 1.0
 }

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kill_heal"
+display_name = "Festin"
+description = "+100 PV par élimination."
+tier = 1
+effects = {
+"kill_heal": 100.0
+}

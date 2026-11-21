@@ -22,7 +22,7 @@ static func build() -> Array[Dictionary]:
 	return catalog
 
 
-## faction -> niveau -> noms des objets débloqués (armes, kits, capacités, mods).
+## faction -> niveau -> noms des objets débloqués (armes, kits, capacités, mods de kit).
 static func unlock_table(catalog: Array[Dictionary]) -> Dictionary:
 	var table := {}
 	var entries: Array = []  # [faction, niveau, texte]
@@ -31,8 +31,6 @@ static func unlock_table(catalog: Array[Dictionary]) -> Dictionary:
 		if e["cat"] == LobbyUi.Cat.KIT:
 			for m: Dictionary in (e["kit"] as KitData).mods:
 				entries.append([e["faction"], int(m.get("unlock_level", 0)), "mod " + String(e["name"])])
-	for m in WeaponModData.all():
-		entries.append([m.faction, m.faction_level, "mod d'arme " + m.display_name])
 	for e: Array in entries:
 		var faction: int = e[0]
 		var level: int = e[1]

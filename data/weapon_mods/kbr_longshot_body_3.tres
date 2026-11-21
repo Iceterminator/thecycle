@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kbr_longshot_body_3"
+display_name = "Mode rafale"
+description = "-21 % recul, +5 % cadence, -15 % dispersion, +3 tirs par rafale"
+weapon_id = &"kbr_longshot"
+slot = 2
+mult = {"recoil_deg": 0.787, "fire_interval_s": 0.952, "hip_spread_deg": 0.85}
+add = {"burst_count": 3.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Burst Mode"
+notes = "Interval Per Burst 0.12/+1.12 ignoré"

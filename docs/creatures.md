@@ -3,12 +3,24 @@
 Code : `systems/monsters/` (`monster.gd`, `monster_manager.gd`, `monster_camp.gd`) · Données : `data/monsters/` (`MonsterData`, champ `model`), `data/camps/`, `data/rules/match.tres` (niveaux)
 
 ## Implémenté
-- 4 monstres : Rôdeur (mêlée rapide), Colosse (mêlée lourde), Cracheur (à distance), Tique (apparaît autour des porteurs de Lumicèpes).
+- 8 monstres : Rôdeur (mêlée rapide), Colosse (mêlée lourde), Cracheur (à distance), Tique (apparaît autour des porteurs de Lumicèpes), Gardiens ×3 et Guetteur (robots à distance).
 - IA serveur : patrouille, poursuite, préparation du coup visible (voile rouge), recul après un coup, retour au camp.
 - Camps de niveau 1 et 2, repeuplés après `camp_respawn_delay` ; navmesh généré depuis les collisions (décor compris).
 - Niveaux 1 à 3 selon le temps de partie (PV, dégâts, crédits) ; plus forts pendant la Grande Marée.
 - Modèles animés Quaternius (robots du Sci-Fi Essentials Kit) ; sans modèle : capsule colorée.
 - Performance (MonsterLod) : `move_and_slide` coûtait ~0,17 ms par monstre (105 monstres = serveur à 8 FPS). Un monstre en patrouille à plus de 50 m de tout joueur avance sans collision, posé sur le relief ; à l'arrêt au sol il ne calcule plus rien ; dès qu'un joueur approche (détection max 31 m), physique normale.
+- **Valeurs alignées sur le jeu d'origine** (PV, régénération, dégâts, crédits, XP) :
+  | Créature | Rôle d'origine | PV | Régén. | Dégâts | Crédits | XP |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | Rôdeur | petit mêlée | 200 | 8/s après 3 s | 120 | 10 | 200 |
+  | Colosse | gros mêlée | 600 | 20/s après 3 s | 180 | 14 | 300 |
+  | Cracheur | cracheur | 450 | 5/s après 8 s | 20 par projectile, salve de 13 (0,08 s) | 10 | 300 |
+  Le Colosse lance aussi des projectiles dans l'original : ici il reste en mêlée.
+- **Régénération** (`monster_regen.gd`, serveur) : `regen_delay_s` (-1 = aucune) sans dégâts, puis `regen_per_s` PV/s ; un coup relance le délai. La vie est répliquée par le MonsterSync (ON_CHANGE).
+- **Salves** : `ranged_burst_count` projectiles espacés de `ranged_burst_interval_s` (`monster_projectiles.gd`), dispersion aléatoire ± 1,5° entre projectiles dès qu'il y en a plus d'un.
+- **XP de kit** : `MonsterData.xp × Config.economy.kit_xp_monster_scale` (0,05), minimum 1 ; sans `xp`, ancienne valeur fixe `kit_xp_monster_kill`. Le monstre est retrouvé par `Events.monster_killed(id)` -> `data/monsters/<id>.tres`.
+- **Nouvelles créatures** (robots, à distance, camps) : Gardien (`gardien_1`, camp 1), Gardien d'élite (`gardien_2`), Gardien écarlate (`gardien_3`), Guetteur (tireur d'élite, 125 dégâts, visée 1,5 s). Les 3 derniers sont dans le camp 2 (0 à 1 chacun). Gardiens : palier blanc / jaune / rouge, salves de 5 (7 pour l'écarlate). Valeurs d'origine : PV, dégâts, salve, crédits, XP. **Estimées** : portées, préparation, délai, vitesses, détection, rayon, hauteur, vitesse de projectile.
+- Modèles Alien_Cyclop / Alien_Scolitex : seule l'animation « Alien_Idle » existe (pas de marche ni d'attaque) ; `monster_visual.gd` l'utilise comme repos. Les monstres glissent donc sans animation de marche.
 
 ## Reste à faire
 - Animation de mort des monstres (ils disparaissent aujourd'hui).

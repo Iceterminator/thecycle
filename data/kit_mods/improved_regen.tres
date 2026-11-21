@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"improved_regen"
+display_name = "Régénération améliorée"
+description = "+20 % de régénération de santé, délai -20 %, mais capacités 20 % plus lentes."
+tier = 2
+effects = {
+"ability_cooldown_mult": 0.2,
+"health_regen_delay_mult": -0.2,
+"health_regen_mult": 0.2
+}

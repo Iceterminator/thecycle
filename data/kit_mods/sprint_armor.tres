@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"sprint_armor"
+display_name = "Course blindée"
+description = "-20 % de dégâts subis en sprint."
+tier = 2
+effects = {
+"sprint_damage_taken_mult": -0.2
+}

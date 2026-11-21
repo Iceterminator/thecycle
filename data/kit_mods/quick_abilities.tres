@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"quick_abilities"
+display_name = "Capacités rapides"
+description = "Recharge des capacités -15 s, vitesse de déplacement -0,195 m/s."
+tier = 3
+effects = {
+"ability_cooldown_add": -15.0,
+"move_speed_add": -0.195
+}

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"karla_body_2"
+display_name = "Chambre de précision"
+description = "+54 % recul, +150 % dégâts, -100 dégâts de zone"
+weapon_id = &"karla"
+slot = 2
+mult = {"recoil_deg": 1.54, "damage": 2.5}
+add = {"aoe_damage": -100.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Precision Chamber"
+notes = ""

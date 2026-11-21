@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"k28_autopistol_body_1"
+display_name = "Tout automatique"
+description = "+53 % recul, +18 % cadence, -10 % dégâts, +25 % dispersion"
+weapon_id = &"k28_autopistol"
+slot = 2
+mult = {"recoil_deg": 1.53, "fire_interval_s": 0.85, "damage": 0.9, "hip_spread_deg": 1.25}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Full Auto"
+notes = ""

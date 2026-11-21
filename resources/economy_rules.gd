@@ -20,6 +20,7 @@ extends Resource
 @export var kit_level_xp: Array[int] = []  ## XP cumulée pour les niveaux de kit 2 à 6
 @export var kit_xp_player_kill: int  ## XP de kit par joueur tué
 @export var kit_xp_monster_kill: int  ## XP de kit par monstre tué
+@export var kit_xp_monster_scale: float = 0.05  ## XP de kit d'un monstre = son xp (MonsterData) × ce facteur
 @export var kit_xp_per_objective_point: float  ## XP de kit par point d'objectif
 @export var kit_xp_per_fame: float  ## XP de kit par point de Fame
 @export var rep_levels: Array[int] = []  ## réputation cumulée pour les niveaux de faction 1 à 10

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="KitModData" format=3]
+
+[ext_resource type="Script" path="res://resources/kit_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kill_damage"
+display_name = "Rage du chasseur"
+description = "+10 % de dégâts par élimination (joueur ou monstre), jusqu'à 4 cumuls ; chaque cumul s'efface après 10 s."
+tier = 1
+effects = {
+"kill_damage_bonus": 0.1,
+"kill_damage_duration_s": 10.0,
+"kill_damage_max_stacks": 4.0
+}

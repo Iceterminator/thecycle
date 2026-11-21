@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_bqhbv")
+radius_m = 10.0
 id = &"healing_aura"
 display_name = "Aura de soin"
 reference_name = "Healing Aura"
@@ -12,7 +13,7 @@ faction_level = 2
 category = 11
 cooldown_s = 40.0
 duration_s = 10.0
-heal_per_s = 15.0
+heal_per_s = 35.0
 buff = {
 "heal_per_s": 15.0
 }

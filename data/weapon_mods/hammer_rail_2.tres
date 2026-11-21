@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"hammer_rail_2"
+display_name = "Lunette x2"
+description = "lunette x2, +100 % visée"
+weapon_id = &"hammer"
+slot = 0
+mult = {"ads_time_s": 2.0}
+add = {}
+overrides = {"scope_zoom": 2.0}
+flags = PackedStringArray()
+reference_name = "2x Scope"
+notes = ""

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kor_47_body_1"
+display_name = "Tir en rafale"
+description = "-77 % recul, -68 % cadence, +2 tirs par rafale"
+weapon_id = &"kor_47"
+slot = 2
+mult = {"recoil_deg": 0.228, "fire_interval_s": 3.089}
+add = {"burst_count": 2.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Burst Fire"
+notes = "Interval Per Burst 0.1/+1.1 ignoré"

@@ -9,4 +9,4 @@ id = &"kheper_revitalizer"
 display_name = "Rayon vital"
 weapon = ExtResource("2_3n21l")
 color = Color(0.4, 1, 0.55, 1)
-price = 250
+price = 100

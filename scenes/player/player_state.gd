@@ -3,19 +3,33 @@ extends RefCounted
 ## Fonctions statiques appelées par Player, qui garde les RPC, les signaux et les propriétés.
 
 
-## Mod d'arme choisi par ce joueur pour cette arme (lobby, étape 9), ou null.
-static func weapon_mod(p: Player, wdata: WeaponData) -> WeaponModData:
-	if wdata == null:
-		return null
-	return WeaponModData.get_mod(String(ProfileManager.weapon_mods(p.get_peer_id()).get(String(wdata.id), "")))
+## Cache des armes modifiées : "peer|arme|mods" -> WeaponData (copie), partagé serveur / clients.
+static var _modded_cache: Dictionary = {}
 
 
-## Taille de chargeur de cette arme pour ce joueur (mod « chargeur étendu » compris).
+## Arme `base` telle que ce joueur la joue : copie avec ses mods du profil (lobby), ou `base`
+## sans mod. Idempotent : une arme déjà modifiée est renvoyée telle quelle.
+static func modded_weapon(p: Player, base: WeaponData) -> WeaponData:
+	if base == null or base.has_meta("modded"):
+		return base
+	var chosen_raw: Variant = ProfileManager.weapon_mods(p.get_peer_id()).get(String(base.id), {})
+	var chosen: Dictionary = chosen_raw if chosen_raw is Dictionary else {}  # ancien format : ignoré
+	if chosen.is_empty():
+		return base
+	var key := "%d|%s|%s" % [p.get_peer_id(), base.id, JSON.stringify(chosen)]
+	if not _modded_cache.has(key):
+		var mods: Array[WeaponModData] = []
+		for slot: String in chosen:
+			var mod := WeaponModData.get_mod(String(chosen[slot]))
+			if mod != null:
+				mods.append(mod)
+		_modded_cache[key] = WeaponModApply.apply(base, mods)
+	return _modded_cache[key]
+
+
+## Taille de chargeur de cette arme pour ce joueur (mod de chargeur compris).
 static func magazine_for(p: Player, wdata: WeaponData) -> int:
-	if wdata == null:
-		return 0
-	var mod := weapon_mod(p, wdata)
-	return maxi(roundi(wdata.magazine * (mod.magazine_mult if mod else 1.0)), 1)
+	return 0 if wdata == null else modded_weapon(p, wdata).magazine
 
 
 ## À terre : un allié peut nous relever (interaction E maintenue) ; tous les peers.

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kbr_longshot_body_1"
+display_name = "Stabilisateur"
+description = "-25 % dispersion, -13 % recul, -13 % cadence"
+weapon_id = &"kbr_longshot"
+slot = 2
+mult = {"hip_spread_deg": 0.75, "recoil_deg": 0.87, "fire_interval_s": 1.15}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Stabilizer"
+notes = ""

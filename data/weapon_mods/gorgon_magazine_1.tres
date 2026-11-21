@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"gorgon_magazine_1"
+display_name = "Batterie lourde"
+description = "+4 % chargeur"
+weapon_id = &"gorgon"
+slot = 3
+mult = {"magazine": 1.04}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Heavy Battery"
+notes = ""

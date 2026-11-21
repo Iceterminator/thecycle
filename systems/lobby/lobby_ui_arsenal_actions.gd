@@ -3,6 +3,7 @@ extends RefCounted
 ## Modifie l'état de l'équipement de LobbyUi puis appelle lobby._changed().
 
 const W := preload("res://systems/lobby/lobby_ui_widgets.gd")
+const KitMods := preload("res://systems/lobby/lobby_ui_kit_mods.gd")
 const DIM := UiStyle.DIM
 
 
@@ -44,18 +45,8 @@ static func _kit_actions(lobby: LobbyUi, box: VBoxContainer, e: Dictionary, unlo
 	box.add_child(W.action("Kit équipé ✔" if equipped else "Équiper ce kit", unlocked and not equipped, func() -> void:
 		lobby._kit_id = id
 		lobby._changed()))
-	var k: KitData = e["kit"]
-	if k.mods.is_empty():
-		return
-	box.add_child(W.label("MODS DU KIT" + ("" if equipped else " — équipez le kit pour en choisir un"), 14, DIM))
-	for m: Dictionary in k.mods:
-		var mod_id := String(m["id"])
-		var mod_ok := KitController.mod_unlocked(lobby._me(), k, mod_id)
-		var current := String(lobby._kit_mods.get(id, "")) == mod_id
-		var text := "%s%s" % [String(m.get("effect", mod_id)), "" if mod_ok else "   [%s]" % FactionData.lock_text(int(k.faction), int(m.get("unlock_level", 0)))]
-		box.add_child(W.action(("✔ " if current else "") + text, mod_ok and equipped, func() -> void:
-			lobby._kit_mods[id] = "" if current else mod_id
-			lobby._changed()))
+	box.add_child(W.label("MODS DU KIT" + ("" if equipped else " — équipez le kit pour les choisir"), 14, DIM))
+	box.add_child(KitMods.options(lobby, id, equipped))
 
 
 ## Case visée : celle choisie dans l'onglet Équipement, sinon la première vide du bon type.
@@ -67,23 +58,46 @@ static func _target_case(lobby: LobbyUi, is_weapon: bool) -> int:
 	return list.find("")
 
 
-static func weapon_mod_option(lobby: LobbyUi, weapon_id: String) -> OptionButton:
-	var mods := WeaponModData.all()
+## Une liste déroulante par emplacement qui a des mods (« Aucun » + mods), infobulle = description.
+static func weapon_mod_option(lobby: LobbyUi, weapon_id: String) -> Control:
+	var box := VBoxContainer.new()
+	var mods := WeaponModData.for_weapon(StringName(weapon_id))
+	if mods.is_empty():
+		box.add_child(W.label("Aucun mod pour cette arme", 15, Color(1, 1, 1, 0.5)))
+		return box
+	for slot in WeaponModData.SLOT_NAMES.size():
+		var slot_mods := mods.filter(func(m: WeaponModData) -> bool: return int(m.slot) == slot)
+		if not slot_mods.is_empty():
+			box.add_child(_slot_option(lobby, weapon_id, slot, slot_mods))
+	return box
+
+
+static func _slot_option(lobby: LobbyUi, weapon_id: String, slot: int, slot_mods: Array) -> Control:
+	var row := HBoxContainer.new()
+	var label := W.label(WeaponModData.SLOT_NAMES[slot], 15, Color(1, 1, 1, 0.8))
+	label.custom_minimum_size.x = 90
+	row.add_child(label)
 	var opt := OptionButton.new()
-	opt.add_item("Aucun mod")
-	var current := String(lobby._weapon_mods.get(weapon_id, ""))
-	for i in mods.size():
-		var m := mods[i]
-		var lock := lobby._lock_text(m.faction, m.faction_level)
-		opt.add_item(m.display_name + ("   [%s]" % FactionData.lock_text(m.faction, m.faction_level) if lock != "" else ""))
-		opt.set_item_disabled(i + 1, lock != "")
+	opt.add_item("Aucun")
+	var chosen: Dictionary = lobby._weapon_mods.get(weapon_id, {})
+	var current := String(chosen.get(str(slot), ""))
+	for i in slot_mods.size():
+		var m: WeaponModData = slot_mods[i]
+		opt.add_item(m.display_name)
 		opt.set_item_tooltip(i + 1, m.description)
 		if String(m.id) == current:
 			opt.select(i + 1)
+	opt.tooltip_text = "" if opt.selected <= 0 else (slot_mods[opt.selected - 1] as WeaponModData).description
 	opt.item_selected.connect(func(index: int) -> void:
+		var picked: Dictionary = lobby._weapon_mods.get(weapon_id, {}).duplicate()
 		if index <= 0:
+			picked.erase(str(slot))
+		else:
+			picked[str(slot)] = String((slot_mods[index - 1] as WeaponModData).id)
+		if picked.is_empty():
 			lobby._weapon_mods.erase(weapon_id)
 		else:
-			lobby._weapon_mods[weapon_id] = String(mods[index - 1].id)
+			lobby._weapon_mods[weapon_id] = picked
 		lobby._changed())
-	return opt
+	row.add_child(opt)
+	return row

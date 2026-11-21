@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"karla_magazine_2"
+display_name = "Obus profilés"
+description = "+50 % vitesse du projectile, -150 dégâts de zone"
+weapon_id = &"karla"
+slot = 3
+mult = {"projectile_speed_mps": 1.5}
+add = {"aoe_damage": -150.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Aerodynamic Shells"
+notes = "spread_increase_pct -100/-100 ignoré ; damage -200/-200 ignoré"

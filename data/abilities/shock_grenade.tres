@@ -4,13 +4,17 @@
 
 [resource]
 script = ExtResource("1_mmgv0")
+faction_level = 7
+faction = 3
+damage = 300.0
+delay_s = 3.0
 id = &"shock_grenade"
 display_name = "Grenade à choc"
 reference_name = "Shock Grenade"
 category = 0
-cooldown_s = 20.0
+cooldown_s = 25.0
 duration_s = 3.0
-radius_m = 4.0
+radius_m = 6.0
 damage_per_s = 60.0
 activation = "Appuyer : lance une grenade en arc ; elle rebondit, se pose, puis émet des décharges électriques."
 effects = PackedStringArray("Dégâts électriques continus pendant 3 s dans 4 m après l\'atterrissage")

@@ -40,8 +40,8 @@ var _world: Node
 var _preferred: int = 0
 var _appearance: String = ""          # id de data/appearances/, "" = automatique
 var _kit_id: String = String(Config.start_loadout.default_kit)
-var _kit_mods: Dictionary = {}       # id de kit -> id de mod
-var _weapon_mods: Dictionary = {}    # id d'arme -> id de mod
+var _kit_mods: Dictionary = {}       # id de kit -> { "core" / "1" / "2" / "3" -> id de mod }
+var _weapon_mods: Dictionary = {}    # id d'arme -> { emplacement (texte) -> id de mod }
 var _start_weapon: String = String(Config.start_loadout.base_weapon)
 var _shop_weapons: Array = []
 var _shop_gadgets: Array = []
@@ -154,7 +154,7 @@ func _entry(id: String) -> Dictionary:
 	return Access.entry(_catalog, id)
 
 
-func _weapon_mod_option(weapon_id: String) -> OptionButton:
+func _weapon_mod_option(weapon_id: String) -> Control:
 	return ArsenalActions.weapon_mod_option(self, weapon_id)
 
 

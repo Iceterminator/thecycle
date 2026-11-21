@@ -54,7 +54,7 @@ func punch(dir: Vector3) -> void:
 		return
 	dir = Vector3(dir.x, 0, dir.z).normalized()
 	var best: Node3D = null
-	var best_dist := Config.combat.melee_range
+	var best_dist := Config.combat.melee_range * (1.0 + kit.get_effect("punch_radius_mult"))
 	for node in _m.get_tree().get_nodes_in_group("damageable"):
 		var target := node as Node3D
 		if target == null or target == player or not target.can_be_hit():

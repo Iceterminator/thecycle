@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kbr_longshot_magazine_4"
+display_name = "Balles explosives"
+description = "-50 % dégâts, -33 % cadence, +60 dégâts de zone, +2 m rayon d'explosion, explose à l'impact"
+weapon_id = &"kbr_longshot"
+slot = 3
+mult = {"damage": 0.5, "fire_interval_s": 1.501}
+add = {"aoe_damage": 60.0, "aoe_radius_m": 2.0}
+overrides = {}
+flags = PackedStringArray("explode_on_impact")
+reference_name = "Explosive Rounds"
+notes = "Radius 200/+200 ignoré ; Release 14 : zone fixe, dégâts directs 50 %"

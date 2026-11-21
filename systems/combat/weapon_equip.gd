@@ -40,7 +40,12 @@ func on_inventory_changed() -> void:
 
 
 func _equip_time() -> float:
-	return _w.data.equip_time_s if _w.data.equip_time_s > 0.0 else Config.WEAPON_SWITCH_TIME
+	return (_w.data.equip_time_s if _w.data.equip_time_s > 0.0 else Config.WEAPON_SWITCH_TIME) * handling("equip")
+
+
+## Facteur des mods de kit sur un temps de maniement (« reload », « ads », « equip », « recoil »).
+func handling(kind: String) -> float:
+	return _w.player.kit.combat.handling_mult(kind, _w.data) if _w.player.kit else 1.0
 
 
 ## Réapparition (serveur) : repart d'un état propre.
@@ -58,4 +63,4 @@ func server_start_reload() -> void:
 	_w._srv.trigger_ms = 0
 	# 10 % de marge : la demande de rechargement et les tirs suivants n'arrivent
 	# pas forcément avec le même délai.
-	_w._srv.reload_end_ms = Time.get_ticks_msec() + int(_w.data.reload_s * 900.0)
+	_w._srv.reload_end_ms = Time.get_ticks_msec() + int(_w.data.reload_s * handling("reload") * 900.0)

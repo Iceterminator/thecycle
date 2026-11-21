@@ -11,6 +11,7 @@ var _anim_last_pos: Vector3
 var _anim_speed := 0.0
 var _anim_last_health := -1.0
 var _hit_left := 0.0
+var _idle_name := "Idle"  ## certains modèles (aliens) n'ont que « Alien_Idle »
 ## Loin de la caméra (au-delà de ANIM_DISTANCE, vérifié toutes les ANIM_CHECK s) : animation en pause.
 const ANIM_DISTANCE := 70.0
 const ANIM_CHECK := 0.5
@@ -60,7 +61,7 @@ func animate(delta: float) -> void:
 		_hit_left = 0.3
 	_anim_last_health = _m.health
 	_hit_left -= delta
-	var anim_name := "Idle"
+	var anim_name := _idle_name
 	if _m.state == Monster.State.WINDUP:
 		anim_name = "Attack"
 	elif _hit_left > 0.0:
@@ -70,7 +71,7 @@ func animate(delta: float) -> void:
 	elif _anim_speed > 0.3:
 		anim_name = "Walk"
 	if not _anim.has_animation(anim_name):
-		anim_name = "Idle"
+		anim_name = _idle_name
 	if _anim.current_animation != anim_name:
 		_anim.play(anim_name, 0.15)
 
@@ -122,7 +123,10 @@ func _build_model() -> void:
 		for anim_name: String in ["Idle", "Walk", "Run"]:
 			if _anim.has_animation(anim_name):
 				_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
-		_anim.play("Idle")
+		if not _anim.has_animation(_idle_name) and _anim.has_animation("Alien_Idle"):
+			_idle_name = "Alien_Idle"
+			_anim.get_animation(_idle_name).loop_mode = Animation.LOOP_LINEAR
+		_anim.play(_idle_name)
 	# Flash de préparation du coup : voile rouge par-dessus le modèle.
 	_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

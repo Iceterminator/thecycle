@@ -10,8 +10,8 @@ reference_name = "Cloaking Device"
 faction = 3
 faction_level = 7
 category = 4
-cooldown_s = 45.0
-duration_s = 12.0
+cooldown_s = 30.0
+duration_s = 10.0
 buff = {
 "cloak": 0.95,
 "cloak_breaks_on_fire": 1.0

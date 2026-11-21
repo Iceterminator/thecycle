@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"gorgon_body_2"
+display_name = "Résistance croisée"
+description = "-14 tirs par rafale"
+weapon_id = &"gorgon"
+slot = 2
+mult = {}
+add = {"burst_count": -14.0}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Crossed Resistor"
+notes = "damage null/-2 ignoré"

@@ -41,6 +41,10 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var is_crouching: bool = false
 ## En l'air (saut, chute, jetpack) : synchronisé pour l'animation vue par les autres.
 var is_airborne: bool = false
+## En sprint (au sol, en avançant) : synchronisé pour « Course blindée » (dégâts calculés par le serveur).
+var is_sprinting: bool = false
+## Vitesse horizontale (m/s) : lue sur la vitesse du joueur local, estimée par le serveur sur la position des autres (dispersion en mouvement).
+var ground_speed: float = 0.0
 var avatar: PlayerAvatar
 ## À bord de l'évac (décidé par le serveur, envoyé par set_evacuated) : spectateur
 ## intouchable, ne tire plus, n'interagit plus, vole librement.
@@ -92,6 +96,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	_motion.apply_crouch_shape(delta)
 	_motion.apply_cloak()
+	_motion.estimate_ground_speed(delta)
 
 func _physics_process(delta: float) -> void:
 	# Capsule de largage : figé, trajectoire de DropPodRide (dans la salle de briefing, on marche).
@@ -107,9 +112,9 @@ func _physics_process(delta: float) -> void:
 	_motion.step(delta)
 
 
-## Mod d'arme choisi par ce joueur pour cette arme (lobby, étape 9), ou null.
-func weapon_mod(wdata: WeaponData) -> WeaponModData:
-	return PlayerState.weapon_mod(self, wdata)
+## Arme telle que ce joueur la joue (copie avec ses mods d'arme, voir PlayerState.modded_weapon).
+func modded_weapon(wdata: WeaponData) -> WeaponData:
+	return PlayerState.modded_weapon(self, wdata)
 
 
 ## Arme de départ (profil, choisie dans le lobby) ; Config.start_loadout.base_weapon sinon.
@@ -117,7 +122,7 @@ func start_weapon_id() -> StringName:
 	return ProfileManager.start_weapon(get_peer_id())
 
 
-## Taille de chargeur de cette arme pour ce joueur (mod « chargeur étendu » compris).
+## Taille de chargeur de cette arme pour ce joueur (mod de chargeur compris).
 func magazine_for(wdata: WeaponData) -> int:
 	return PlayerState.magazine_for(self, wdata)
 

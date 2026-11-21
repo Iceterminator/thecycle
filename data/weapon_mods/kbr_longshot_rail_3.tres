@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"kbr_longshot_rail_3"
+display_name = "Lunette x8"
+description = "lunette x8, +50 % visée, +15 % sortie de l'arme"
+weapon_id = &"kbr_longshot"
+slot = 0
+mult = {"ads_time_s": 1.5, "equip_time_s": 1.15}
+add = {}
+overrides = {"scope_zoom": 8.0}
+flags = PackedStringArray()
+reference_name = "8x Scope"
+notes = ""

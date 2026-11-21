@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"bulldog_magazine_1"
+display_name = "Plombs déchiqueteurs"
+description = "-20 % portée, +20 % point faible"
+weapon_id = &"bulldog"
+slot = 3
+mult = {"range": 0.8, "weakspot_multiplier": 1.2}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Shredder Pellets"
+notes = ""

@@ -4,15 +4,16 @@
 
 [resource]
 script = ExtResource("1_304uc")
+radius_m = 30.0
 id = &"heavy_turret"
 display_name = "Tourelle lourde"
 reference_name = "Heavy Turret"
 faction = 1
-faction_level = 2
+faction_level = 1
 category = 2
-cooldown_s = 60.0
+cooldown_s = 50.0
 duration_s = 90.0
-damage = 25.0
+damage = 60.0
 health = 600.0
 rpm = 300.0
 range_m = 40.0

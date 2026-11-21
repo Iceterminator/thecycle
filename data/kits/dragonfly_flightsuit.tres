@@ -11,7 +11,7 @@ faction = 3
 faction_level = 1
 health = 500.0
 shield = 500.0
-move_speed_mps = 4.4
+move_speed_mps = 3.9
 mobility_type = 1
 movement = {
 "dive_attack": {
@@ -28,8 +28,8 @@ movement = {
 "air_control": 1.0,
 "fuel_consumption_per_s": 35.0,
 "fuel_max": 100.0,
-"fuel_regen_delay_s": 1.0,
-"fuel_regen_per_s": 25.0,
+"fuel_regen_delay_s": 1.5,
+"fuel_regen_per_s": 10.0,
 "max_vertical_speed_mps": 6.0,
 "thrust_acceleration_mps2": 18.0
 }
@@ -51,21 +51,41 @@ level_perk_effects = Array[Dictionary]([{
 "creature_damage": 0.2
 }])
 mods = Array[Dictionary]([{
-"effect": "Vol plus long mais poussée plus faible (fuel_consumption -30 %, thrust -25 %)",
-"effects": {
-"fuel_consumption_mult": -0.3,
-"thrust_mult": -0.25
-},
-"id": "slow_and_steady",
-"unlock_level": 3
-}, {
-"effect": "Poussée beaucoup plus forte mais grosse consommation (thrust +50 %, fuel_consumption +60 %)",
+"effect": "Poussée +50 %, consommation de carburant +60 %.",
 "effects": {
 "fuel_consumption_mult": 0.6,
 "thrust_mult": 0.5
 },
 "id": "catapult",
+"name": "Catapulte",
+"unlock_level": 3
+}, {
+"effect": "Poussée -25 %, consommation de carburant -30 %.",
+"effects": {
+"fuel_consumption_mult": -0.3,
+"thrust_mult": -0.25
+},
+"id": "slow_and_steady",
+"name": "Croisière",
 "unlock_level": 5
+}, {
+"effect": "La plongée se déclenche avec un angle plus faible (-40 %).",
+"effects": {
+"dive_min_angle_mult": -0.4
+},
+"id": "dive_angle",
+"name": "Angle de piqué",
+"unlock_level": 7
+}, {
+"effect": "En l'air et en visée : descente très lente, pour 15 % de la consommation normale de carburant.",
+"effects": {
+"aim_hover": 1.0,
+"hover_fall_mps": 1.5,
+"hover_fuel_ratio": 0.15
+},
+"id": "aim_to_hover",
+"name": "Vol stationnaire",
+"unlock_level": 9
 }])
 estimated_fields = PackedStringArray("movement.jetpack.fuel_max", "movement.jetpack.fuel_consumption_per_s", "movement.jetpack.fuel_regen_per_s", "movement.jetpack.fuel_regen_delay_s", "movement.jetpack.thrust_acceleration_mps2", "movement.jetpack.max_vertical_speed_mps", "movement.dive_attack.activation", "movement.dive_attack.dive_speed_mps", "movement.dive_attack.damage", "movement.dive_attack.radius_m", "movement.dive_attack.cooldown_s", "movement.dive_attack.pauses_fuel_regen_s", "level_perks[5]", "mods[*].effect (pourcentages)")
 history = "Avant le Release 8 : 600 santé / 300 bouclier."

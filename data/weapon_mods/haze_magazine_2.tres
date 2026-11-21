@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponModData" format=3]
+
+[ext_resource type="Script" path="res://resources/weapon_mod_data.gd" id="1_mod"]
+
+[resource]
+script = ExtResource("1_mod")
+id = &"haze_magazine_2"
+display_name = "Réacteur à matière solide"
+description = "+100 % vitesse du projectile, -20 % chargeur"
+weapon_id = &"haze"
+slot = 3
+mult = {"projectile_speed_mps": 2.0, "magazine": 0.8}
+add = {}
+overrides = {}
+flags = PackedStringArray()
+reference_name = "Solid Matter Reactor"
+notes = ""
